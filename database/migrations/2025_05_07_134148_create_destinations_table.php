@@ -29,7 +29,7 @@ class CreateDestinationsTable extends Migration
             // ===== Lokasi Peta =====
             $table->decimal('latitude', 10, 7)->nullable();   // Contoh: -10.176627
             $table->decimal('longitude', 10, 7)->nullable();  // Contoh: 123.607007
-            $table->string('maps_url')->nullable();           // Contoh: https://goo.gl/maps/...
+            $table->string('maps_url')->nullable();           // Contoh: https://goo.gl/maps/...Q
 
             // ===== Pembayaran =====
             $table->enum('payment_method', ['transfer', 'qris', 'cash'])->nullable();
