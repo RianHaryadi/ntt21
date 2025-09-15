@@ -3,21 +3,25 @@
 @section('title', $destination->name)
 
 @section('content')
-    <!-- Hero Section with Ken Burns Effect -->
+    <!-- Hero Section with Parallax and Ken Burns Effect -->
     <header x-data="{ scrolled: false }" 
             @scroll.window="scrolled = (window.pageYOffset > 50)"
             class="relative h-screen max-h-[36rem] overflow-hidden bg-gray-900 transition-all duration-300"
             :class="{ 'shadow-2xl': scrolled }">
-        <!-- Background with Ken Burns effect -->
-        <div class="absolute inset-0 ken-burns" 
-             style="background-image: url('{{ $destination->image ? asset('storage/' . ltrim($destination->image, '/')) : asset('images/fallback.jpg') }}');">
+        <!-- Parallax Background with Ken Burns effect -->
+        <div class="absolute inset-0 bg-cover bg-center ken-burns parallax-bg" 
+             style="background-image: url('{{ $destination->image ? asset('storage/' . ltrim($destination->image, '/')) : asset('images/fallback.jpg') }}');"
+             x-data="{ offsetY: 0 }" 
+             @scroll.window="offsetY = window.pageYOffset * 0.2"
+             :style="{ transform: 'translateY(' + offsetY + 'px)' }">
         </div>
         
-        <!-- Gradient overlay -->
+        <!-- Gradient Overlay -->
         <div class="absolute inset-0 bg-gradient-to-t from-gray-900/85 via-gray-900/30 to-transparent"></div>
         
+        <!-- Hero Content -->
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-end pb-16 text-center relative z-10">
-            <!-- Breadcrumb with animation -->
+            <!-- Breadcrumb -->
             <nav class="hidden md:flex justify-center mb-6" aria-label="Breadcrumb" data-aos="fade-up" data-aos-delay="200">
                 <ol class="inline-flex items-center space-x-2 text-sm font-medium text-white/90">
                     <li class="inline-flex items-center">
@@ -47,10 +51,12 @@
                 </ol>
             </nav>
             
+            <!-- Hero Title -->
             <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 text-white tracking-tight drop-shadow-xl" data-aos="fade-up" data-aos-delay="400">
                 {{ $destination->name }}
             </h1>
             
+            <!-- Location and Category -->
             <div class="flex flex-wrap justify-center items-center gap-x-6 gap-y-3 text-gray-100 text-lg mb-8" data-aos="fade-up" data-aos-delay="600">
                 <div class="flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -68,15 +74,18 @@
                 </span>
             </div>
             
-            <!-- Floating Action Buttons -->
+            <!-- Enhanced CTA Buttons -->
             <div class="flex gap-4 justify-center md:justify-end mb-4" data-aos="fade-up" data-aos-delay="800">
-                <a href="#booking" class="p-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center justify-center">
+                <a href="#booking" class="p-4 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center justify-center group">
+                    <span class="font-semibold mr-2 group-hover:mr-3 transition-all">Book Now</span>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
                 </a>
                 <button @click="navigator.share({ title: '{{ $destination->name }}', url: window.location.href })" 
-                        class="p-3 bg-gray-800/80 text-white rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center justify-center">
+                        class="p-4 bg-gray-800/80 text-white rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center justify-center group"
+                        aria-label="Share this destination">
+                    <span class="font-semibold mr-2 group-hover:mr-3 transition-all">Share</span>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C9.375 12.651 10.325 12.25 11.5 12.25s2.125.401 2.816 1.092m0 0l3.5 3.5m0 0l-3.5 3.5m3.5-3.5H21m-18 0H6.5m12-7.5l-3.5-3.5m0 0l3.5-3.5m-3.5 3.5H3" />
                     </svg>
@@ -89,49 +98,67 @@
     <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <!-- Destination Details Card -->
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden lg:flex transition-all hover:shadow-2xl mb-16" data-aos="fade-up">
-            <!-- Left Section: Image Gallery -->
+            <!-- Left Section: Interactive Image Carousel -->
             <div class="lg:w-1/2 p-6 flex flex-col">
                 <div class="relative rounded-2xl overflow-hidden mb-4 shadow-lg">
-                    <img id="main-image" 
-                         src="{{ $destination->image ? asset('storage/' . ltrim($destination->image, '/')) : asset('images/fallback.jpg') }}"
-                         class="w-full h-96 object-cover transition-all duration-500"
-                         alt="{{ $destination->name }}">
-                    <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
-                        <a id="main-image-lightbox" 
-                           href="{{ $destination->image ? asset('storage/' . ltrim($destination->image, '/')) : asset('images/fallback.jpg') }}" 
-                           data-lightbox="destination-gallery" 
-                           class="text-white bg-black/50 rounded-full p-3 transform hover:scale-110 transition-transform">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5" />
-                            </svg>
-                        </a>
+                    <div x-data="{ currentImage: '{{ $destination->image ? asset('storage/' . ltrim($destination->image, '/')) : asset('images/fallback.jpg') }}' }" 
+                         class="relative">
+                        <img :src="currentImage" 
+                             class="w-full h-96 object-cover transition-all duration-500 lazyload"
+                             alt="{{ $destination->name }}"
+                             x-ref="mainImage">
+                        <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
+                            <a :href="currentImage" 
+                               data-lightbox="destination-gallery" 
+                               class="text-white bg-black/50 rounded-full p-3 transform hover:scale-110 transition-transform"
+                               aria-label="View image in lightbox">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5" />
+                                </svg>
+                            </a>
+                        </div>
                     </div>
                 </div>
 
-                @if(isset($destination->gallery) && is_array($destination->gallery) && count($destination->gallery) > 0)
-                    <div class="grid grid-cols-5 gap-3">
-                        @foreach($destination->gallery as $image)
-                            <a href="{{ asset('storage/' . $image) }}" 
-                               data-lightbox="destination-gallery" 
-                               class="block rounded-lg overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all focus:outline-none focus:border-yellow-500">
-                                <img src="{{ asset('storage/' . $image) }}"
-                                     class="w-full h-20 object-cover cursor-pointer transition-transform hover:scale-105"
-                                     alt="Gallery image {{ $loop->iteration }}"
-                                     onmouseover="document.getElementById('main-image').src = this.src; document.getElementById('main-image-lightbox').href = this.parentElement.href;">
-                            </a>
-                        @endforeach
+                <!-- Thumbnail Carousel -->
+                <div x-data="{ currentIndex: 0 }" class="relative">
+                    <div class="grid grid-cols-5 gap-3 scrollbar-thin overflow-x-auto">
+                        @if(isset($destination->gallery) && is_array($destination->gallery) && count($destination->gallery) > 0)
+                            @foreach($destination->gallery as $index => $image)
+                                <button @click="currentIndex = {{ $index }}; $refs.mainImage.src = '{{ asset('storage/' . $image) }}'; $refs.mainImage.parentElement.href = '{{ asset('storage/' . $image) }}'"
+                                        class="block rounded-lg overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all focus:outline-none focus:border-yellow-500"
+                                        :class="{ 'border-yellow-400': currentIndex === {{ $index }} }">
+                                    <img src="{{ asset('storage/' . $image) }}"
+                                         class="w-full h-20 object-cover cursor-pointer transition-transform hover:scale-105 lazyload"
+                                         alt="Gallery image {{ $loop->iteration }}"
+                                         loading="lazy">
+                                </button>
+                            @endforeach
+                        @else
+                            <button class="block rounded-lg overflow-hidden border-2 border-yellow-400">
+                                <img src="{{ $destination->image ? asset('storage/' . ltrim($destination->image, '/')) : asset('images/fallback.jpg') }}"
+                                     class="w-full h-20 object-cover"
+                                     alt="{{ $destination->name }}"
+                                     loading="lazy">
+                            </button>
+                        @endif
                     </div>
-                @else
-                    <div class="grid grid-cols-5 gap-3">
-                        <a href="{{ $destination->image ? asset('storage/' . ltrim($destination->image, '/')) : asset('images/fallback.jpg') }}" 
-                           data-lightbox="destination-gallery" 
-                           class="block rounded-lg overflow-hidden border-2 border-yellow-400">
-                            <img src="{{ $destination->image ? asset('storage/' . ltrim($destination->image, '/')) : asset('images/fallback.jpg') }}"
-                                 class="w-full h-20 object-cover"
-                                 alt="{{ $destination->name }}">
-                        </a>
-                    </div>
-                @endif
+                    <!-- Carousel Navigation -->
+                    <button @click="currentIndex = currentIndex > 0 ? currentIndex - 1 : {{ count($destination->gallery ?? []) - 1 }}; $refs.mainImage.src = document.querySelectorAll('.grid button img')[currentIndex].src"
+                            class="absolute left-0 top-1/2 -translate-y-1/2 bg-gray-800/50 p-2 rounded-full text-white hover:bg-gray-800 transition-all"
+                            aria-label="Previous image">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <button @click="currentIndex = currentIndex < {{ count($destination->gallery ?? []) - 1 }} ? currentIndex + 1 : 0; $refs.mainImage.src = document.querySelectorAll('.grid button img')[currentIndex].src"
+                            class="absolute right-0 top-1/2 -translate-y-1/2 bg-gray-800/50 p-2 rounded-full text-white hover:bg-gray-800 transition-all"
+                            aria-label="Next image">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
             </div>
             
             <!-- Right Section: Details -->
@@ -225,9 +252,7 @@
                         <h4 class="font-semibold text-gray-800">Popularity</h4>
                         <p class="text-sm text-gray-500">High</p>
                     </div>
-                    <div class="bg
-
--gray-50 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                    <div class="bg-gray-50 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <div class="bg-yellow-100 text-yellow-600 rounded-full h-12 w-12 flex items-center justify-center mx-auto mb-3">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" />
@@ -320,7 +345,7 @@
                     </svg>
                     Location Map
                 </h3>
-                <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden relative">
                     <iframe 
                         class="w-full h-96"
                         frameborder="0"
@@ -328,52 +353,155 @@
                         marginheight="0"
                         marginwidth="0"
                         src="https://maps.google.com/maps?q={{ $destination->latitude }},{{ $destination->longitude }}&z=15&output=embed&markers={{ $destination->latitude }},{{ $destination->longitude }}"
-                        allowfullscreen>
+                        allowfullscreen
+                        aria-label="Map of {{ $destination->name }}">
                     </iframe>
+                    <!-- Zoom Controls -->
+                    <div class="absolute top-4 right-4 flex flex-col gap-2">
+                        <button class="bg-white/80 p-2 rounded-full shadow-md hover:bg-white transition-all" 
+                                onclick="document.querySelector('iframe').contentWindow.postMessage('zoom_in', '*')"
+                                aria-label="Zoom in">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </button>
+                        <button class="bg-white/80 p-2 rounded-full shadow-md hover:bg-white transition-all" 
+                                onclick="document.querySelector('iframe').contentWindow.postMessage('zoom_out', '*')"
+                                aria-label="Zoom out">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
+        
+        <!-- Testimonials Section -->
+        @if($destination->testimonials && count($destination->testimonials) > 0)
+            <div class="mb-16" data-aos="fade-up" data-aos-delay="400">
+                <h3 class="text-3xl font-extrabold text-gray-900 mb-8 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                    </svg>
+                    Traveler Reviews
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    @foreach($destination->testimonials as $testimonial)
+                        <div class="bg-white rounded-2xl shadow-lg p-6 transition-all hover:shadow-xl">
+                            <div class="flex items-center mb-4">
+                                <img src="{{ $testimonial->user->avatar ? asset('storage/' . $testimonial->user->avatar) : asset('images/default-avatar.jpg') }}"
+                                     class="w-12 h-12 rounded-full object-cover mr-3"
+                                     alt="{{ $testimonial->user->name }} avatar">
+                                <div>
+                                    <h4 class="font-semibold text-gray-900">{{ $testimonial->user->name }}</h4>
+                                    <div class="flex items-center">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 {{ $i <= $testimonial->rating ? 'text-yellow-500' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                            </svg>
+                                        @endfor
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm italic">"{{ $testimonial->comment }}"</p>
+                            <p class="text-gray-500 text-xs mt-2">{{ $testimonial->created_at->diffForHumans() }}</p>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         @endif
         
         <!-- Tour Packages Section -->
-        @if($destination->tourPackages->count() > 0)
-            <div class="mb-16" data-aos="fade-up" data-aos-delay="600">
+       @if($destination->tourPackages->count() > 0)
+    <div class="mb-16" data-aos="fade-up" data-aos-delay="600">
+        <h3 class="text-3xl font-extrabold text-gray-900 mb-8 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            Tour Packages
+        </h3>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            @foreach($destination->tourPackages as $tourPackage)
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden transition-all hover:shadow-xl hover:-translate-y-2 duration-300">
+                    <a href="{{ route('paket-tours.show', $tourPackage->id) }}" class="block">
+                        <div class="relative h-56 overflow-hidden">
+                            <img src="{{ $tourPackage->thumbnail ? asset('storage/' . ltrim($tourPackage->thumbnail, '/')) : asset('images/fallback.jpg') }}" 
+                                 class="w-full h-full object-cover transition-transform duration-500 hover:scale-110 lazyload" 
+                                 alt="{{ $tourPackage->name }}"
+                                 loading="lazy">
+                            <div class="absolute top-3 right-3 bg-white/80 backdrop-blur px-2 py-1 rounded-full text-xs font-medium">
+                                {{ $tourPackage->days }} Hari
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <h4 class="font-bold text-lg text-gray-900 mb-1">{{ $tourPackage->name }}</h4>
+                            <div class="flex items-center text-sm text-gray-500 mb-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                {{ $tourPackage->location }}
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-bold text-gray-900">Rp {{ number_format($tourPackage->price, 0, ',', '.') }} <span class="text-sm font-normal text-gray-500">/ orang</span></span>
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-500 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                    <span class="text-sm font-medium">{{ $tourPackage->rating }}</span>
+                                    <span class="text-xs text-gray-500 ml-1">({{ $tourPackage->rating_count }})</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            @endforeach
+        </div>
+    </div>
+@endif
+        
+        <!-- Related Destinations Section -->
+        @if($destination->relatedDestinations && count($destination->relatedDestinations) > 0)
+            <div class="mb-16" data-aos="fade-up" data-aos-delay="800">
                 <h3 class="text-3xl font-extrabold text-gray-900 mb-8 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    Tour Packages
+                    Explore Similar Destinations
                 </h3>
-                
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    @foreach($destination->tourPackages as $tourPackage)
+                    @foreach($destination->relatedDestinations as $related)
                         <div class="bg-white rounded-2xl shadow-lg overflow-hidden transition-all hover:shadow-xl hover:-translate-y-2 duration-300">
-                            <a href="{{ route('paket-tours.show', $tourPackage->id) }}" class="block">
+                            <a href="{{ route('destinations.show', $related->id) }}" class="block">
                                 <div class="relative h-56 overflow-hidden">
-                                    <img src="{{ $tourPackage->thumbnail ? asset('storage/' . ltrim($tourPackage->thumbnail, '/')) : asset('images/fallback.jpg') }}" 
-                                         class="w-full h-full object-cover transition-transform duration-500 hover:scale-110" 
-                                         alt="{{ $tourPackage->name }}">
-                                    <div class="absolute top-3 right-3 bg-white/80 backdrop-blur px-2 py-1 rounded-full text-xs font-medium">
-                                        {{ $tourPackage->days }} Days
-                                    </div>
+                                    <img src="{{ $related->image ? asset('storage/' . ltrim($related->image, '/')) : asset('images/fallback.jpg') }}" 
+                                         class="w-full h-full object-cover transition-transform duration-500 hover:scale-110 lazyload" 
+                                         alt="{{ $related->name }}"
+                                         loading="lazy">
                                 </div>
                                 <div class="p-5">
-                                    <h4 class="font-bold text-lg text-gray-900 mb-1">{{ $tourPackage->name }}</h4>
+                                    <h4 class="font-bold text-lg text-gray-900 mb-1">{{ $related->name }}</h4>
                                     <div class="flex items-center text-sm text-gray-500 mb-3">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                         </svg>
-                                        {{ $tourPackage->location }}
+                                        {{ $related->location }}
                                     </div>
                                     <div class="flex items-center justify-between">
-                                        <span class="text-lg font-bold text-gray-900">${{ $tourPackage->price }} <span class="text-sm font-normal text-gray-500">/ person</span></span>
-                                        <div class="flex items-center">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-500 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                            </svg>
-                                            <span class="text-sm font-medium">{{ $tourPackage->rating }}</span>
-                                            <span class="text-xs text-gray-500 ml-1">({{ $tourPackage->rating_count }})</span>
-                                        </div>
+                                        <span class="text-sm font-medium text-gray-600">{{ $related->category }}</span>
+                                        @if($related->rating)
+                                            <div class="flex items-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-500 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                                <span class="text-sm font-medium">{{ $related->rating }}</span>
+                                                <span class="text-xs text-gray-500 ml-1">({{ $related->rating_count }})</span>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </a>
@@ -398,6 +526,10 @@
             animation: kenburns-animation 20s ease-out infinite;
         }
 
+        .parallax-bg {
+            will-change: transform;
+        }
+
         @keyframes kenburns-animation {
             0% {
                 transform: scale(1) translate(0, 0);
@@ -413,6 +545,7 @@
         /* Custom Scrollbar */
         .scrollbar-thin::-webkit-scrollbar {
             height: 8px;
+            width: 8px;
         }
 
         .scrollbar-thin::-webkit-scrollbar-track {
@@ -428,17 +561,58 @@
         .scrollbar-thin::-webkit-scrollbar-thumb:hover {
             background: #9ca3af;
         }
+
+        /* Lazy Load Placeholder */
+        .lazyload {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .lazyload.loaded {
+            opacity: 1;
+        }
+
+        /* Hover Effects */
+        .group:hover .group-hover\:mr-3 {
+            margin-right: 0.75rem;
+        }
+
+        /* Accessibility */
+        [aria-label] {
+            outline: none;
+        }
+
+        [aria-label]:focus {
+            outline: 2px solid #2563eb;
+            outline-offset: 2px;
+        }
     </style>
 
     <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.3.2/lazysizes.min.js" async></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             AOS.init({
                 duration: 800,
                 once: true,
+            });
+
+            // Lazy load images
+            document.querySelectorAll('.lazyload').forEach(img => {
+                img.addEventListener('load', () => img.classList.add('loaded'));
+            });
+
+            // Accessibility: Keyboard navigation for carousel
+            document.querySelectorAll('.grid button').forEach(button => {
+                button.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        button.click();
+                    }
+                });
             });
         });
     </script>

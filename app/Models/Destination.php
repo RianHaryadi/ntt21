@@ -16,11 +16,11 @@ class Destination extends Model
         'image',
         'category',
         'is_popular',
-        'rating',         
-        'rating_count',   
-        'latitude',       
-        'longitude',      
-        'maps_url',       
+        'rating',
+        'rating_count',
+        'latitude',
+        'longitude',
+        'maps_url',
         'price',
         'payment_method',
         'status',
@@ -34,13 +34,22 @@ class Destination extends Model
         'longitude' => 'float',
     ];
 
+    /**
+     * Get the hotels for the destination.
+     * Sebuah destinasi memiliki BANYAK hotel.
+     */
     public function hotels()
     {
-        return $this->belongsToMany(Hotel::class, 'destination_id');
+
+        return $this->hasMany(Hotel::class);
     }
 
+    /**
+     * Get the tour packages for the destination.
+     * Sebuah destinasi memiliki BANYAK paket tur.
+     */
     public function tourPackages()
     {
-        return $this->belongsToMany(TourPackage::class, 'destination_tour_package');
+        return $this->hasMany(TourPackage::class);
     }
 }
