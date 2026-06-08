@@ -1,107 +1,146 @@
 @extends('layouts.app')
 
-@section('title', 'Pembayaran Berhasil')
+@section('title', 'Pemesanan Berhasil')
+
+@push('styles')
+<style>
+    @keyframes checkPop {
+        0%{ transform: scale(0); opacity: 0; }
+        60%{ transform: scale(1.2); }
+        100%{ transform: scale(1); opacity: 1; }
+    }
+    .check-anim { animation: checkPop 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.2s both; }
+    
+    .ticket-divider {
+        background-image: radial-gradient(circle at 10px 10px, transparent 10px, white 10px);
+        background-position: -10px 0;
+        background-size: 20px 20px;
+        background-repeat: repeat-x;
+        height: 20px;
+        width: 100%;
+    }
+</style>
+@endpush
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6">
-    <div class="max-w-3xl mx-auto">
-        <!-- Success Card -->
-        <div class="bg-white shadow-xl rounded-2xl overflow-hidden">
-            <!-- Header -->
-            <div class="bg-emerald-500 px-6 py-8 text-center">
-                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-white bg-opacity-20 mb-4">
-                    <svg class="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
+
+{{-- ── HERO BANNER ── --}}
+<section class="relative pt-32 pb-20 text-white overflow-hidden bg-ocean-900 border-b border-white/10 reveal">
+    <div class="absolute inset-0 bg-gradient-to-t from-ocean-900 via-ocean-900/40 to-transparent pointer-events-none z-0"></div>
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-sunset-500 rounded-full mix-blend-multiply filter blur-[100px] opacity-40 z-0"></div>
+    
+    <div class="max-w-3xl mx-auto px-4 text-center relative z-10">
+        <div class="inline-flex items-center justify-center w-24 h-24 bg-white/10 backdrop-blur-md rounded-full mb-8 border border-white/20 check-anim shadow-2xl">
+            <i class="fas fa-check text-4xl text-sunset-500"></i>
+        </div>
+        <h1 class="text-5xl md:text-6xl font-black mb-6 font-montserrat tracking-tight drop-shadow-2xl">
+            Payment <span class="text-sunset-500">Successful!</span>
+        </h1>
+        <p class="text-white/70 text-lg md:text-xl max-w-2xl mx-auto font-inter">Thank you for choosing Wonderful NTT. Exploring the beauty of East Nusa Tenggara starts now.</p>
+    </div>
+</section>
+
+{{-- ── CONTENT ── --}}
+<section class="py-20 bg-light min-h-[50vh]">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6">
+
+        {{-- Booking Card --}}
+        <div class="cinematic-card p-0 shadow-2xl overflow-hidden border-0 rounded-3xl reveal">
+            {{-- Header --}}
+            <div class="bg-ocean-900 p-8 relative overflow-hidden">
+                <div class="absolute -right-10 -top-10 w-40 h-40 bg-sunset-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none"></div>
+                <div class="flex items-center justify-between relative z-10">
+                    <div>
+                        <p class="text-white/50 text-xs font-bold uppercase tracking-widest mb-1">Booking Reference</p>
+                        <p class="font-mono font-black text-white text-2xl tracking-widest">{{ $transaction->booking_code }}</p>
+                    </div>
+                    <div class="w-16 h-16 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl flex items-center justify-center shadow-xl">
+                        <i class="fas fa-ticket-alt text-sunset-500 text-3xl"></i>
+                    </div>
                 </div>
-                <h1 class="text-2xl font-bold text-white">Pembayaran Berhasil!</h1>
-                <p class="text-emerald-100 mt-2">Terima kasih telah memesan dengan kami</p>
             </div>
 
-            <!-- Content -->
-            <div class="p-6 sm:p-8">
-                <!-- Booking Summary -->
-                <div class="mb-8">
-                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Detail Pemesanan</h2>
-                    
-                    <div class="bg-gray-50 rounded-lg p-5 border border-gray-200">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <p class="text-sm text-gray-500">Kode Booking</p>
-                                <p class="font-mono font-bold text-indigo-600 text-lg">{{ $transaction->booking_code }}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">Tanggal Pembayaran</p>
-                                <p class="font-medium text-gray-800">{{ now()->translatedFormat('d F Y, H:i') }}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">Nama Pemesan</p>
-                                <p class="font-medium text-gray-800">{{ $transaction->customer_name }}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-gray-500">Total Pembayaran</p>
-                                <p class="font-bold text-gray-800">{{ $transaction->total_price_formatted }}</p>
-                            </div>
-                        </div>
+            <div class="p-8 bg-white">
+                {{-- Quick Stats --}}
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+                    <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 text-center">
+                        <p class="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">Date</p>
+                        <p class="font-bold text-ocean-900 text-sm">{{ now()->translatedFormat('d M Y') }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 text-center">
+                        <p class="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">Guest</p>
+                        <p class="font-bold text-ocean-900 text-sm truncate px-1">{{ $transaction->customer_name }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 text-center">
+                        <p class="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">Total</p>
+                        <p class="font-bold text-sunset-500 text-sm">{{ $transaction->total_price_formatted }}</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 text-center">
+                        <p class="text-[10px] uppercase tracking-widest font-black text-gray-400 mb-1">Status</p>
+                        <p class="font-bold text-green-600 text-sm uppercase tracking-tighter">Paid</p>
                     </div>
                 </div>
 
-                <!-- Tickets Section -->
-                <div class="mb-8">
-                    <h2 class="text-lg font-semibold text-gray-800 mb-4">
-                        Tiket Anda
-                        <span class="ml-2 bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                            {{ $transaction->tickets->count() }} Tiket
-                        </span>
+                {{-- Tickets Section --}}
+                <div class="mb-10">
+                    <h2 class="font-black text-ocean-900 mb-6 flex items-center gap-3 font-montserrat uppercase tracking-wider text-sm">
+                        <i class="fas fa-qrcode text-sunset-500"></i>
+                        Official Digital Tickets
+                        <span class="bg-ocean-900 text-white text-[10px] px-2 py-0.5 rounded-full font-black ml-auto">{{ $transaction->tickets->count() }} Issued</span>
                     </h2>
 
                     <div class="space-y-4">
                         @foreach($transaction->tickets as $ticket)
-                        <div class="border rounded-lg p-4 hover:border-indigo-300 transition">
-                            <div class="flex justify-between items-start">
+                        <div class="bg-white border-2 border-gray-50 rounded-2xl p-6 transition-all hover:border-sunset-500/30 group">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                 <div>
-                                    <h3 class="font-medium text-gray-800">{{ $transaction->destination?->name ?? $transaction->tourPackage?->name }}</h3>
-                                    <p class="text-sm text-gray-500 mt-1">
-                                        <span class="font-medium">{{ $ticket->visitor_name }}</span>
-                                    </p>
+                                    <h3 class="font-black text-ocean-900 text-lg font-montserrat tracking-tight mb-1">
+                                        {{ $transaction->destination?->name ?? $transaction->tourPackage?->name }}
+                                    </h3>
+                                    <div class="flex items-center text-gray-400 text-sm font-medium">
+                                        <i class="fas fa-user-circle mr-2 text-sunset-500"></i> {{ $ticket->visitor_name }}
+                                    </div>
                                 </div>
-                                <div class="bg-indigo-50 text-indigo-800 px-3 py-1 rounded-full text-xs font-medium">
-                                    {{ $ticket->ticket_code }}
+                                <div class="bg-ocean-900 text-white px-5 py-3 rounded-xl font-mono font-black text-sm tracking-widest flex items-center gap-3 group-hover:bg-sunset-500 transition-colors">
+                                    <i class="fas fa-barcode"></i> {{ $ticket->ticket_code }}
                                 </div>
                             </div>
-                            <div class="mt-3 pt-3 border-t border-dashed border-gray-200">
-                                <p class="text-sm text-gray-500">
-                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    {{ $transaction->booking_date->translatedFormat('d F Y') }}
-                                </p>
+                            <div class="mt-4 pt-4 border-t border-dashed border-gray-100 flex items-center gap-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                <span class="flex items-center gap-1.5"><i class="far fa-calendar-check text-sunset-500"></i> {{ $transaction->booking_date->translatedFormat('d F Y') }}</span>
+                                <span class="flex items-center gap-1.5 ml-auto text-ocean-900"><i class="fas fa-check-double text-green-500"></i> Valid Document</span>
                             </div>
                         </div>
                         @endforeach
                     </div>
                 </div>
 
-                <!-- Actions -->
-                <div class="mt-8 flex justify-center">
-                    <a href="{{ url('/') }}"
-                    class="inline-flex items-center justify-center gap-2 w-full max-w-md bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-base px-6 py-3 rounded-xl shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                        <span>Kembali ke Beranda</span>
+                {{-- Actions --}}
+                <div class="flex flex-col sm:flex-row gap-4 pt-6 mt-6 border-t border-gray-100">
+                    <a href="{{ url('/') }}" class="flex-1 btn-primary text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 shadow-xl shadow-sunset-500/20">
+                        <i class="fas fa-home"></i> Back to Explore
                     </a>
-                </div>
-                
-                <!-- Help Info -->
-                <div class="mt-8 text-center">
-                    <p class="text-sm text-gray-500">Butuh bantuan? 
-                        <a href="#" class="text-indigo-600 hover:underline">Hubungi kami</a>
-                    </p>
+                    <button onclick="window.print()" class="flex-1 btn-outline text-ocean-900 border-gray-200 py-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition">
+                        <i class="fas fa-file-download text-gray-400"></i> Save as PDF
+                    </button>
                 </div>
             </div>
         </div>
+        
+        {{-- Bantuan --}}
+        <p class="text-center mt-10 text-gray-400 text-sm font-medium">
+            Need help? Contact our support at <a href="#" class="text-ocean-900 hover:text-sunset-500 transition-colors underline font-bold">support@wonderfulntt.com</a>
+        </p>
+
     </div>
-</div>
+</section>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 }, colors: ['#0f172a','#ff6b35','#ffffff','#f8fafc'] });
+});
+</script>
+@endpush
+
 @endsection

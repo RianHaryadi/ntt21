@@ -1,619 +1,665 @@
 @extends('layouts.app')
 
-@section('title', $destination->name)
+@section('title', $destination->name . ' — Wonderful NTT')
+
+@push('styles')
+<style>
+    /* ── Cinematic Hero ── */
+    .dest-hero {
+        position: relative;
+        height: 92vh;
+        min-height: 600px;
+        overflow: hidden;
+    }
+    .dest-hero-bg {
+        position: absolute; inset: 0;
+        background-size: cover;
+        background-position: center;
+        transform: scale(1.08);
+        transition: transform 8s ease-out;
+    }
+    .dest-hero-bg.loaded { transform: scale(1.0); }
+    .dest-hero-vignette {
+        position: absolute; inset: 0;
+        background:
+            linear-gradient(to top,    rgba(0,26,51,0.96) 0%, rgba(0,26,51,0.35) 40%, transparent 70%),
+            linear-gradient(to right,  rgba(0,26,51,0.45) 0%, transparent 60%),
+            linear-gradient(to bottom, rgba(0,26,51,0.3) 0%, transparent 40%);
+    }
+
+    /* ── HUD elements ── */
+    .hud-line {
+        position: absolute; background: rgba(255,255,255,0.12);
+    }
+    .hud-corner {
+        position: absolute; width: 20px; height: 20px;
+        border-color: rgba(255,107,53,0.6); border-style: solid;
+    }
+
+    /* ── Scroll Indicator ── */
+    @keyframes bounce-scroll { 0%,100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+    .scroll-ind { animation: bounce-scroll 2s ease-in-out infinite; }
+
+    /* ── Pill Tag ── */
+    .pill-tag {
+        display: inline-flex; align-items: center; gap: 0.45rem;
+        padding: 0.4rem 1rem; border-radius: 99px;
+        font-size: 0.7rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+        backdrop-filter: blur(12px);
+    }
+
+    /* ── Info Grid Cards ── */
+    .info-glass {
+        background: rgba(255,255,255,0.07);
+        border: 1px solid rgba(255,255,255,0.13);
+        border-radius: 1.25rem;
+        backdrop-filter: blur(16px);
+        transition: all 0.3s ease;
+    }
+    .info-glass:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,107,53,0.4); }
+
+    /* ── Content Section ── */
+    .content-wrap { background: linear-gradient(170deg, #f0f4f8 0%, #e8edf5 60%, #f0f4f8 100%); }
+
+    /* ── Sticky Booking Card ── */
+    .booking-card {
+        position: sticky; top: 100px;
+        background: white;
+        border-radius: 2rem;
+        box-shadow: 0 30px 80px -20px rgba(0,26,51,0.18);
+        overflow: hidden;
+    }
+    .booking-card-header {
+        background: linear-gradient(135deg, #001a33, #002b5e);
+        padding: 1.75rem;
+    }
+
+    /* ── Ticket Counter ── */
+    .qty-btn {
+        width: 2.25rem; height: 2.25rem; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 900; font-size: 1.1rem;
+        transition: all 0.2s;
+        border: none; cursor: pointer;
+    }
+    .qty-btn.minus { background: #f1f5f9; color: #001a33; }
+    .qty-btn.minus:hover { background: #e2e8f0; }
+    .qty-btn.plus { background: #ff6b35; color: white; box-shadow: 0 4px 12px rgba(255,107,53,0.35); }
+    .qty-btn.plus:hover { background: #e55a2b; transform: scale(1.1); }
+
+    /* ── Description Prose ── */
+    .dest-prose { font-size: 1.0625rem; line-height: 1.85; color: #374151; }
+    .dest-prose p { margin-bottom: 1.25rem; }
+
+    /* ── Feature Chip ── */
+    .feat-chip {
+        display: flex; align-items: center; gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        background: white; border-radius: 1rem;
+        border: 1.5px solid #e5e7eb;
+        transition: all 0.3s;
+    }
+    .feat-chip:hover { border-color: #ff8559; transform: translateY(-3px); box-shadow: 0 12px 28px -8px rgba(255,107,53,0.15); }
+    .feat-chip .icon-wrap {
+        width: 2.5rem; height: 2.5rem; border-radius: 0.75rem;
+        background: linear-gradient(135deg, #ff6b35, #e55a2b);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 0.8rem; flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(255,107,53,0.3);
+    }
+
+    /* ── Tour Package Card ── */
+    .tour-card {
+        background: white; border-radius: 1.5rem;
+        overflow: hidden; border: 1.5px solid #f1f5f9;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 8px 24px -8px rgba(0,0,0,0.06);
+    }
+    .tour-card:hover { transform: translateY(-10px); box-shadow: 0 28px 48px -12px rgba(0,26,51,0.18); border-color: transparent; }
+    .tour-card-img { overflow: hidden; position: relative; }
+    .tour-card-img img { transition: transform 0.7s ease; }
+    .tour-card:hover .tour-card-img img { transform: scale(1.08); }
+
+    /* ── Map Container ── */
+    .map-wrap {
+        border-radius: 2rem; overflow: hidden;
+        box-shadow: 0 40px 80px -20px rgba(0,26,51,0.15);
+        border: 3px solid white;
+    }
+
+    /* ── Section Header ── */
+    .section-head { position: relative; display: inline-block; }
+    .section-head::after {
+        content: ''; position: absolute;
+        bottom: -8px; left: 0; width: 40px; height: 4px;
+        background: linear-gradient(90deg, #ff6b35, #e55a2b);
+        border-radius: 99px;
+    }
+
+    /* ── Floating Category Badge ── */
+    @keyframes float-badge { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    .float-badge { animation: float-badge 4s ease-in-out infinite; }
+
+    /* ── Rating Stars ── */
+    .star-filled { color: #fbbf24; }
+    .star-empty  { color: #e5e7eb; }
+
+    /* ── Scroll Reveal ── */
+    @keyframes fadeSlideUp { from { opacity:0; transform:translateY(32px); } to { opacity:1; transform:translateY(0); } }
+    .anim-up { animation: fadeSlideUp 0.7s ease-out both; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.45s; }
+</style>
+@endpush
 
 @section('content')
-    <!-- Hero Section with Parallax and Ken Burns Effect -->
-    <header x-data="{ scrolled: false }" 
-            @scroll.window="scrolled = (window.pageYOffset > 50)"
-            class="relative h-screen max-h-[36rem] overflow-hidden bg-gray-900 transition-all duration-300"
-            :class="{ 'shadow-2xl': scrolled }">
-        <!-- Parallax Background with Ken Burns effect -->
-        <div class="absolute inset-0 bg-cover bg-center ken-burns parallax-bg" 
-             style="background-image: url('{{ $destination->image ? asset('storage/' . ltrim($destination->image, '/')) : asset('images/fallback.jpg') }}');"
-             x-data="{ offsetY: 0 }" 
-             @scroll.window="offsetY = window.pageYOffset * 0.2"
-             :style="{ transform: 'translateY(' + offsetY + 'px)' }">
-        </div>
-        
-        <!-- Gradient Overlay -->
-        <div class="absolute inset-0 bg-gradient-to-t from-gray-900/85 via-gray-900/30 to-transparent"></div>
-        
-        <!-- Hero Content -->
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-end pb-16 text-center relative z-10">
-            <!-- Breadcrumb -->
-            <nav class="hidden md:flex justify-center mb-6" aria-label="Breadcrumb" data-aos="fade-up" data-aos-delay="200">
-                <ol class="inline-flex items-center space-x-2 text-sm font-medium text-white/90">
-                    <li class="inline-flex items-center">
-                        <a href="/" class="inline-flex items-center hover:text-yellow-400 transition-colors duration-200">
-                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
-                            </svg>
-                            Home
-                        </a>
-                    </li>
-                    <li>
-                        <div class="flex items-center">
-                            <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <a href="{{ route('destinations.index') }}" class="ml-2 hover:text-yellow-400 transition-colors duration-200">Destinations</a>
-                        </div>
-                    </li>
-                    <li aria-current="page">
-                        <div class="flex items-center">
-                            <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="ml-2 text-white font-semibold">{{ $destination->name }}</span>
-                        </div>
-                    </li>
-                </ol>
-            </nav>
-            
-            <!-- Hero Title -->
-            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 text-white tracking-tight drop-shadow-xl" data-aos="fade-up" data-aos-delay="400">
-                {{ $destination->name }}
-            </h1>
-            
-            <!-- Location and Category -->
-            <div class="flex flex-wrap justify-center items-center gap-x-6 gap-y-3 text-gray-100 text-lg mb-8" data-aos="fade-up" data-aos-delay="600">
-                <div class="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    {{ $destination->location }}
-                </div>
-                <span class="hidden sm:inline text-gray-300">•</span>
-                <span class="bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-semibold hover:bg-white/30 transition-all duration-200 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                    {{ $destination->category }}
-                </span>
-            </div>
-            
-            <!-- Enhanced CTA Buttons -->
-            <div class="flex gap-4 justify-center md:justify-end mb-4" data-aos="fade-up" data-aos-delay="800">
-                <a href="#booking" class="p-4 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center justify-center group">
-                    <span class="font-semibold mr-2 group-hover:mr-3 transition-all">Book Now</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                </a>
-                <button @click="navigator.share({ title: '{{ $destination->name }}', url: window.location.href })" 
-                        class="p-4 bg-gray-800/80 text-white rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center justify-center group"
-                        aria-label="Share this destination">
-                    <span class="font-semibold mr-2 group-hover:mr-3 transition-all">Share</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C9.375 12.651 10.325 12.25 11.5 12.25s2.125.401 2.816 1.092m0 0l3.5 3.5m0 0l-3.5 3.5m3.5-3.5H21m-18 0H6.5m12-7.5l-3.5-3.5m0 0l3.5-3.5m-3.5 3.5H3" />
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </header>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <!-- Destination Details Card -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden lg:flex transition-all hover:shadow-2xl mb-16" data-aos="fade-up">
-            <!-- Left Section: Interactive Image Carousel -->
-            <div class="lg:w-1/2 p-6 flex flex-col">
-                <div class="relative rounded-2xl overflow-hidden mb-4 shadow-lg">
-                    <div x-data="{ currentImage: '{{ $destination->image ? asset('storage/' . ltrim($destination->image, '/')) : asset('images/fallback.jpg') }}' }" 
-                         class="relative">
-                        <img :src="currentImage" 
-                             class="w-full h-96 object-cover transition-all duration-500 lazyload"
-                             alt="{{ $destination->name }}"
-                             x-ref="mainImage">
-                        <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300">
-                            <a :href="currentImage" 
-                               data-lightbox="destination-gallery" 
-                               class="text-white bg-black/50 rounded-full p-3 transform hover:scale-110 transition-transform"
-                               aria-label="View image in lightbox">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5" />
-                                </svg>
-                            </a>
-                        </div>
+{{-- ═══════════════════════════════════════════════
+     CINEMATIC HERO
+═══════════════════════════════════════════════ --}}
+<section class="dest-hero" id="destHero">
+
+    {{-- Background Image --}}
+    <div class="dest-hero-bg" id="heroBg"
+         style="background-image: url('{{ $destination->image ? asset('storage/' . ltrim($destination->image, '/')) : asset('images/fallback.jpg') }}')">
+    </div>
+
+    {{-- Layered Vignette --}}
+    <div class="dest-hero-vignette"></div>
+
+    {{-- Subtle HUD Lines --}}
+    <div class="hud-line" style="top:30%; left:0; width:100%; height:1px; opacity:0.08;"></div>
+    <div class="hud-line" style="top:0; left:25%; width:1px; height:100%; opacity:0.06;"></div>
+    <div class="hud-line" style="top:0; left:75%; width:1px; height:100%; opacity:0.06;"></div>
+    <div class="hud-corner" style="top:20px; left:20px; border-width: 2px 0 0 2px;"></div>
+    <div class="hud-corner" style="top:20px; right:20px; border-width: 2px 2px 0 0;"></div>
+    <div class="hud-corner" style="bottom:80px; left:20px; border-width: 0 0 2px 2px;"></div>
+    <div class="hud-corner" style="bottom:80px; right:20px; border-width: 0 2px 2px 0;"></div>
+
+    {{-- Hero Content --}}
+    <div class="absolute inset-0 flex flex-col justify-end pb-20 px-6 sm:px-10 lg:px-20 z-10 max-w-7xl mx-auto w-full left-0 right-0">
+
+        {{-- Breadcrumb --}}
+        <nav class="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-white/40 mb-8 anim-up">
+            <a href="{{ route('home') }}" class="hover:text-white/70 transition-colors">Home</a>
+            <i class="fas fa-chevron-right text-[8px] text-white/25"></i>
+            <a href="{{ route('destinations.index') }}" class="hover:text-white/70 transition-colors">Destinations</a>
+            <i class="fas fa-chevron-right text-[8px] text-white/25"></i>
+            <span class="text-sunset-500">{{ $destination->name }}</span>
+        </nav>
+
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+            <div class="flex-1">
+                {{-- Category & Popular Badge --}}
+                <div class="flex items-center gap-3 mb-5 anim-up delay-1">
+                    <span class="pill-tag bg-sunset-500/20 border border-sunset-500/40 text-sunset-500 float-badge">
+                        <i class="fas fa-{{ strtolower($destination->category) === 'beach' ? 'umbrella-beach' : (strtolower($destination->category) === 'mountain' ? 'mountain' : (strtolower($destination->category) === 'culture' ? 'landmark' : 'leaf')) }}"></i>
+                        {{ $destination->category }}
+                    </span>
+                    @if($destination->is_popular)
+                    <span class="pill-tag bg-yellow-400/15 border border-yellow-400/35 text-yellow-300">
+                        <i class="fas fa-fire"></i> Popular
+                    </span>
+                    @endif
+                </div>
+
+                {{-- Title --}}
+                <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white font-montserrat leading-none tracking-tight drop-shadow-2xl mb-5 anim-up delay-2">
+                    {{ $destination->name }}
+                </h1>
+
+                {{-- Location + Rating --}}
+                <div class="flex flex-wrap items-center gap-4 anim-up delay-3">
+                    <div class="flex items-center gap-2 text-white/70 text-sm font-bold">
+                        <i class="fas fa-map-marker-alt text-sunset-500"></i>
+                        {{ $destination->location }}
                     </div>
-                </div>
 
-                <!-- Thumbnail Carousel -->
-                <div x-data="{ currentIndex: 0 }" class="relative">
-                    <div class="grid grid-cols-5 gap-3 scrollbar-thin overflow-x-auto">
-                        @if(isset($destination->gallery) && is_array($destination->gallery) && count($destination->gallery) > 0)
-                            @foreach($destination->gallery as $index => $image)
-                                <button @click="currentIndex = {{ $index }}; $refs.mainImage.src = '{{ asset('storage/' . $image) }}'; $refs.mainImage.parentElement.href = '{{ asset('storage/' . $image) }}'"
-                                        class="block rounded-lg overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all focus:outline-none focus:border-yellow-500"
-                                        :class="{ 'border-yellow-400': currentIndex === {{ $index }} }">
-                                    <img src="{{ asset('storage/' . $image) }}"
-                                         class="w-full h-20 object-cover cursor-pointer transition-transform hover:scale-105 lazyload"
-                                         alt="Gallery image {{ $loop->iteration }}"
-                                         loading="lazy">
-                                </button>
-                            @endforeach
-                        @else
-                            <button class="block rounded-lg overflow-hidden border-2 border-yellow-400">
-                                <img src="{{ $destination->image ? asset('storage/' . ltrim($destination->image, '/')) : asset('images/fallback.jpg') }}"
-                                     class="w-full h-20 object-cover"
-                                     alt="{{ $destination->name }}"
-                                     loading="lazy">
-                            </button>
+                    @if($destination->rating)
+                    <div class="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/15">
+                        <div class="flex gap-0.5">
+                            @for($i = 1; $i <= 5; $i++)
+                            <i class="fas fa-star text-xs {{ $i <= round($destination->rating) ? 'star-filled' : 'star-empty' }}"></i>
+                            @endfor
+                        </div>
+                        <span class="text-white font-black text-sm">{{ number_format($destination->rating, 1) }}</span>
+                        @if($destination->rating_count)
+                        <span class="text-white/50 text-xs font-medium">({{ number_format($destination->rating_count) }} reviews)</span>
                         @endif
                     </div>
-                    <!-- Carousel Navigation -->
-                    <button @click="currentIndex = currentIndex > 0 ? currentIndex - 1 : {{ count($destination->gallery ?? []) - 1 }}; $refs.mainImage.src = document.querySelectorAll('.grid button img')[currentIndex].src"
-                            class="absolute left-0 top-1/2 -translate-y-1/2 bg-gray-800/50 p-2 rounded-full text-white hover:bg-gray-800 transition-all"
-                            aria-label="Previous image">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-                    <button @click="currentIndex = currentIndex < {{ count($destination->gallery ?? []) - 1 }} ? currentIndex + 1 : 0; $refs.mainImage.src = document.querySelectorAll('.grid button img')[currentIndex].src"
-                            class="absolute right-0 top-1/2 -translate-y-1/2 bg-gray-800/50 p-2 rounded-full text-white hover:bg-gray-800 transition-all"
-                            aria-label="Next image">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
+                    @endif
+
+                    @if($destination->price)
+                    <div class="flex items-center gap-2 bg-sunset-500/20 backdrop-blur-md px-4 py-2 rounded-full border border-sunset-500/30">
+                        <i class="fas fa-ticket-alt text-sunset-500 text-xs"></i>
+                        <span class="text-white font-black text-sm">Rp{{ number_format($destination->price, 0, ',', '.') }}/person</span>
+                    </div>
+                    @endif
                 </div>
             </div>
-            
-            <!-- Right Section: Details -->
-            <div class="lg:w-1/2 p-6 sm:p-8 flex flex-col">
-                <div class="flex justify-between items-start mb-6">
+
+            {{-- Quick Info Cards --}}
+            <div class="grid grid-cols-3 gap-3 md:w-80 anim-up delay-4">
+                <div class="info-glass p-3.5 text-center">
+                    <i class="fas fa-calendar-check text-sunset-500 text-lg mb-1.5 block"></i>
+                    <p class="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-0.5">Best Time</p>
+                    <p class="text-white font-black text-xs leading-tight">Year-round</p>
+                </div>
+                <div class="info-glass p-3.5 text-center">
+                    <i class="fas fa-shield-alt text-sunset-500 text-lg mb-1.5 block"></i>
+                    <p class="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-0.5">Safety</p>
+                    <p class="text-white font-black text-xs leading-tight">Very High</p>
+                </div>
+                <div class="info-glass p-3.5 text-center">
+                    <i class="fas fa-clock text-sunset-500 text-lg mb-1.5 block"></i>
+                    <p class="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-0.5">Duration</p>
+                    <p class="text-white font-black text-xs leading-tight">Full Day</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Scroll Indicator --}}
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 z-10">
+        <span class="text-white/30 text-[10px] uppercase tracking-widest font-bold">Scroll</span>
+        <div class="scroll-ind w-6 h-9 rounded-full border-2 border-white/20 flex items-start justify-center pt-1.5">
+            <div class="w-1 h-2 bg-white/50 rounded-full"></div>
+        </div>
+    </div>
+</section>
+
+{{-- ═══════════════════════════════════════════════
+     MAIN CONTENT
+═══════════════════════════════════════════════ --}}
+<div class="content-wrap">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+    <div class="flex flex-col xl:flex-row gap-12">
+
+        {{-- ── LEFT: Main Content ── --}}
+        <div class="flex-1 min-w-0 space-y-16">
+
+            {{-- ABOUT SECTION --}}
+            <section class="reveal">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sunset-500 to-sunset-600 flex items-center justify-center shadow-lg">
+                        <i class="fas fa-compass text-white text-lg"></i>
+                    </div>
                     <div>
-                        <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2" data-aos="fade-up" data-aos-delay="200">
-                            Discover {{ $destination->name }}
-                        </h2>
-                        <div class="flex items-center space-x-4">
-                            @if ($destination->rating)
-                                <div class="flex items-center bg-yellow-50 px-3 py-1 rounded-full">
-                                    <span class="text-yellow-800 font-bold mr-1">{{ number_format($destination->rating, 1) }}</span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                    <span class="text-sm text-yellow-600 ml-1">({{ $destination->rating_count ?? 0 }})</span>
-                                </div>
-                            @endif
-                            <span class="text-sm text-gray-500 flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                Updated {{ $destination->updated_at->diffForHumans() }}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <!-- Save Button -->
-                    <button type="button" 
-                            class="p-2 text-gray-400 hover:text-red-500 transition-colors duration-200" 
-                            aria-label="Save to favorites" 
-                            x-data="{ saved: false }" 
-                            @click="saved = !saved">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" 
-                             :fill="saved ? 'currentColor' : 'none'" 
-                             viewBox="0 0 24 24" 
-                             stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                    </button>
-                </div>
-                
-                <!-- Description with Read More -->
-                <div x-data="{ expanded: false }" class="mb-6" data-aos="fade-up" data-aos-delay="400">
-                    <div class="prose max-w-none text-gray-600 mb-4 relative" :class="{ 'max-h-24 overflow-hidden': !expanded }">
-                        {!! Str::markdown($destination->description) !!}
-                        <div x-show="!expanded" class="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent"></div>
-                    </div>
-                    <button @click="expanded = !expanded" 
-                            class="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center">
-                        <span x-text="expanded ? 'Read less' : 'Read more'"></span>
-                        <svg xmlns="http://www.w3.org/2000/svg" 
-                             class="h-4 w-4 ml-1 transition-transform" 
-                             :class="{ 'rotate-180': expanded }" 
-                             fill="none" 
-                             viewBox="0 0 24 24" 
-                             stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-                </div>
-                
-                <!-- Key Features -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 text-center" data-aos="fade-up" data-aos-delay="600">
-                    <div class="bg-gray-50 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                        <div class="bg-blue-100 text-blue-600 rounded-full h-12 w-12 flex items-center justify-center mx-auto mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                        </div>
-                        <h4 class="font-semibold text-gray-800">Best Time</h4>
-                        <p class="text-sm text-gray-500">Year-round</p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                        <div class="bg-green-100 text-green-600 rounded-full h-12 w-12 flex items-center justify-center mx-auto mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
-                        </div>
-                        <h4 class="font-semibold text-gray-800">Safety</h4>
-                        <p class="text-sm text-gray-500">Very High</p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                        <div class="bg-purple-100 text-purple-600 rounded-full h-12 w-12 flex items-center justify-center mx-auto mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 005.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 009.288 0M15 7a3 3 0 11-6 0 3 3 0 006 0zm6 3a2 2 0 11-4 0 2 2 0 004 0zM7 10a2 2 0 11-4 0 2 2 0 004 0z" />
-                            </svg>
-                        </div>
-                        <h4 class="font-semibold text-gray-800">Popularity</h4>
-                        <p class="text-sm text-gray-500">High</p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                        <div class="bg-yellow-100 text-yellow-600 rounded-full h-12 w-12 flex items-center justify-center mx-auto mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" />
-                            </svg>
-                        </div>
-                        <h4 class="font-semibold text-gray-800">Price</h4>
-                        <p class="text-sm text-gray-500">$$ - Moderate</p>
+                        <h2 class="section-head text-2xl font-black text-ocean-900 font-montserrat">About {{ $destination->name }}</h2>
                     </div>
                 </div>
-                
-                <!-- Location Details -->
-                <div class="mb-8" data-aos="fade-up" data-aos-delay="800">
-                    <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 006 0z" />
-                        </svg>
-                        Location Information
-                    </h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        @if ($destination->maps_url)
-                            <div class="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
-                                <h4 class="font-medium text-gray-900 mb-2">Google Maps</h4>
-                                <a href="{{ $destination->maps_url }}" target="_blank"
-                                   class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors text-sm">
-                                    View on Google Maps
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                    </svg>
-                                </a>
-                            </div>
-                        @endif
-                        
-                        @if ($destination->latitude && $destination->longitude)
-                            <div class="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
-                                <h4 class="font-medium text-gray-900 mb-2">Coordinates</h4>
-                                <div class="text-gray-600 space-y-1 text-sm">
-                                    <div class="flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        Latitude: {{ $destination->latitude }}
-                                    </div>
-                                    <div class="flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        Longitude: {{ $destination->longitude }}
-                                    </div>
-                                </div>
-                            </div>
+
+                <div class="bg-white rounded-3xl p-8 shadow-soft border border-gray-100/60">
+                    {{-- Main Image --}}
+                    <div class="relative rounded-2xl overflow-hidden mb-8 h-80 sm:h-96 group">
+                        <img src="{{ $destination->image ? asset('storage/' . ltrim($destination->image, '/')) : asset('images/fallback.jpg') }}"
+                             alt="{{ $destination->name }}"
+                             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                             onerror="this.src='/images/fallback.jpg'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-ocean-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        {{-- Image Caption bar --}}
+                        <div class="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 bg-gradient-to-t from-ocean-900/80 to-transparent">
+                            <p class="text-white font-bold text-sm flex items-center gap-2">
+                                <i class="fas fa-image text-sunset-500"></i>
+                                {{ $destination->name }} — {{ $destination->location }}
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- Description --}}
+                    <div class="dest-prose">
+                        @if($destination->description)
+                            {!! Str::markdown($destination->description) !!}
+                        @else
+                            <p>Temukan keindahan {{ $destination->name }} yang menakjubkan di {{ $destination->location }}. Destinasi ini menawarkan pengalaman wisata yang tak terlupakan dengan pemandangan alam yang luar biasa indah.</p>
                         @endif
                     </div>
                 </div>
-                
-                <!-- Action Buttons -->
-                <div class="mt-auto" data-aos="fade-up" data-aos-delay="1000">
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <a href="#booking"
-                           class="flex-1 inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold rounded-lg hover:from-yellow-500 hover:to-yellow-600 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                            Book Now
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                            </svg>
-                        </a>
-                        
-                        @if($destination->latitude && $destination->longitude)
-                            <a href="https://www.google.com/maps/dir/?api=1&destination={{ $destination->latitude }},{{ $destination->longitude }}" 
-                               target="_blank"
-                               class="flex-1 inline-flex items-center justify-center px-6 py-4 border border-gray-300 text-gray-700 font-bold rounded-lg hover:bg-gray-50 transition-all hover:shadow-md">
-                                Get Directions
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 006 0z" />
-                                </svg>
-                            </a>
-                        @endif
+            </section>
+
+            {{-- HIGHLIGHT FEATURES --}}
+            <section class="reveal">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-ocean-700 to-ocean-900 flex items-center justify-center shadow-lg">
+                        <i class="fas fa-star text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="section-head text-2xl font-black text-ocean-900 font-montserrat">Highlights</h2>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Map Section -->
-        @if($destination->latitude && $destination->longitude)
-            <div class="mb-16" data-aos="fade-up" data-aos-delay="200">
-                <h3 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                    </svg>
-                    Location Map
-                </h3>
-                <div class="bg-white rounded-2xl shadow-lg overflow-hidden relative">
-                    <iframe 
-                        class="w-full h-96"
-                        frameborder="0"
-                        scrolling="no"
-                        marginheight="0"
-                        marginwidth="0"
-                        src="https://maps.google.com/maps?q={{ $destination->latitude }},{{ $destination->longitude }}&z=15&output=embed&markers={{ $destination->latitude }},{{ $destination->longitude }}"
-                        allowfullscreen
-                        aria-label="Map of {{ $destination->name }}">
-                    </iframe>
-                    <!-- Zoom Controls -->
-                    <div class="absolute top-4 right-4 flex flex-col gap-2">
-                        <button class="bg-white/80 p-2 rounded-full shadow-md hover:bg-white transition-all" 
-                                onclick="document.querySelector('iframe').contentWindow.postMessage('zoom_in', '*')"
-                                aria-label="Zoom in">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                            </svg>
-                        </button>
-                        <button class="bg-white/80 p-2 rounded-full shadow-md hover:bg-white transition-all" 
-                                onclick="document.querySelector('iframe').contentWindow.postMessage('zoom_out', '*')"
-                                aria-label="Zoom out">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        @endif
-        
-        <!-- Testimonials Section -->
-        @if($destination->testimonials && count($destination->testimonials) > 0)
-            <div class="mb-16" data-aos="fade-up" data-aos-delay="400">
-                <h3 class="text-3xl font-extrabold text-gray-900 mb-8 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                    </svg>
-                    Traveler Reviews
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    @foreach($destination->testimonials as $testimonial)
-                        <div class="bg-white rounded-2xl shadow-lg p-6 transition-all hover:shadow-xl">
-                            <div class="flex items-center mb-4">
-                                <img src="{{ $testimonial->user->avatar ? asset('storage/' . $testimonial->user->avatar) : asset('images/default-avatar.jpg') }}"
-                                     class="w-12 h-12 rounded-full object-cover mr-3"
-                                     alt="{{ $testimonial->user->name }} avatar">
-                                <div>
-                                    <h4 class="font-semibold text-gray-900">{{ $testimonial->user->name }}</h4>
-                                    <div class="flex items-center">
-                                        @for($i = 1; $i <= 5; $i++)
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 {{ $i <= $testimonial->rating ? 'text-yellow-500' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
-                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                            </svg>
-                                        @endfor
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="text-gray-600 text-sm italic">"{{ $testimonial->comment }}"</p>
-                            <p class="text-gray-500 text-xs mt-2">{{ $testimonial->created_at->diffForHumans() }}</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    @php
+                        $catLower = strtolower($destination->category ?? '');
+                        $highlights = [];
+                        if ($catLower === 'beach') {
+                            $highlights = [
+                                ['icon'=>'fa-water',        'title'=>'Crystal Waters',      'desc'=>'Exceptionally clear water visibility up to 30m'],
+                                ['icon'=>'fa-sun',          'title'=>'Sunny Weather',        'desc'=>'Enjoy 280+ sunny days each year'],
+                                ['icon'=>'fa-fish',         'title'=>'Marine Life',          'desc'=>'Vibrant coral reef ecosystem to explore'],
+                                ['icon'=>'fa-camera',       'title'=>'Scenic Views',         'desc'=>'Stunning panoramic vistas at every angle'],
+                                ['icon'=>'fa-anchor',       'title'=>'Water Sports',         'desc'=>'Snorkeling, diving & boat trips available'],
+                                ['icon'=>'fa-concierge-bell','title'=>'Local Cuisine',       'desc'=>'Fresh seafood & traditional NTT dishes'],
+                            ];
+                        } elseif ($catLower === 'mountain') {
+                            $highlights = [
+                                ['icon'=>'fa-mountain',     'title'=>'Scenic Trekking',      'desc'=>'Well-maintained trails for all skill levels'],
+                                ['icon'=>'fa-cloud',        'title'=>'Cloud Sea',            'desc'=>'Breathtaking cloud views from the summit'],
+                                ['icon'=>'fa-leaf',         'title'=>'Rich Flora',           'desc'=>'Diverse endemic plant & wildlife species'],
+                                ['icon'=>'fa-binoculars',   'title'=>'Panoramic Views',      'desc'=>'360° views of NTT\'s stunning landscape'],
+                                ['icon'=>'fa-fire',         'title'=>'Campfire Nights',      'desc'=>'Camping facilities with stunning stargazing'],
+                                ['icon'=>'fa-camera',       'title'=>'Photography Spots',    'desc'=>'Perfect golden hour & misty morning shots'],
+                            ];
+                        } elseif ($catLower === 'culture') {
+                            $highlights = [
+                                ['icon'=>'fa-landmark',     'title'=>'Heritage Sites',       'desc'=>'Ancient temples & traditional architecture'],
+                                ['icon'=>'fa-masks-theater','title'=>'Cultural Shows',       'desc'=>'Traditional dances & ritual performances'],
+                                ['icon'=>'fa-paint-brush',  'title'=>'Local Crafts',         'desc'=>'Handwoven ikat fabric & traditional art'],
+                                ['icon'=>'fa-utensils',     'title'=>'Traditional Food',     'desc'=>'Authentic NTT cuisine & local delicacies'],
+                                ['icon'=>'fa-users',        'title'=>'Community Tours',      'desc'=>'Engage with local tribes & communities'],
+                                ['icon'=>'fa-camera',       'title'=>'Photo Moments',        'desc'=>'Colorful traditional attire & ceremonies'],
+                            ];
+                        } else {
+                            $highlights = [
+                                ['icon'=>'fa-tree',         'title'=>'Natural Beauty',       'desc'=>'Untouched natural landscapes & ecosystems'],
+                                ['icon'=>'fa-binoculars',   'title'=>'Wildlife Spotting',    'desc'=>'Diverse endemic flora & fauna species'],
+                                ['icon'=>'fa-hiking',       'title'=>'Adventure Trails',     'desc'=>'Scenic treks through stunning terrain'],
+                                ['icon'=>'fa-camera',       'title'=>'Photography',          'desc'=>'Incredible shots at sunrise & sunset'],
+                                ['icon'=>'fa-leaf',         'title'=>'Eco-Tourism',          'desc'=>'Sustainable eco-friendly experiences'],
+                                ['icon'=>'fa-map-marked-alt','title'=>'Guided Tours',        'desc'=>'Expert local guides available daily'],
+                            ];
+                        }
+                    @endphp
+                    @foreach($highlights as $h)
+                    <div class="feat-chip">
+                        <div class="icon-wrap"><i class="fas {{ $h['icon'] }}"></i></div>
+                        <div>
+                            <p class="font-black text-ocean-900 text-sm font-montserrat">{{ $h['title'] }}</p>
+                            <p class="text-gray-400 text-xs font-medium leading-tight mt-0.5">{{ $h['desc'] }}</p>
                         </div>
+                    </div>
                     @endforeach
                 </div>
-            </div>
-        @endif
-        
-        <!-- Tour Packages Section -->
-       @if($destination->tourPackages->count() > 0)
-    <div class="mb-16" data-aos="fade-up" data-aos-delay="600">
-        <h3 class="text-3xl font-extrabold text-gray-900 mb-8 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-            Tour Packages
-        </h3>
-        
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            @foreach($destination->tourPackages as $tourPackage)
-                <div class="bg-white rounded-2xl shadow-lg overflow-hidden transition-all hover:shadow-xl hover:-translate-y-2 duration-300">
-                    <a href="{{ route('paket-tours.show', $tourPackage->id) }}" class="block">
-                        <div class="relative h-56 overflow-hidden">
-                            <img src="{{ $tourPackage->thumbnail ? asset('storage/' . ltrim($tourPackage->thumbnail, '/')) : asset('images/fallback.jpg') }}" 
-                                 class="w-full h-full object-cover transition-transform duration-500 hover:scale-110 lazyload" 
-                                 alt="{{ $tourPackage->name }}"
-                                 loading="lazy">
-                            <div class="absolute top-3 right-3 bg-white/80 backdrop-blur px-2 py-1 rounded-full text-xs font-medium">
-                                {{ $tourPackage->days }} Hari
+            </section>
+
+            {{-- TOUR PACKAGES --}}
+            @php
+                $tourPackages = $destination->tourPackages()->get();
+            @endphp
+            @if($tourPackages->count() > 0)
+            <section class="reveal">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shadow-lg">
+                        <i class="fas fa-suitcase-rolling text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="section-head text-2xl font-black text-ocean-900 font-montserrat">Tour Packages</h2>
+                        <p class="text-gray-400 text-sm font-medium mt-1">Ready-made tours departing to {{ $destination->name }}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    @foreach($tourPackages as $tour)
+                    <div class="tour-card">
+                        <div class="tour-card-img h-52">
+                            <img src="{{ $tour->thumbnail ? asset('storage/' . ltrim($tour->thumbnail, '/')) : asset('images/fallback.jpg') }}"
+                                 alt="{{ $tour->name }}"
+                                 class="w-full h-full object-cover"
+                                 onerror="this.src='/images/fallback.jpg'">
+                            <div class="absolute inset-0 bg-gradient-to-t from-ocean-900/60 to-transparent"></div>
+                            {{-- Badges --}}
+                            <div class="absolute top-4 left-4 flex gap-2">
+                                @if($tour->days)
+                                <span class="bg-ocean-900/80 backdrop-blur text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest border border-white/10">
+                                    {{ $tour->days }}D
+                                </span>
+                                @endif
+                            </div>
+                            <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                                <i class="fas fa-star text-yellow-400 text-[10px]"></i>
+                                <span class="text-ocean-900 font-black text-xs">{{ $tour->rating ?? '4.8' }}</span>
+                            </div>
+                            {{-- Hover CTA --}}
+                            <div class="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                                <a href="{{ route('paket-tours.show', $tour->id) }}"
+                                   class="block text-center bg-sunset-500 text-white font-black text-sm py-2.5 rounded-xl shadow-lg">
+                                    View Details
+                                </a>
                             </div>
                         </div>
                         <div class="p-5">
-                            <h4 class="font-bold text-lg text-gray-900 mb-1">{{ $tourPackage->name }}</h4>
-                            <div class="flex items-center text-sm text-gray-500 mb-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                {{ $tourPackage->location }}
+                            <h3 class="font-black text-ocean-900 text-base font-montserrat mb-1 hover:text-sunset-500 transition-colors">
+                                <a href="{{ route('paket-tours.show', $tour->id) }}">{{ $tour->name }}</a>
+                            </h3>
+                            <div class="flex items-center gap-1.5 text-sunset-500 text-xs font-bold mb-4">
+                                <i class="fas fa-map-marker-alt text-[10px]"></i> {{ $tour->location }}
                             </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-lg font-bold text-gray-900">Rp {{ number_format($tourPackage->price, 0, ',', '.') }} <span class="text-sm font-normal text-gray-500">/ orang</span></span>
-                                <div class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-500 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                    </svg>
-                                    <span class="text-sm font-medium">{{ $tourPackage->rating }}</span>
-                                    <span class="text-xs text-gray-500 ml-1">({{ $tourPackage->rating_count }})</span>
+                            <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                                <div>
+                                    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-black mb-0.5">Price / Person</p>
+                                    <p class="font-black text-ocean-900 text-lg font-montserrat">
+                                        Rp{{ number_format($tour->price, 0, ',', '.') }}
+                                    </p>
                                 </div>
+                                <a href="{{ route('paket-tours.show', $tour->id) }}"
+                                   class="flex items-center gap-2 bg-ocean-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-ocean-800 transition-all hover:-translate-y-0.5 shadow-md">
+                                    Book Tour <i class="fas fa-arrow-right text-[10px]"></i>
+                                </a>
                             </div>
                         </div>
-                    </a>
-                </div>
-            @endforeach
-        </div>
-    </div>
-@endif
-        
-        <!-- Related Destinations Section -->
-        @if($destination->relatedDestinations && count($destination->relatedDestinations) > 0)
-            <div class="mb-16" data-aos="fade-up" data-aos-delay="800">
-                <h3 class="text-3xl font-extrabold text-gray-900 mb-8 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-3 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Explore Similar Destinations
-                </h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    @foreach($destination->relatedDestinations as $related)
-                        <div class="bg-white rounded-2xl shadow-lg overflow-hidden transition-all hover:shadow-xl hover:-translate-y-2 duration-300">
-                            <a href="{{ route('destinations.show', $related->id) }}" class="block">
-                                <div class="relative h-56 overflow-hidden">
-                                    <img src="{{ $related->image ? asset('storage/' . ltrim($related->image, '/')) : asset('images/fallback.jpg') }}" 
-                                         class="w-full h-full object-cover transition-transform duration-500 hover:scale-110 lazyload" 
-                                         alt="{{ $related->name }}"
-                                         loading="lazy">
-                                </div>
-                                <div class="p-5">
-                                    <h4 class="font-bold text-lg text-gray-900 mb-1">{{ $related->name }}</h4>
-                                    <div class="flex items-center text-sm text-gray-500 mb-3">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        {{ $related->location }}
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm font-medium text-gray-600">{{ $related->category }}</span>
-                                        @if($related->rating)
-                                            <div class="flex items-center">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-500 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                </svg>
-                                                <span class="text-sm font-medium">{{ $related->rating }}</span>
-                                                <span class="text-xs text-gray-500 ml-1">({{ $related->rating_count }})</span>
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
+                    </div>
                     @endforeach
                 </div>
+            </section>
+            @endif
+
+            {{-- LOCATION / MAP --}}
+            @if($destination->latitude && $destination->longitude)
+            <section class="reveal">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-lg">
+                        <i class="fas fa-map-marked-alt text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="section-head text-2xl font-black text-ocean-900 font-montserrat">Location</h2>
+                        <p class="text-gray-400 text-sm font-medium mt-1">
+                            {{ number_format($destination->latitude, 4) }}°, {{ number_format($destination->longitude, 4) }}°
+                            @if($destination->maps_url)
+                            — <a href="{{ $destination->maps_url }}" target="_blank" class="text-sunset-500 hover:underline font-bold">Open in Google Maps</a>
+                            @endif
+                        </p>
+                    </div>
+                </div>
+
+                <div class="map-wrap">
+                    <iframe
+                        class="w-full h-[400px] sm:h-[480px]"
+                        frameborder="0" scrolling="no"
+                        src="https://maps.google.com/maps?q={{ $destination->latitude }},{{ $destination->longitude }}&z=14&output=embed"
+                        allowfullscreen
+                        aria-label="Map of {{ $destination->name }}">
+                    </iframe>
+                </div>
+            </section>
+            @endif
+
+        </div>
+
+        {{-- ── RIGHT: Booking Card ── --}}
+        <div class="xl:w-96 flex-shrink-0">
+            <div class="booking-card">
+                {{-- Card Header --}}
+                <div class="booking-card-header">
+                    <p class="text-white/50 text-[10px] uppercase tracking-widest font-black mb-3">Book Your Visit</p>
+                    <h3 class="text-white font-black text-2xl font-montserrat leading-tight mb-3">{{ $destination->name }}</h3>
+                    <div class="flex items-baseline gap-1.5">
+                        @if($destination->price)
+                        <span class="text-sunset-500 font-black text-3xl font-montserrat">Rp{{ number_format($destination->price, 0, ',', '.') }}</span>
+                        <span class="text-white/40 text-sm font-medium">per person</span>
+                        @else
+                        <span class="text-white/50 text-base font-medium">Contact for pricing</span>
+                        @endif
+                    </div>
+                </div>
+
+                <form id="quickBookForm" action="{{ route('destinations.book', $destination->id) }}" method="GET">
+                    <div class="p-6 space-y-5">
+
+                        {{-- Visit Date --}}
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2">Visit Date</label>
+                            <div class="relative">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sunset-500 pointer-events-none w-5 text-center">
+                                    <i class="fas fa-calendar-day text-sm"></i>
+                                </span>
+                                <input type="date" id="visitDate" name="date"
+                                       value="{{ date('Y-m-d') }}"
+                                       min="{{ date('Y-m-d') }}"
+                                       style="width:100%; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:0.875rem; padding:0.875rem 1rem 0.875rem 2.75rem; font-size:0.875rem; font-weight:700; color:#001a33; outline:none; transition:all 0.25s;">
+                            </div>
+                        </div>
+
+                        {{-- Ticket Quantity --}}
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2">Number of Tickets</label>
+                            <div class="flex items-center gap-4 bg-gray-50 rounded-2xl p-3 border border-gray-100">
+                                <button type="button" class="qty-btn minus" id="qtyMinus">−</button>
+                                <div class="flex-1 text-center">
+                                    <span id="qtyDisplay" class="text-2xl font-black text-ocean-900 font-montserrat">1</span>
+                                    <span class="text-gray-400 text-xs font-medium block -mt-0.5">ticket(s)</span>
+                                </div>
+                                <button type="button" class="qty-btn plus" id="qtyPlus">+</button>
+                                <input type="hidden" id="qtyInput" name="qty" value="1">
+                            </div>
+                        </div>
+
+                        {{-- Price Preview --}}
+                        @if($destination->price)
+                        <div class="bg-gradient-to-r from-ocean-900/5 to-sunset-500/5 rounded-2xl p-4 border border-ocean-900/8">
+                            <div class="flex justify-between text-sm text-gray-500 font-medium mb-2">
+                                <span>Rp{{ number_format($destination->price, 0, ',', '.') }} × <span id="previewQty">1</span> person</span>
+                                <span id="previewSubtotal">Rp{{ number_format($destination->price, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="flex justify-between font-black text-ocean-900 text-base font-montserrat border-t border-gray-200 pt-2 mt-2">
+                                <span>Estimated Total</span>
+                                <span id="previewTotal" class="text-sunset-500">Rp{{ number_format($destination->price, 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                        @endif
+
+                        {{-- Book Now Button --}}
+                        @auth
+                        <a href="{{ route('destinations.book', $destination->id) }}"
+                           id="bookNowBtn"
+                           class="flex items-center justify-center gap-2.5 w-full py-4 rounded-2xl font-black text-base text-white transition-all duration-300 hover:-translate-y-1"
+                           style="background: linear-gradient(135deg, #ff6b35, #e55a2b); box-shadow: 0 10px 28px rgba(255,107,53,0.4);">
+                            <i class="fas fa-ticket-alt text-sm"></i>
+                            Book Tickets Now
+                        </a>
+                        @else
+                        <a href="{{ route('login') }}"
+                           class="flex items-center justify-center gap-2.5 w-full py-4 rounded-2xl font-black text-base text-white transition-all duration-300 hover:-translate-y-1"
+                           style="background: linear-gradient(135deg, #374151, #1f2937); box-shadow: 0 10px 28px rgba(0,0,0,0.25);">
+                            <i class="fas fa-lock text-sm text-sunset-400"></i>
+                            Login untuk Booking
+                        </a>
+                        <p class="text-xs text-gray-400 text-center">Daftar gratis, booking mudah & aman</p>
+                        @endauth
+
+                        {{-- Trust Points --}}
+                        <div class="grid grid-cols-2 gap-3 pt-2">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-shield-alt text-green-500 text-xs"></i>
+                                <span class="text-[11px] text-gray-400 font-bold">Secure Booking</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-undo text-blue-500 text-xs"></i>
+                                <span class="text-[11px] text-gray-400 font-bold">Free Cancel</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-headset text-sunset-500 text-xs"></i>
+                                <span class="text-[11px] text-gray-400 font-bold">24/7 Support</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                <span class="text-[11px] text-gray-400 font-bold">Top Rated</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                {{-- Share Section --}}
+                <div class="px-6 pb-6">
+                    <div class="border-t border-gray-100 pt-5">
+                        <p class="text-[10px] uppercase tracking-widest font-black text-gray-300 mb-3">Share This Place</p>
+                        <div class="flex gap-2.5">
+                            @php $shareUrl = urlencode(url()->current()); $shareName = urlencode($destination->name); @endphp
+                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank"
+                               class="flex-1 py-2.5 rounded-xl bg-[#1877f2]/10 text-[#1877f2] text-xs font-black flex items-center justify-center gap-1.5 hover:bg-[#1877f2] hover:text-white transition-all">
+                                <i class="fab fa-facebook-f"></i> Facebook
+                            </a>
+                            <a href="https://wa.me/?text={{ $shareName }}%20{{ $shareUrl }}" target="_blank"
+                               class="flex-1 py-2.5 rounded-xl bg-[#25d366]/10 text-[#25d366] text-xs font-black flex items-center justify-center gap-1.5 hover:bg-[#25d366] hover:text-white transition-all">
+                                <i class="fab fa-whatsapp"></i> WhatsApp
+                            </a>
+                            <button onclick="navigator.clipboard.writeText(window.location.href).then(()=>{this.innerHTML='<i class=\'fas fa-check\'></i>';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-link\'></i>'},2000)})"
+                                    class="w-10 h-10 rounded-xl bg-gray-100 text-gray-500 text-xs flex items-center justify-center hover:bg-ocean-900 hover:text-white transition-all">
+                                <i class="fas fa-link"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-        @endif
-    </main>
+        </div>
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css">
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <style>
-        :root {
-            scroll-behavior: smooth;
-        }
+    </div>{{-- end flex --}}
+</div>
+</div>
 
-        .ken-burns {
-            background-size: cover;
-            background-position: center;
-            animation: kenburns-animation 20s ease-out infinite;
-        }
-
-        .parallax-bg {
-            will-change: transform;
-        }
-
-        @keyframes kenburns-animation {
-            0% {
-                transform: scale(1) translate(0, 0);
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // ── Parallax hero background ──
+    const heroBg = document.getElementById('heroBg');
+    if (heroBg) {
+        heroBg.classList.add('loaded');
+        window.addEventListener('scroll', () => {
+            const scrollY = window.pageYOffset;
+            const hero = document.getElementById('destHero');
+            if (hero && scrollY < hero.offsetHeight * 1.5) {
+                heroBg.style.transform = `scale(1.0) translateY(${scrollY * 0.3}px)`;
             }
-            50% {
-                transform: scale(1.1) translate(5px, -5px);
-            }
-            100% {
-                transform: scale(1) translate(0, 0);
-            }
-        }
+        }, { passive: true });
+    }
 
-        /* Custom Scrollbar */
-        .scrollbar-thin::-webkit-scrollbar {
-            height: 8px;
-            width: 8px;
-        }
+    // ── Ticket Quantity ──
+    const qtyMinus   = document.getElementById('qtyMinus');
+    const qtyPlus    = document.getElementById('qtyPlus');
+    const qtyDisplay = document.getElementById('qtyDisplay');
+    const qtyInput   = document.getElementById('qtyInput');
+    const previewQty     = document.getElementById('previewQty');
+    const previewSubtotal= document.getElementById('previewSubtotal');
+    const previewTotal   = document.getElementById('previewTotal');
+    const pricePerPerson = {{ $destination->price ?? 0 }};
 
-        .scrollbar-thin::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
+    let qty = 1;
+    const fmt = n => 'Rp' + Math.round(n).toLocaleString('id-ID');
+    const updateQty = () => {
+        qtyDisplay.textContent = qty;
+        qtyInput.value = qty;
+        if (previewQty) previewQty.textContent = qty;
+        if (previewSubtotal && pricePerPerson) previewSubtotal.textContent = fmt(pricePerPerson * qty);
+        if (previewTotal && pricePerPerson) previewTotal.textContent = fmt(pricePerPerson * qty);
+        qtyMinus.style.opacity = qty <= 1 ? '0.4' : '1';
+        qtyMinus.disabled = qty <= 1;
+    };
+    if (qtyMinus) qtyMinus.addEventListener('click', () => { if (qty > 1) { qty--; updateQty(); } });
+    if (qtyPlus)  qtyPlus.addEventListener('click',  () => { if (qty < 20) { qty++; updateQty(); } });
+    updateQty();
+});
+</script>
+@endpush
 
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 4px;
-        }
-
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af;
-        }
-
-        /* Lazy Load Placeholder */
-        .lazyload {
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-        }
-
-        .lazyload.loaded {
-            opacity: 1;
-        }
-
-        /* Hover Effects */
-        .group:hover .group-hover\:mr-3 {
-            margin-right: 0.75rem;
-        }
-
-        /* Accessibility */
-        [aria-label] {
-            outline: none;
-        }
-
-        [aria-label]:focus {
-            outline: 2px solid #2563eb;
-            outline-offset: 2px;
-        }
-    </style>
-
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.3.2/lazysizes.min.js" async></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            AOS.init({
-                duration: 800,
-                once: true,
-            });
-
-            // Lazy load images
-            document.querySelectorAll('.lazyload').forEach(img => {
-                img.addEventListener('load', () => img.classList.add('loaded'));
-            });
-
-            // Accessibility: Keyboard navigation for carousel
-            document.querySelectorAll('.grid button').forEach(button => {
-                button.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        button.click();
-                    }
-                });
-            });
-        });
-    </script>
 @endsection

@@ -3,134 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <title>Hotel Booking Confirmation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --ocean-900: #001a33;
+            --sunset-500: #ff6b35;
+            --white: #ffffff;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-400: #94a3b8;
+        }
+        body {
+            margin: 0; padding: 0;
+            background-color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            color: #1e293b;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 32px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 26, 51, 0.1);
+        }
+        .header {
+            background-color: #001a33;
+            padding: 48px;
+            text-align: center;
+            color: white;
+        }
+        .logo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 24px;
+            letter-spacing: -1px;
+            margin-bottom: 32px;
+        }
+        .logo span { color: #ff6b35; }
+        .success-circle {
+            width: 64px; height: 64px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            margin: 0 auto 24px;
+            line-height: 64px;
+            font-size: 32px;
+            color: #ff6b35;
+        }
+        .content { padding: 48px; }
+        .booking-card {
+            background: #f8fafc;
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 32px;
+            border: 1px solid #f1f5f9;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+        .label { color: #94a3b8; font-weight: 700; text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
+        .value { color: #001a33; font-weight: 800; }
+        .divider { border-top: 1px solid #f1f5f9; margin: 16px 0; padding-top: 16px; }
+        .btn {
+            display: inline-block;
+            background: #ff6b35;
+            color: white;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 16px;
+            font-weight: 800;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 20px rgba(255, 107, 53, 0.2);
+        }
+        .footer {
+            background: #f8fafc;
+            padding: 32px;
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+    </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f6f7fb; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-    <div style="max-width: 640px; margin: 30px auto; background: #ffffff; border-radius: 16px; box-shadow: 0 12px 30px rgba(0,0,0,0.08); overflow: hidden;">
-
-        <!-- Header -->
-        <div style="background: linear-gradient(90deg, #43cea2, #185a9d); padding: 30px 40px; color: white; text-align: center;">
-            <img src="https://via.placeholder.com/70x70?text=🏨" alt="Logo" style="border-radius: 50%; margin-bottom: 15px;" />
-            <h1 style="margin: 0; font-size: 26px;">Your Booking is Confirmed!</h1>
-            <p style="margin: 5px 0 0; font-size: 15px; opacity: 0.9;">Your reservation has been successfully made 💼</p>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Wonderful<span>NTT</span></div>
+            <div class="success-circle">✓</div>
+            <h1 style="font-family: Montserrat; font-weight: 900; margin: 0; font-size: 28px;">Stay Confirmed</h1>
+            <p style="opacity: 0.6; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-top: 8px;">Reservation #{{ $booking->booking_number }}</p>
         </div>
 
-        <!-- Body -->
-        <div style="padding: 30px 40px;">
-            <p style="font-size: 16px; color: #333;">Hi <strong>{{ $booking->customer_name }}</strong>,</p>
-            <p style="font-size: 16px; color: #555; line-height: 1.7;">
-                Thank you for booking a room at <strong>{{ $booking->hotel->name }}</strong>. Here are your reservation details:
-            </p>
+        <div class="content">
+            <p style="font-weight: 800; font-size: 18px; margin-bottom: 16px;">Hi {{ $booking->customer_name }},</p>
+            <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin-bottom: 32px;">Your reservation at <strong>{{ $booking->hotel->name }}</strong> is officially on the books. We're looking forward to your arrival.</p>
 
-            <!-- Booking Code -->
-            <div style="background: #f1faf6; border-left: 5px solid #43cea2; border-radius: 10px; padding: 15px 20px; margin: 25px 0;">
-                <p style="margin: 0; font-size: 16px; color: #222;"><strong>🔖 Booking Number:</strong> <span style="color: #2f855a;">{{ $booking->booking_number ?? '—' }}</span></p>
+            <div class="booking-card">
+                <div class="detail-row">
+                    <span class="label">Ref Number</span>
+                    <span class="value" style="color: #ff6b35;">{{ $booking->booking_number }}</span>
+                </div>
+                <div class="divider"></div>
+                <div class="detail-row">
+                    <span class="label">Check In</span>
+                    <span class="value">{{ \Carbon\Carbon::parse($booking->check_in_date)->format('d M Y') }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Check Out</span>
+                    <span class="value">{{ \Carbon\Carbon::parse($booking->check_out_date)->format('d M Y') }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Room Category</span>
+                    <span class="value">{{ ucfirst($booking->room_type) }}</span>
+                </div>
             </div>
 
-            <!-- Booking Details -->
-            <table style="width: 100%; margin-top: 15px; font-size: 15px; border-collapse: collapse;">
-                <tr>
-                    <td style="padding: 10px 0; color: #555;">👤 <strong>Guest Name</strong></td>
-                    <td style="padding: 10px 0; text-align: right; color: #333;">{{ $booking->customer_name }}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px 0; color: #555;">🏨 <strong>Hotel</strong></td>
-                    <td style="padding: 10px 0; text-align: right; color: #333;">{{ $booking->hotel->name }}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px 0; color: #555;">🛏️ <strong>Room Type</strong></td>
-                    <td style="padding: 10px 0; text-align: right; color: #333;">{{ ucfirst($booking->room_type) }}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px 0; color: #555;">🌙 <strong>Nights</strong></td>
-                    <td style="padding: 10px 0; text-align: right; color: #333;">{{ $booking->night_count }}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px 0; color: #555;">📅 <strong>Check-in</strong></td>
-                    <td style="padding: 10px 0; text-align: right; color: #333;">{{ \Carbon\Carbon::parse($booking->check_in_date)->format('d M Y') }}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px 0; color: #555;">📅 <strong>Check-out</strong></td>
-                    <td style="padding: 10px 0; text-align: right; color: #333;">{{ \Carbon\Carbon::parse($booking->check_out_date)->format('d M Y') }}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px 0; color: #555;">💳 <strong>Payment Method</strong></td>
-                    <td style="padding: 10px 0; text-align: right; color: #333;">{{ ucfirst($booking->payment_method) }}</td>
-                </tr>
-            </table>
-
-            <!-- Price Breakdown -->
-            <div style="background: #f8fafc; border-radius: 10px; padding: 20px; margin: 25px 0;">
-                <h3 style="font-size: 18px; color: #333; margin: 0 0 15px; font-weight: 600;">Price Breakdown</h3>
-                <table style="width: 100%; font-size: 15px; border-collapse: collapse;">
-                    <tr>
-                        <td style="padding: 8px 0; color: #555;">Room Price (per night)</td>
-                        <td style="padding: 8px 0; text-align: right; color: #333;">Rp{{ number_format($booking->room_price, 0, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px 0; color: #555;">Room Total ({{ $booking->night_count }} nights)</td>
-                        <td style="padding: 8px 0; text-align: right; color: #333;">Rp{{ number_format($booking->room_price * $booking->night_count, 0, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px 0; color: #555;">Tax (10%)</td>
-                        <td style="padding: 8px 0; text-align: right; color: #333;">Rp{{ number_format($booking->tax, 0, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px 0; color: #555;">Service Fee (5%)</td>
-                        <td style="padding: 8px 0; text-align: right; color: #333;">Rp{{ number_format($booking->service_charge, 0, ',', '.') }}</td>
-                    </tr>
-                    @if ($booking->promo_code || $booking->promo_code_id)
-                        @php
-                            $promo = $booking->promo_code_id ? \App\Models\CodePromotion::find($booking->promo_code_id) : null;
-                            $effectiveDiscount = ($promo && $promo->discount_percent > 0)
-                                ? ($booking->room_price * $booking->night_count * $promo->discount_percent / 100)
-                                : ($booking->discount_amount ?? 0);
-                            $discountDisplay = ($promo && $promo->discount_percent > 0)
-                                ? $promo->discount_percent . '% (Rp' . number_format($effectiveDiscount, 0, ',', '.') . ')'
-                                : ($booking->discount_amount > 0 ? 'Rp' . number_format($booking->discount_amount, 0, ',', '.') : 'None');
-                        @endphp
-                        <tr>
-                            <td style="padding: 8px 0; color: #16a34a;">Promo Code</td>
-                            <td style="padding: 8px 0; text-align: right; color: #16a34a;">{{ $booking->promo_code ?? 'N/A' }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0; color: #16a34a;">Discount</td>
-                            <td style="padding: 8px 0; text-align: right; color: #16a34a;">{{ $discountDisplay }}</td>
-                        </tr>
-                    @endif
-                    <tr>
-                        <td style="padding: 8px 0; color: #333; font-weight: 600; border-top: 1px solid #e2e8f0;">Total Amount</td>
-                        @php
-                            $calculatedTotal = ($booking->room_price * $booking->night_count) + $booking->tax + $booking->service_charge - $effectiveDiscount;
-                        @endphp
-                        <td style="padding: 8px 0; text-align: right; color: #3b82f6; font-weight: 600; border-top: 1px solid #e2e8f0;">Rp{{ number_format($calculatedTotal, 0, ',', '.') }}</td>
-                    </tr>
-                    @if (abs($calculatedTotal - $booking->total_price) > 0.01)
-                        <tr>
-                        </tr>
-                    @endif
-                </table>
+            <h3 style="font-family: Montserrat; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">Financial Breakdown</h3>
+            <div class="booking-card">
+                <div class="detail-row">
+                    <span class="label">Subtotal ({{ $booking->night_count }} Nights)</span>
+                    <span class="value">Rp {{ number_format($booking->room_price * $booking->night_count, 0, ',', '.') }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="label">Taxes & Fees</span>
+                    <span class="value">Rp {{ number_format($booking->tax + $booking->service_charge, 0, ',', '.') }}</span>
+                </div>
+                @if($booking->discount_amount > 0)
+                <div class="detail-row">
+                    <span class="label">Promotional Credit</span>
+                    <span class="value" style="color: #ef4444;">- Rp {{ number_format($booking->discount_amount, 0, ',', '.') }}</span>
+                </div>
+                @endif
+                <div class="divider"></div>
+                <div class="detail-row" style="font-size: 16px;">
+                    <span class="label" style="color: #001a33; font-weight: 800;">Total Charged</span>
+                    <span class="value" style="color: #ff6b35;">Rp {{ number_format($booking->total_price, 0, ',', '.') }}</span>
+                </div>
             </div>
 
-            <!-- Info -->
-            <p style="font-size: 15px; color: #444; margin-top: 25px;">
-                Please present this email upon <strong>check-in</strong>. If you have any questions or changes, feel free to contact us anytime.
-            </p>
-
-            <!-- CTA Button -->
-            <div style="text-align: center; margin-top: 30px;">
-                <a href="{{ route('booking.show', ['booking_number' => $booking->booking_number]) }}" 
-                   style="display: inline-block; background-color: #2563eb; color: #fff; text-decoration: none;
-                          padding: 12px 20px; border-radius: 6px; font-weight: 600; font-size: 14px;">
-                    🔍 View Booking Details
-                </a>
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="{{ route('booking.checkForm') }}" class="btn">Manage My Stay</a>
+                <p style="margin-top: 24px; font-size: 12px; color: #94a3b8; font-weight: 600;">Please show this confirmation at the front desk upon arrival.</p>
             </div>
-
-            <p style="font-size: 15px; color: #444; margin-top: 40px;">Warm regards,<br><strong>Wonderful Indonesia - NTT Team</strong></p>
         </div>
 
-        <!-- Footer -->
-        <div style="background-color: #f0f2f5; padding: 20px 40px; text-align: center; font-size: 12px; color: #888;">
-            📩 This email was sent automatically. Please do not reply directly to this message.
+        <div class="footer">
+            <p>&copy; {{ date('Y') }} WONDERFUL NTT • HOSPITALITY DIVISION</p>
+            <p>Managed for Luxury and Comfort</p>
         </div>
     </div>
 </body>

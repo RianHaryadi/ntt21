@@ -1,350 +1,193 @@
 @extends('layouts.app')
 
-@section('title', 'Booking Success - ' . $booking->hotel->name)
+@section('title', 'Booking Confirmed! - ' . ($booking->hotel->name ?? 'Hotel'))
+
+@push('styles')
+<style>
+    @keyframes checkPop {
+        0%{ transform: scale(0); opacity: 0; }
+        60%{ transform: scale(1.2); opacity: 1; }
+        100%{ transform: scale(1); opacity: 1; }
+    }
+    .check-anim { animation: checkPop 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.3s both; }
+    
+    .timeline-line { background: linear-gradient(to bottom, #ff6b35, #e2e8f0); }
+    .step-dot-active {
+        background: radial-gradient(circle at center, #ff6b35, #e65a2a);
+        box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.15);
+    }
+</style>
+@endpush
 
 @section('content')
-<section class="py-16 bg-gradient-to-br from-blue-50 to-green-50">
-    <div class="container mx-auto px-4 max-w-5xl">
-        <!-- Success Card -->
-        <div class="bg-white rounded-2xl overflow-hidden shadow-xl transform transition-all duration-300 hover:shadow-2xl">
-            <!-- Decorative header stripe -->
-            <div class="h-2 bg-gradient-to-r from-green-400 to-blue-500"></div>
-            
-            <div class="p-8 md:p-10">
-                <!-- Animated success header -->
-                <div class="text-center mb-8">
-                    <div class="inline-flex items-center justify-center h-20 w-20 rounded-full bg-green-100 text-green-600 mb-4 animate-bounce">
-                        <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                    </div>
-                    <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">Booking Confirmed!</h1>
-                    <p class="text-lg text-gray-600">Your reservation at <span class="font-semibold text-blue-600">{{ $booking->hotel->name }}</span> is confirmed</p>
-                    
-                    <!-- Highlighted Booking Number -->
-                    <div class="mt-4 inline-flex items-center px-4 py-2 rounded-lg bg-blue-50 border border-blue-100 shadow-sm">
-                        <svg class="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                        </svg>
-                        <span class="font-mono font-bold text-blue-700 tracking-wider">{{ $booking->booking_number }}</span>
-                    </div>
-                </div>
 
-                <!-- Booking timeline -->
-                <div class="mb-8">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Your Booking Timeline</h3>
-                    <div class="relative">
-                        <!-- Timeline line -->
-                        <div class="absolute left-4 top-0 h-full w-0.5 bg-blue-200"></div>
-                        
-                        <div class="space-y-6">
-                            <!-- Current step - Check-in -->
-                            <div class="relative flex items-start">
-                                <div class="flex-shrink-0 h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center z-10">
-                                    <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                </div>
-                                <div class="ml-4">
-                                    <h4 class="text-lg font-medium text-gray-800">Booking Confirmed</h4>
-                                    <p class="text-gray-600 text-sm">Today, {{ now()->format('g:i A') }}</p>
-                                </div>
-                            </div>
-                            
-                            <!-- Future steps -->
-                            <div class="relative flex items-start">
-                                <div class="flex-shrink-0 h-8 w-8 rounded-full bg-white border-2 border-blue-300 flex items-center justify-center z-10">
-                                    <span class="h-2 w-2 bg-blue-300 rounded-full"></span>
-                                </div>
-                                <div class="ml-4">
-                                    <h4 class="text-lg font-medium text-gray-700">Check-in</h4>
-                                    <p class="text-gray-500 text-sm">
-                                        {{ \Carbon\Carbon::parse($booking->check_in_date)->format('l, F j, Y') }} at 2:00 PM
-                                    </p>
-                                </div>
-                            </div>
-                            
-                            <div class="relative flex items-start">
-                                <div class="flex-shrink-0 h-8 w-8 rounded-full bg-white border-2 border-blue-300 flex items-center justify-center z-10">
-                                    <span class="h-2 w-2 bg-blue-300 rounded-full"></span>
-                                </div>
-                                <div class="ml-4">
-                                    <h4 class="text-lg font-medium text-gray-700">Check-out</h4>
-                                    <p class="text-gray-500 text-sm">
-                                        {{ \Carbon\Carbon::parse($booking->check_out_date)->format('l, F j, Y') }} at 12:00 PM
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+{{-- ── HERO BANNER ── --}}
+<section class="relative pt-32 pb-20 text-white overflow-hidden bg-ocean-900 border-b border-white/10 reveal">
+    <div class="absolute inset-0 bg-gradient-to-t from-ocean-900 via-ocean-900/40 to-transparent pointer-events-none z-0"></div>
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-sunset-500 rounded-full mix-blend-multiply filter blur-[100px] opacity-40 z-0"></div>
+    
+    <div class="max-w-4xl mx-auto px-4 text-center relative z-10">
+        <div class="inline-flex items-center justify-center w-24 h-24 bg-white/10 backdrop-blur-md rounded-full mb-8 border border-white/20 check-anim shadow-2xl">
+            <i class="fas fa-check text-4xl text-sunset-500"></i>
+        </div>
+        <h1 class="text-5xl md:text-6xl font-black mb-6 font-montserrat tracking-tight drop-shadow-2xl">
+            Stay <span class="text-sunset-500">Confirmed!</span>
+        </h1>
+        <p class="text-white/70 text-lg md:text-xl max-w-2xl mx-auto font-inter">Your reservation at <span class="text-white font-bold">{{ $booking->hotel->name }}</span> has been successfully processed.</p>
+        
+        <div class="mt-10 flex flex-col items-center">
+            <div class="inline-flex items-center gap-3 px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-xl">
+               <span class="text-[10px] uppercase tracking-widest font-black text-sunset-500">Ref Number</span>
+               <span class="font-mono font-black text-white text-lg tracking-widest">{{ $booking->booking_number }}</span>
+               <button onclick="navigator.clipboard.writeText('{{ $booking->booking_number }}')" class="text-white hover:text-sunset-500 transition-colors ml-2" title="Copy Number">
+                 <i class="fas fa-copy text-sm"></i>
+               </button>
+            </div>
+        </div>
+    </div>
+</section>
 
-                <!-- Hotel card with image -->
-                <div class="flex flex-col md:flex-row bg-gray-50 rounded-xl p-6 mb-8 border border-gray-200 hover:border-blue-200 transition-colors duration-200">
-                    <div class="md:w-1/3 mb-4 md:mb-0">
-                        <img src="{{ $booking->hotel->image ? asset('storage/' . $booking->hotel->image) : asset('images/hotel-fallback.jpg') }}" 
-                             alt="{{ $booking->hotel->name }}"
-                             class="w-full h-64 object-cover rounded-lg transition-transform duration-300 group-hover:scale-105">
-                    </div>
-                    <div class="md:w-2/3 md:pl-6">
-                        <h3 class="text-xl font-bold text-gray-800 mb-2">{{ $booking->hotel->name }}</h3>
-                        <div class="flex items-center text-gray-600 mb-2">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
-                            {{ $booking->hotel->location }}
+{{-- ── CONTENT ── --}}
+<section class="py-20 bg-light min-h-[50vh]">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+        <div class="grid md:grid-cols-3 gap-10">
+
+            {{-- ── LEFT: MAIN CARD ── --}}
+            <div class="md:col-span-2 space-y-10">
+
+                {{-- Hotel Ticket Card --}}
+                <div class="cinematic-card p-0 shadow-2xl overflow-hidden border-0 rounded-3xl reveal">
+                    <div class="flex flex-col sm:flex-row h-full">
+                        <div class="sm:w-2/5 relative h-56 sm:h-auto bg-ocean-900">
+                            <img src="{{ $booking->hotel->image ? asset('storage/'.$booking->hotel->image) : asset('images/hotel-fallback.jpg') }}"
+                                 alt="{{ $booking->hotel->name }}"
+                                 class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-r from-ocean-900/60 to-transparent sm:from-transparent"></div>
                         </div>
-                        
-                        <!-- Rating -->
-                        <div class="flex items-center mb-3">
-                            <div class="flex items-center">
-                                @for($i = 0; $i < 5; $i++)
-                                    <svg class="w-4 h-4 {{ $i < $booking->hotel->stars ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                                    </svg>
+                        <div class="flex-1 p-8 bg-white">
+                            <div class="flex items-center gap-2 text-sunset-500 mb-2">
+                                @for($i = 0; $i < ($booking->hotel->stars ?? 5); $i++)
+                                    <i class="fas fa-star text-[10px]"></i>
                                 @endfor
                             </div>
-                            <span class="ml-2 text-sm text-gray-500">{{ $booking->hotel->stars }} stars</span>
-                        </div>
-                        
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                                {{ ucfirst($booking->room_type) }} Room
-                            </span>
-                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                                {{ $booking->night_count }} Nights
-                            </span>
-                            <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-                                {{ ucfirst($booking->payment_method) }} Payment
-                            </span>
-                        </div>
-                        
-                        <div class="flex items-center text-gray-600">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            {{ \Carbon\Carbon::parse($booking->check_in_date)->format('d M Y') }} - 
-                            {{ \Carbon\Carbon::parse($booking->check_out_date)->format('d M Y') }}
+                            <h2 class="text-3xl font-black text-ocean-900 font-montserrat tracking-tight mb-4">{{ $booking->hotel->name }}</h2>
+                            
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                    <p class="text-[10px] uppercase font-black text-gray-400 tracking-widest mb-1">Room Type</p>
+                                    <p class="text-ocean-900 font-bold text-sm">{{ ucfirst($booking->room_type) }} Room</p>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                                    <p class="text-[10px] uppercase font-black text-gray-400 tracking-widest mb-1">Payment</p>
+                                    <p class="text-ocean-900 font-bold text-sm">{{ strtoupper($booking->payment_method) }}</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-6 border-t border-dashed border-gray-200">
+                                <div class="flex flex-col">
+                                    <p class="text-[10px] uppercase font-black text-sunset-500 tracking-widest">Check-In</p>
+                                    <p class="text-ocean-900 font-black text-sm">{{ \Carbon\Carbon::parse($booking->check_in_date)->format('d M Y') }}</p>
+                                </div>
+                                <div class="text-gray-300">
+                                    <i class="fas fa-arrow-right"></i>
+                                </div>
+                                <div class="flex flex-col text-right">
+                                    <p class="text-[10px] uppercase font-black text-sunset-500 tracking-widest">Check-Out</p>
+                                    <p class="text-ocean-900 font-black text-sm">{{ \Carbon\Carbon::parse($booking->check_out_date)->format('d M Y') }}</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Two-column layout for details -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <!-- Booking details -->
-                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                        <h3 class="text-xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-200">Booking Summary</h3>
-                        
-                        <div class="space-y-4">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Booking Number</span>
-                                <span class="font-medium text-blue-700">{{ $booking->booking_number }}</span>
-                            </div>
-                            
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Booking Date</span>
-                                <span>{{ $booking->created_at->format('d M Y, g:i A') }}</span>
-                            </div>
-                            
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Status</span>
-                                <span class="px-2 py-1 rounded-full text-xs font-medium 
-                                    {{ $booking->status === 'confirmed' ? 'bg-green-100 text-green-800' : 
-                                       ($booking->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
-                                    {{ ucfirst($booking->status) }}
-                                </span>
-                            </div>
-                            
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Payment Method</span>
-                                <span class="font-medium">{{ ucfirst($booking->payment_method) }}</span>
-                            </div>
-                            
-                            @if ($booking->promo_code)
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Promo Code</span>
-                                <span class="font-medium text-green-600">{{ $booking->promo_code }}</span>
-                            </div>
-                            @endif
+                {{-- Price & Breakdown --}}
+                <div class="bg-white rounded-3xl p-8 shadow-2xl border-0 reveal">
+                   <h3 class="font-black text-ocean-900 mb-6 flex items-center gap-3 font-montserrat uppercase tracking-wider text-sm">
+                        <i class="fas fa-receipt text-sunset-500"></i> Detailed Price Breakdown
+                    </h3>
+                    <div class="space-y-4 text-sm font-bold">
+                        <div class="flex justify-between text-gray-400">
+                            <span>Base Rate ({{ $booking->night_count }} nights)</span>
+                            <span class="text-ocean-900">Rp{{ number_format($booking->room_price * $booking->night_count, 0, ',', '.') }}</span>
                         </div>
-                    </div>
-                    
-                    <!-- Guest details -->
-                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                        <h3 class="text-xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-200">Guest Information</h3>
-                        
-                        <div class="space-y-4">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Name</span>
-                                <span class="font-medium">{{ $booking->customer_name }}</span>
-                            </div>
-                            
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Email</span>
-                                <span class="font-medium">{{ $booking->customer_email }}</span>
-                            </div>
-                            
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Phone</span>
-                                <span class="font-medium">{{ $booking->customer_phone }}</span>
-                            </div>
-                            
-                            @if ($booking->special_requests)
-                            <div class="pt-4 mt-4 border-t border-gray-200">
-                                <h4 class="text-sm font-medium text-gray-600 mb-1">Special Requests</h4>
-                                <p class="text-gray-800">{{ $booking->special_requests }}</p>
-                            </div>
-                            @endif
+                        <div class="flex justify-between text-gray-400">
+                            <span>Government Taxes (10%)</span>
+                            <span class="text-ocean-900">Rp{{ number_format($booking->tax, 0, ',', '.') }}</span>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Price breakdown -->
-                <div class="bg-white rounded-xl p-6 mb-8 border border-gray-200 shadow-sm">
-                    <h3 class="text-xl font-bold text-gray-800 mb-6 pb-2 border-b border-gray-200">Price Breakdown</h3>
-                    
-                    <div class="space-y-3">
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Room Price ({{ $booking->night_count }} nights)</span>
-                            <span>Rp{{ number_format($booking->room_price * $booking->night_count, 0, ',', '.') }}</span>
+                        <div class="flex justify-between text-gray-400">
+                            <span>Resort & Service Fee (5%)</span>
+                            <span class="text-ocean-900">Rp{{ number_format($booking->service_charge, 0, ',', '.') }}</span>
                         </div>
-                        
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Tax (10%)</span>
-                            <span>Rp{{ number_format($booking->tax, 0, ',', '.') }}</span>
+                        @if($booking->promo_code)
+                        <div class="flex justify-between text-sunset-500">
+                            <span>Voucher applied</span>
+                            <span>-Rp{{ number_format($booking->discount_amount ?? 0, 0, ',', '.') }}</span>
                         </div>
-                        
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Service Fee (5%)</span>
-                            <span>Rp{{ number_format($booking->service_charge, 0, ',', '.') }}</span>
-                        </div>
-                        
-                        @if ($booking->promo_code || $booking->promo_code_id)
-                            @php
-                                $promo = $booking->promo_code_id ? \App\Models\CodePromotion::find($booking->promo_code_id) : null;
-                                $effectiveDiscount = ($promo && $promo->discount_percent > 0)
-                                    ? ($booking->room_price * $booking->night_count * $promo->discount_percent / 100)
-                                    : ($booking->discount_amount ?? 0);
-                            @endphp
-                            <div class="flex justify-between text-green-600">
-                                <span class="font-medium">Discount Applied</span>
-                                <span class="font-medium">-Rp{{ number_format($effectiveDiscount, 0, ',', '.') }}</span>
-                            </div>
                         @endif
-                        
-                        <div class="pt-4 mt-4 border-t border-gray-200 flex justify-between text-lg font-bold">
-                            <span>Total Amount</span>
-                            <span class="text-blue-600">Rp{{ number_format($booking->total_price, 0, ',', '.') }}</span>
+                        <div class="pt-6 border-t border-gray-100 flex justify-between items-center">
+                            <span class="text-xl font-black text-ocean-900">Total Charged</span>
+                            <span class="text-3xl font-black text-sunset-500">Rp{{ number_format($booking->total_price, 0, ',', '.') }}</span>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Next steps and important info -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <!-- Next steps -->
-                    <div class="bg-blue-50 rounded-xl p-6 border border-blue-100">
-                        <h3 class="text-xl font-bold text-blue-800 mb-4">What's Next?</h3>
-                        <div class="space-y-4">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 h-6 w-6 text-blue-500 mr-3 mt-1">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.827 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                                    </svg>
+            {{-- ── RIGHT: SIDEBAR ── --}}
+            <div class="space-y-8">
+
+                {{-- Timeline --}}
+                <div class="bg-white rounded-3xl p-8 shadow-2xl border-0 reveal">
+                    <h3 class="font-black text-ocean-900 mb-8 font-montserrat uppercase tracking-wider text-xs">Stay Progress</h3>
+                    <div class="relative pl-8">
+                        <div class="timeline-line absolute left-3 top-2 w-0.5 h-[90%] rounded-full"></div>
+                        <div class="space-y-10">
+                            <div class="relative flex gap-4 items-start">
+                                <div class="absolute -left-8 w-6 h-6 rounded-full step-dot-active flex items-center justify-center border-4 border-white">
+                                    <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
                                 </div>
                                 <div>
-                                    <h4 class="font-medium text-gray-800">Confirmation Email</h4>
-                                    <p class="text-gray-600 text-sm">We've sent booking details to <span class="font-medium">{{ $booking->customer_email }}</span></p>
+                                    <p class="text-xs font-black text-ocean-900 uppercase tracking-widest">Reserved</p>
+                                    <p class="text-[10px] text-gray-400 font-bold uppercase">{{ now()->format('D, d M - g:i A') }}</p>
                                 </div>
                             </div>
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 h-6 w-6 text-blue-500 mr-3 mt-1">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                    </svg>
+                            <div class="relative flex gap-4 items-start">
+                                <div class="absolute -left-8 w-6 h-6 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center">
+                                    <div class="w-1.5 h-1.5 bg-gray-200 rounded-full"></div>
                                 </div>
                                 <div>
-                                    <h4 class="font-medium text-gray-800">Download Invoice</h4>
-                                    <p class="text-gray-600 text-sm">Available in your booking management</p>
+                                    <p class="text-xs font-black text-gray-400 uppercase tracking-widest">Check-In</p>
+                                    <p class="text-[10px] text-gray-400 font-bold uppercase">{{ \Carbon\Carbon::parse($booking->check_in_date)->format('D, d M Y') }} · 14:00</p>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Important information -->
-                    <div class="bg-yellow-50 rounded-xl p-6 border border-yellow-100">
-                        <h3 class="text-xl font-bold text-yellow-800 mb-4">Important Information</h3>
-                        <div class="space-y-4">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 h-6 w-6 text-yellow-500 mr-3 mt-1">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                                    </svg>
-                                </div>
+                            <div class="relative flex gap-4 items-start">
+                                <div class="absolute -left-8 w-6 h-6 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center"></div>
                                 <div>
-                                    <h4 class="font-medium text-gray-800">Cancellation Policy</h4>
-                                    <p class="text-gray-600 text-sm">Free cancellation until {{ \Carbon\Carbon::parse($booking->check_in_date)->subDays(2)->format('d M Y') }}</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 h-6 w-6 text-yellow-500 mr-3 mt-1">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h4 class="font-medium text-gray-800">Check-in Instructions</h4>
-                                    <p class="text-gray-600 text-sm">Present ID and this confirmation at reception</p>
+                                    <p class="text-xs font-black text-gray-400 uppercase tracking-widest">Check-Out</p>
+                                    <p class="text-[10px] text-gray-400 font-bold uppercase">{{ \Carbon\Carbon::parse($booking->check_out_date)->format('D, d M Y') }} · 12:00</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Hotel contact information -->
-                <div class="bg-gray-50 rounded-xl p-6 mb-8 border border-gray-200">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Hotel Contact</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="flex items-center">
-                            <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                            </svg>
-                            <div>
-                                <p class="text-sm text-gray-500">Phone</p>
-                                <p class="font-medium">+62 123 4567 8910</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center">
-                            <svg class="w-5 h-5 text-gray-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                            </svg>
-                            <div>
-                                <p class="text-sm text-gray-500">Email</p>
-                                <p class="font-medium">wonderfullntt@gmail.com</p>
-                            </div>
-                        </div>
-                    </div>
+                {{-- Helper --}}
+                <div class="bg-ocean-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
+                   <div class="absolute -right-8 -top-8 w-32 h-32 bg-sunset-500 rounded-full filter blur-3xl opacity-20"></div>
+                   <h3 class="font-black text-white mb-4 text-xs uppercase tracking-widest relative z-10">What's Next?</h3>
+                   <div class="space-y-4 text-xs font-bold leading-relaxed relative z-10 text-white/70">
+                       <p class="flex items-start gap-2"><i class="fas fa-paper-plane text-sunset-500 mt-0.5"></i> Digital receipt has been sent to your email.</p>
+                       <p class="flex items-start gap-2"><i class="fas fa-id-card text-sunset-500 mt-0.5"></i> Present your ID and booking reference at reception.</p>
+                       <p class="flex items-start gap-2"><i class="fas fa-shield-alt text-sunset-500 mt-0.5"></i> Cancellation is free until 48h before arrival.</p>
+                   </div>
                 </div>
 
-                <!-- Action buttons -->
-                <div class="flex flex-col sm:flex-row justify-center gap-4">
-                    <a href="{{ route('home') }}" class="flex-1 flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-xl shadow-sm text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:-translate-y-1">
-                        <svg class="-ml-1 mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                        </svg>
-                        Back to Home
+                {{-- Actions --}}
+                <div class="space-y-3 no-print reveal">
+                    <a href="{{ route('home') }}" class="w-full btn-primary font-black py-4 rounded-2xl flex items-center justify-center gap-2 text-sm shadow-xl shadow-sunset-500/20">
+                        <i class="fas fa-home text-xs"></i> Back to Explore
                     </a>
-                    <a href="{{ route('booking.show', ['booking_number' => $booking->booking_number]) }}" class="flex-1 flex items-center justify-center px-8 py-3 border border-gray-300 text-base font-medium rounded-xl shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:-translate-y-1">
-                        <svg class="-ml-1 mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                        </svg>
-                        View My Booking
-                    </a>
-                    <button onclick="window.print()" class="flex-1 flex items-center justify-center px-8 py-3 border border-gray-300 text-base font-medium rounded-xl shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 transform hover:-translate-y-1">
-                        <svg class="-ml-1 mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-                        </svg>
-                        Print Confirmation
+                    <button onclick="window.print()" class="w-full bg-white border-2 border-gray-100 text-ocean-900 hover:bg-gray-50 font-black py-4 rounded-2xl flex items-center justify-center gap-2 text-sm transition-all active:scale-95">
+                        <i class="fas fa-file-pdf text-xs text-sunset-500"></i> Download Confirmation
                     </button>
                 </div>
             </div>
@@ -352,61 +195,13 @@
     </div>
 </section>
 
-<!-- Confetti celebration -->
+@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Small confetti burst
-        confetti({
-            particleCount: 150,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#3b82f6', '#10b981', '#ffffff', '#f59e0b'],
-            decay: 0.9
-        });
-        
-        // Additional bursts for celebration
-        setTimeout(() => {
-            confetti({
-                particleCount: 100,
-                angle: 60,
-                spread: 55,
-                origin: { x: 0 }
-            });
-            
-            confetti({
-                particleCount: 100,
-                angle: 120,
-                spread: 55,
-                origin: { x: 1 }
-            });
-        }, 300);
-    });
+document.addEventListener('DOMContentLoaded', function () {
+    confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 }, colors: ['#0f172a','#ff6b35','#ffffff'] });
+});
 </script>
+@endpush
 
-<!-- Print styles -->
-<style>
-@media print {
-    body * {
-        visibility: hidden;
-    }
-    .container, .container * {
-        visibility: visible;
-    }
-    .container {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-    }
-    .no-print {
-        display: none !important;
-    }
-    .bg-gradient-to-br, .bg-gradient-to-r {
-        background: white !important;
-    }
-}
-</style>
 @endsection
-
-<!-- PERLU DI FIX -->

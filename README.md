@@ -11,151 +11,133 @@
 
 ---
 
-# 🌴 Wonderful Indonesia – NTT
+# 🌴 Wonderful NTT – Tourism Platform
 
-A tourism web platform for **East Nusa Tenggara (NTT)** built using **Laravel 11**, **Tailwind CSS**, and **Vite**.  
-This application allows users to explore destinations, book hotels, and join tour packages with ease.  
-It includes a full admin dashboard, real-time transaction handling, and Midtrans payment integration.
+Welcome to **Wonderful NTT**, a comprehensive tourism web platform dedicated to showcasing the beauty of **East Nusa Tenggara (NTT)**. Built with **Laravel 11**, **FilamentPHP**, and **Tailwind CSS**, this application provides a seamless experience for travelers to explore destinations, book accommodations, and discover curated tour packages.
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-- 🏝️ Destination listings by region  
-- 🏨 Hotel booking with room type & availability control  
-- 🎒 Tour package booking (grouped or per-item)  
-- system with dynamic pricing and discounts  
-- 💳 Payment via bank transfer or QRIS (Midtrans) (Soon)
-- 🧾 Promo code integration  
-- 📩 Email notifications  
-- 🎟️ QR Code ticketing & admin verification (SOON) 
-- 🔐 Admin panel powered by FilamentPHP  
-- 📈 Exportable reports (PDF/Excel) for finance monitoring
+- **🏝️ Destination Explorer**: Discover breathtaking destinations across the NTT region, filtered by category and location.
+- **🏨 Smart Hotel Booking**: Browse hotels with detailed room types, real-time availability, and integrated booking management.
+- **🎒 Curated Tour Packages**: Join pre-planned tour packages or customize your itinerary with group or per-item pricing.
+- **🎟️ Ticketing System**: Automatic ticket generation for bookings with QR Code verification (ready for admin scanning).
+- **💎 Promo & Discounts**: Integrated promo code system to offer dynamic discounts to users.
+- **🔐 Admin Dashboard**: Powered by **FilamentPHP**, allowing admins to manage destinations, bookings, users, and transactions effortlessly.
+- **📈 Financial Insights**: Exportable reports (PDF/Excel) for monitoring revenue and booking trends.
 
 ---
 
 ## 🧭 Tech Stack
 
-| Layer       | Stack                          |
-|-------------|-------------------------------|
-| Backend     | Laravel 11, FilamentPHP       |
-| Frontend    | Blade, Tailwind CSS, Vite     |
-| Database    | MySQL 8+                      |
-| Payments    | Midtrans (Transfer & QRIS)    |
-| Notifications | Laravel Mail, WhatsApp API |
+| Layer | Technology |
+| :--- | :--- |
+| **Framework** | [Laravel 11](https://laravel.com/) |
+| **Admin Panel** | [FilamentPHP v3](https://filamentphp.com/) |
+| **Frontend** | [Blade](https://laravel.com/docs/11.x/blade), [Tailwind CSS](https://tailwindcss.com/) |
+| **State Management** | [Livewire v3](https://livewire.laravel.com/) |
+| **Build Tool** | [Vite](https://vitejs.dev/) |
+| **Database** | MySQL / PostgreSQL |
+| **Automation** | Python (Data Migration Scripts) |
 
 ---
 
-## 📁 Folder Structure Overview
+## 🛠️ Installation & Setup
+
+Follow these steps to get the project running locally:
+
+### 1. Prerequisites
+- PHP ≥ 8.2
+- Composer
+- Node.js & NPM
+- MySQL
+
+### 2. Clone & Install
+```bash
+# Clone the repository
+git clone https://github.com/your-username/ntt21.git
+cd ntt21
+
+# Install dependencies
+composer install
+npm install
+```
+
+### 3. Environment Configuration
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+*Don't forget to update your `.env` with your database credentials.*
+
+### 4. Database Setup
+```bash
+# Run migrations and seed the database
+php artisan migrate --seed
+```
+
+### 5. (Optional) Data Import via Python
+If you want to import initial hotel/destination data from CSV:
+```bash
+cd python-import
+pip install mysql-connector-python pandas
+python import_csv_to_laravel.py
+```
+
+### 6. Run the Application
+```bash
+# Compile assets
+npm run dev
+
+# Start the server
+php artisan serve
+```
+
+---
+
+## 📁 Project Structure Overview
 
 ```plaintext
 .
 ├── app/
-│   ├── Console/
-│   ├── Exceptions/
-│   ├── Filament/
-│   │   └── Resources/
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   └── Middleware/
-│   ├── Models/
-│   └── Providers/
-├── bootstrap/
-│   └── app.php
-├── config/
+│   ├── Filament/          # Filament Admin resources and pages
+│   ├── Http/Controllers/   # Main web controllers
+│   ├── Models/            # Eloquent models (Destination, Hotel, Booking, etc.)
+│   └── Providers/         # Service providers
 ├── database/
-│   ├── factories/
-│   ├── migrations/
-│   └── seeders/
-├── public/
+│   ├── migrations/        # Database schema definitions
+│   └── seeders/           # Initial data seeders
+├── python-import/         # Python scripts for bulk data import
 ├── resources/
-│   ├── css/
-│   ├── js/
-│   └── views/
+│   ├── views/             # Blade templates
+│   └── css/               # Tailwind CSS entry points
 ├── routes/
-│   ├── web.php
-│   └── api.php
-├── storage/
-├── tests/
-│   ├── Feature/
-│   └── Unit/
-├── .env.example
-├── artisan
-├── composer.json
-├── package.json
-├── vite.config.js
-⚙️ Project Setup
-✅ Requirements
-PHP ≥ 8.1
-
-Composer 2.x
-
-Node.js ≥ 16
-
-MySQL 8 / PostgreSQL / SQLite
-
-🛠 Installation Steps
-bash
-Copy code
-# 1. Clone repository
-git clone https://github.com/your-username/wonderful-ntt.git
-cd wonderful-ntt
-
-# 2. Install PHP dependencies
-composer install
-
-# 3. Setup environment
-cp .env.example .env
-php artisan key:generate
-
-# 4. Install JS dependencies & compile assets
-npm install
-npm run dev
-
-# 5. Run migrations & seed data
-php artisan migrate --seed
-
-# 6. Start development server
-php artisan serve
-🧪 Testing
-bash
-Copy code
-php artisan test
-📦 Production Build
-bash
-Copy code
-npm run build
-📘 Learn More
-Laravel Documentation
-
-FilamentPHP
-
-Tailwind CSS
-
-Midtrans Integration
-
-📫 Contact
-For contributions, support, or collaboration:
-
-📧 Email: yourname@example.com
-
-📱 WhatsApp: +62-812-xxxx-xxxx
-
-🔐 Security
-If you discover a security vulnerability, please report it via email.
-For framework-level issues, refer to Laravel Security Policy.
-
-🪪 License
-This project is open-sourced under the MIT License.
-
-✨ Feel free to fork, contribute, or customize this platform to fit your own region or tourism project!
-
+│   ├── web.php            # Main web routes
+│   └── api.php            # API endpoints (if any)
+└── tailwind.config.js     # Tailwind CSS configuration
+```
 
 ---
 
-### Kelebihan versi ini:
-- Lebih estetis, profesional, dan informatif
-- Struktur terorganisir dengan baik dan mudah di-scan
-- Tabel stack teknologi
-- Blok kode jelas & blok quote motivasional di akhir
-- Bisa dipakai langsung di GitHub (tanpa edit tambahan)
+## 🤝 Contributing
+
+Contributions are welcome! If you have suggestions for improvements or new features, feel free to open an issue or submit a pull request.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## ⚖️ License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+<p align="center">
+  Built with ❤️ for NTT Tourism.
+</p>

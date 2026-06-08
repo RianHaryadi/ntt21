@@ -188,6 +188,7 @@ class HotelBookingController extends Controller
 
             // Log booking data before creation
             $bookingData = [
+                'user_id' => auth()->id(),
                 'hotel_id' => $hotel->id,
                 'room_type' => $validated['room_type'],
                 'customer_name' => $validated['customer_name'],

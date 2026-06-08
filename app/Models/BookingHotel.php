@@ -14,6 +14,7 @@ class BookingHotel extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'hotel_id',
         'hotel_room_id',
         'room_type',
@@ -27,9 +28,11 @@ class BookingHotel extends Model
         'tax',
         'service_charge',
         'total_price',
-        'discount_precent',
+        'discount_percent',
         'discount_amount',
         'promo_code_id',
+        'promo_code',
+        'special_requests',
         'status',
         'payment_method',
         'booking_number',
@@ -121,38 +124,9 @@ class BookingHotel extends Model
     protected static function booted()
 {
     static::creating(function ($booking) {
-        $booking->booking_number = 'BOOK-' . Carbon::now()->format('Ymd') . '-' . str_pad(BookingHotel::count() + 1, 4, '0', STR_PAD_LEFT);
-    });
-
-    static::saving(function ($booking) {
-        $booking->night_count = $booking->check_in_date && $booking->check_out_date
-            ? $booking->check_in_date->diffInDays($booking->check_out_date)
-            : 0;
-
-        if (!$booking->room_price && $booking->hotel) {
-            $booking->room_price = match ($booking->room_type) {
-                'single' => $booking->hotel->single_room_price,
-                'double' => $booking->hotel->double_room_price,
-                'family' => $booking->hotel->family_room_price,
-                default => 0
-            };
+        if (empty($booking->booking_number)) {
+            $booking->booking_number = 'BOOK-' . Carbon::now()->format('Ymd') . '-' . str_pad(BookingHotel::count() + 1, 4, '0', STR_PAD_LEFT);
         }
-
-        $basePrice = $booking->room_price * $booking->night_count;
-        $tax = $basePrice * 0.10;
-        $service = $basePrice * 0.05;
-
-        $discount = 0;
-        if ($booking->promoCode) {
-            $discount = $booking->promoCode->discount_type === 'percentage'
-                ? $basePrice * ($booking->promoCode->discount_amount / 100)
-                : $booking->promoCode->discount_amount;
-        }
-
-        $booking->tax = $tax;
-        $booking->service_charge = $service;
-        $booking->discount_amount = $discount;
-        $booking->total_price = max($basePrice + $tax + $service - $discount, 0);
     });
 
     static::created(function ($booking) {

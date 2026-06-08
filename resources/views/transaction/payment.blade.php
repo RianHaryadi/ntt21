@@ -1,175 +1,174 @@
 @extends('layouts.app')
 
-@section('title', 'Pembayaran - ' . $transaction->booking_code)
+@section('title', 'Pembayaran - ' . ($transaction->booking_code ?? 'Payment'))
 
 @section('content')
-<div class="antialiased bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen py-12 px-4 sm:px-6">
-    <div class="container mx-auto max-w-2xl">
-        <!-- Success Notification -->
+<div class="antialiased bg-light min-h-screen py-24 px-4 reveal">
+    <div class="container mx-auto max-w-4xl">
+        
+        <!-- Success Alert for Initial Booking Creation -->
         @if (session('success'))
-            <div class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-4 rounded-lg mb-6 shadow-sm flex items-start">
-                <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
-                <div>
-                    <p class="font-bold">Pemesanan Berhasil Dibuat!</p>
-                    <p class="text-sm">{{ session('success') }}</p>
+            <div class="bg-green-50 border-l-4 border-green-500 text-green-700 p-6 rounded-2xl mb-10 shadow-xl flex items-center justify-between reveal">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center shrink-0">
+                        <i class="fas fa-check text-xs"></i>
+                    </div>
+                    <div>
+                        <p class="font-black text-sm uppercase tracking-widest">{{ session('success_title') ?? 'Booking Created Successfully!' }}</p>
+                        <p class="text-xs font-bold opacity-70">{{ session('success') }}</p>
+                    </div>
                 </div>
+                <button class="text-green-500 hover:text-green-700" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
         @endif
 
-        <!-- Payment Card -->
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <!-- Header Section -->
-            <div class="bg-indigo-600 px-8 py-6">
-                <div class="text-center">
-                    <h1 class="text-2xl sm:text-3xl font-bold text-white">Selesaikan Pembayaran Anda</h1>
-                    <div class="mt-3 flex items-center justify-center text-indigo-100">
-                        <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span class="text-sm font-medium">Pemesanan akan hangus jika tidak dibayar dalam 1x24 jam</span>
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
+            
+            {{-- Order Summary --}}
+            <div class="lg:col-span-2">
+                <div class="cinematic-card p-0 shadow-2xl border-0 overflow-hidden rounded-3xl lg:sticky lg:top-24">
+                    <div class="bg-ocean-900 p-8 relative overflow-hidden text-white">
+                        <div class="absolute -right-10 -top-10 w-32 h-32 bg-sunset-500 rounded-full filter blur-3xl opacity-30"></div>
+                        <p class="text-[10px] uppercase font-black text-sunset-500 tracking-widest mb-1 relative z-10">Booking Invoice</p>
+                        <h2 class="text-2xl font-black font-montserrat tracking-tight relative z-10">#{{ $transaction->booking_code }}</h2>
                     </div>
-                </div>
-            </div>
 
-            <!-- Content Section -->
-            <div class="p-6 sm:p-8">
-                <!-- Bill Summary -->
-                <div class="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                    <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
-                        <h2 class="text-lg font-semibold text-gray-800">Ringkasan Tagihan</h2>
-                        <span class="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded-full">#{{ $transaction->booking_code }}</span>
-                    </div>
-                    
-                    <div class="space-y-3.5 text-sm md:text-base">
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">Nama Pemesan:</span>
-                            <span class="font-medium text-gray-800">{{ $transaction->customer_name }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">Tanggal Kunjungan:</span>
-                            <span class="font-medium text-gray-800">{{ $transaction->booking_date->translatedFormat('d F Y') }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">Produk:</span>
-                            <span class="font-medium text-gray-800 text-right">
-                                {{ $transaction->destination?->name ?? $transaction->tourPackage?->name ?? '-' }}
-                            </span>
-                        </div>
-                        
-                        <div class="pt-4 mt-4 border-t border-gray-200">
-                            <div class="flex justify-between items-center">
-                                <span class="text-lg font-bold text-gray-700">Total Pembayaran:</span>
-                                <span class="text-2xl font-bold text-indigo-600">{{ $transaction->total_price_formatted }}</span>
+                    <div class="p-8 bg-white space-y-6">
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-[10px] uppercase font-black text-gray-400 tracking-widest mb-1">Guest Name</p>
+                                <p class="text-ocean-900 font-bold text-sm">{{ $transaction->customer_name }}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] uppercase font-black text-gray-400 tracking-widest mb-1">Destination / Package</p>
+                                <p class="text-ocean-900 font-bold text-sm leading-snug">
+                                    {{ $transaction->destination?->name ?? $transaction->tourPackage?->name ?? 'Special Package' }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] uppercase font-black text-gray-400 tracking-widest mb-1">Visit Date</p>
+                                <p class="text-ocean-900 font-bold text-sm">
+                                    {{ $transaction->booking_date->translatedFormat('d F Y') }}
+                                </p>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Payment Methods -->
-                <div class="mt-8">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Pilih Metode Pembayaran</h3>
-                    
-                    <div class="space-y-3">
-                        <!-- Bank Transfer -->
-                        <div class="group relative">
-                            <input type="radio" name="payment_method_choice" id="bank_transfer" value="bank_transfer" class="peer absolute opacity-0 h-0 w-0">
-                            <label for="bank_transfer" class="flex items-start p-4 border rounded-lg cursor-pointer transition-all duration-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:ring-2 peer-checked:ring-indigo-200 hover:border-indigo-300">
-                                <div class="flex items-center h-5 mt-0.5">
-                                    <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center transition-all duration-200 group-[.peer:checked+label]:border-indigo-500">
-                                        <div class="w-2.5 h-2.5 bg-indigo-600 rounded-full scale-0 transition-transform duration-200 peer-checked:scale-100"></div>
-                                    </div>
-                                </div>
-                                <div class="ml-4">
-                                    <div class="flex items-center">
-                                        <span class="font-semibold text-gray-800">Transfer Bank</span>
-                                        <span class="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded">Rekomendasi</span>
-                                    </div>
-                                    <p class="text-gray-500 text-sm mt-1">Bayar melalui bank (Virtual Account)</p>
-                                    <div class="mt-3 flex space-x-2">
-                                        <div class="bg-white p-1.5 rounded border">
-                                            <img src="https://logo.clearbit.com/bca.co.id" alt="BCA" class="h-5 object-contain">
-                                        </div>
-                                        <div class="bg-white p-1.5 rounded border">
-                                            <img src="https://logo.clearbit.com/mandiri.co.id" alt="Mandiri" class="h-5 object-contain">
-                                        </div>
-                                        <div class="bg-white p-1.5 rounded border">
-                                            <img src="https://logo.clearbit.com/bni.co.id" alt="BNI" class="h-5 object-contain">
-                                        </div>
-                                    </div>
-                                </div>
-                            </label>
-                        </div>
+                        <hr class="border-gray-50">
 
-                        <!-- QRIS -->
-                        <div class="group relative">
-                            <input type="radio" name="payment_method_choice" id="qris" value="qris" class="peer absolute opacity-0 h-0 w-0">
-                            <label for="qris" class="flex items-start p-4 border rounded-lg cursor-pointer transition-all duration-200 peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:ring-2 peer-checked:ring-indigo-200 hover:border-indigo-300">
-                                <div class="flex items-center h-5 mt-0.5">
-                                    <div class="w-5 h-5 border-2 border-gray-300 rounded-full flex items-center justify-center transition-all duration-200 group-[.peer:checked+label]:border-indigo-500">
-                                        <div class="w-2.5 h-2.5 bg-indigo-600 rounded-full scale-0 transition-transform duration-200 peer-checked:scale-100"></div>
-                                    </div>
-                                </div>
-                                <div class="ml-4">
-                                    <span class="font-semibold text-gray-800">QRIS</span>
-                                    <p class="text-gray-500 text-sm mt-1">Bayar dengan QR Code melalui OVO, GoPay, dll</p>
-                                    <div class="mt-3">
-                                        <div class="bg-white p-1.5 rounded border inline-flex">
-                                            <img src="https://logo.clearbit.com/qris.id" alt="QRIS" class="h-5 object-contain">
-                                        </div>
-                                    </div>
-                                </div>
-                            </label>
+                        <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 flex flex-col gap-2">
+                            <span class="text-[10px] uppercase font-black text-gray-400 tracking-widest">Total Amount Payable</span>
+                            <span class="text-3xl font-black text-sunset-500 font-montserrat tracking-tight">{{ $transaction->total_price_formatted }}</span>
                         </div>
                     </div>
-                </div>
-
-                <!-- Payment Button -->
-                <div class="mt-8 pt-6 border-t border-gray-200">
-                    <form action="{{ route('transactions.pay', $transaction->id) }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="booking_code" value="{{ $transaction->booking_code }}">
-                        <input type="hidden" name="payment_method" id="payment_method">
-                        
-                        <button type="submit" id="pay-button" class="w-full flex items-center justify-center gap-x-2 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold py-3.5 px-6 rounded-lg shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed" disabled>
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                            </svg>
-                            Konfirmasi Pembayaran
-                        </button>
-                        
-                        <p class="text-xs text-gray-500 text-center mt-3">
-                            Dengan melanjutkan, Anda menyetujui <a href="#" class="text-indigo-600 hover:underline">Syarat & Ketentuan</a> kami
-                        </p>
-                    </form>
                 </div>
             </div>
-        </div>
-        
-        <!-- Help Section -->
-        <div class="mt-6 text-center">
-            <a href="#" class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-800">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Butuh bantuan?
-            </a>
+
+            {{-- Payment Selection --}}
+            <div class="lg:col-span-3 space-y-8">
+                <div class="cinematic-card p-8 shadow-2xl border-0 rounded-3xl bg-white">
+                    <h3 class="text-2xl font-black text-ocean-900 font-montserrat tracking-tight mb-2">Secure Payment</h3>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-8">Choose your preferred transaction method</p>
+
+                    <form action="{{ route('transactions.pay', $transaction->id) }}" method="POST" id="paymentForm" class="space-y-6">
+                        @csrf
+                        <input type="hidden" name="booking_code" value="{{ $transaction->booking_code }}">
+                        <input type="hidden" name="payment_method" id="payment_method_input">
+
+                        <div class="grid grid-cols-1 gap-4">
+                            <!-- Bank Transfer -->
+                            <div class="payment-option relative group">
+                                <input type="radio" name="payment_choice" id="method_bank" value="bank_transfer" class="peer hidden">
+                                <label for="method_bank" class="flex items-start p-6 border-2 border-gray-100 rounded-2xl cursor-pointer transition-all hover:border-sunset-500/30 peer-checked:border-sunset-500 peer-checked:bg-orange-50/30 peer-checked:shadow-lg">
+                                    <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-sunset-500 shadow-sm mr-4">
+                                        <i class="fas fa-university text-lg"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-sm font-black text-ocean-900 uppercase tracking-wide">Bank Transfer</span>
+                                            <span class="text-[10px] font-black text-sunset-500 uppercase tracking-widest px-2 py-0.5 bg-orange-100 rounded">Instant</span>
+                                        </div>
+                                        <p class="text-xs text-gray-400 font-medium mb-4">Manual or Virtual Account Transfer</p>
+                                        <div class="flex gap-3 grayscale group-hover:grayscale-0 transition-all opacity-40 group-hover:opacity-100">
+                                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Bank_Central_Asia.svg" class="h-4 object-contain" alt="BCA">
+                                            <img src="https://upload.wikimedia.org/wikipedia/id/f/fa/Bank_Mandiri_logo.svg" class="h-4 object-contain" alt="Mandiri">
+                                            <img src="https://upload.wikimedia.org/wikipedia/id/5/55/BNI_logo.svg" class="h-4 object-contain" alt="BNI">
+                                        </div>
+                                    </div>
+                                    <div class="w-6 h-6 border-2 border-gray-200 rounded-full flex items-center justify-center peer-checked:border-sunset-500 peer-checked:bg-sunset-500 ml-4 mt-1 transition-all">
+                                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- QRIS -->
+                            <div class="payment-option relative group">
+                                <input type="radio" name="payment_choice" id="method_qris" value="qris" class="peer hidden">
+                                <label for="method_qris" class="flex items-start p-6 border-2 border-gray-100 rounded-2xl cursor-pointer transition-all hover:border-sunset-500/30 peer-checked:border-sunset-500 peer-checked:bg-orange-50/30 peer-checked:shadow-lg">
+                                    <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 shadow-sm mr-4">
+                                        <i class="fas fa-qrcode text-lg"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-sm font-black text-ocean-900 uppercase tracking-wide">QRIS / E-Wallet</span>
+                                        </div>
+                                        <p class="text-xs text-gray-400 font-medium mb-4">Gopay, OVO, ShopeePay, Dana</p>
+                                        <div class="bg-white p-2 border border-gray-50 rounded-lg inline-flex items-center gap-4">
+                                            <img src="https://images.seeklogo.com/logo-png/39/2/quick-response-code-indonesia-standard-qris-logo-png_seeklogo-391791.png" class="h-5 grayscale group-hover:grayscale-0 opacity-50 group-hover:opacity-100 transition-all" alt="QRIS">
+                                        </div>
+                                    </div>
+                                    <div class="w-6 h-6 border-2 border-gray-200 rounded-full flex items-center justify-center peer-checked:border-sunset-500 peer-checked:bg-sunset-500 ml-4 mt-1 transition-all">
+                                        <div class="w-2 h-2 bg-white rounded-full"></div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="pt-8 space-y-4">
+                            <button type="submit" id="payButton" disabled class="btn-primary w-full py-5 text-lg rounded-2xl font-black shadow-xl shadow-sunset-500/20 flex items-center justify-center gap-3 transition-all active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed">
+                                <i class="fas fa-lock text-sm"></i>
+                                Proceed To Secure Checkout
+                            </button>
+                            <p class="text-[10px] text-gray-400 text-center font-bold tracking-widest uppercase">
+                                <i class="fas fa-clock mr-1"></i> Invoice expires in 24 hours
+                            </p>
+                        </div>
+                    </form>
+                </div>
+                
+                {{-- Trusted Badges --}}
+                <div class="flex justify-center gap-8 opacity-40">
+                    <div class="flex flex-col items-center gap-2">
+                        <i class="fas fa-shield-alt text-2xl text-ocean-900"></i>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Safe & Secure</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <i class="fas fa-paper-plane text-2xl text-ocean-900"></i>
+                        <span class="text-[9px] font-black uppercase tracking-widest">Instant Receipt</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <i class="fas fa-headset text-2xl text-ocean-900"></i>
+                        <span class="text-[9px] font-black uppercase tracking-widest">24/7 Concierge</span>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const radios = document.querySelectorAll('input[name="payment_method_choice"]');
-        const payButton = document.getElementById('pay-button');
-        const paymentInput = document.getElementById('payment_method');
+        const radios = document.querySelectorAll('input[name="payment_choice"]');
+        const payBtn = document.getElementById('payButton');
+        const methodInput = document.getElementById('payment_method_input');
 
-        radios.forEach(radio => {
-            radio.addEventListener('change', function () {
-                if (this.checked) {
-                    paymentInput.value = this.value;
-                    payButton.disabled = false;
+        radios.forEach(r => {
+            r.addEventListener('change', function() {
+                if(this.checked) {
+                    methodInput.value = this.value;
+                    payBtn.disabled = false;
                 }
             });
         });

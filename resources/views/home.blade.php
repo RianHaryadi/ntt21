@@ -2,612 +2,415 @@
 
 @section('title', 'Home')
 
+@push('styles')
+<style>
+    /* HERO SECTION */
+    .hero-cinematic {
+        position: relative;
+        height: 100vh;
+        min-height: 600px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .hero-bg {
+        position: absolute; inset: 0;
+        background: url('https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=2000&q=80') center/cover no-repeat;
+        /* Subtle Parallax fallback */
+        background-attachment: fixed;
+    }
+    .hero-overlay {
+        position: absolute; inset: 0;
+        background: linear-gradient(to bottom, rgba(0,26,51,0.6) 0%, rgba(0,26,51,0.8) 100%);
+    }
+
+    /* SEARCH BAR */
+    .search-panel {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 100px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+    @media (max-width: 768px) {
+        .search-panel { border-radius: 20px; }
+    }
+
+    /* HORIZONTAL PACKAGE CARD */
+    .cinematic-package-card {
+        display: flex;
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .cinematic-package-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.12);
+    }
+    @media (max-width: 768px) {
+        .cinematic-package-card { flex-direction: column; }
+    }
+
+    /* EXPERIENCE CATEGORIES */
+    .exp-card {
+        position: relative;
+        border-radius: 20px;
+        overflow: hidden;
+        aspect-ratio: 4/5;
+    }
+    .exp-card img {
+        transition: transform 0.6s ease;
+        width: 100%; height: 100%; object-fit: cover;
+    }
+    .exp-card:hover img { transform: scale(1.1); }
+    .exp-overlay {
+        position: absolute; inset: 0;
+        background: linear-gradient(to top, rgba(0,26,51,0.9), transparent 60%);
+    }
+
+    /* CTA SECTION */
+    .cta-cinematic {
+        position: relative;
+        padding: 100px 0;
+        background: url('https://images.unsplash.com/photo-1499696010180-025ef6e1a8f9?auto=format&fit=crop&w=2000&q=80') center/cover no-repeat fixed;
+    }
+    .cta-cinematic::after {
+        content: ''; position: absolute; inset: 0;
+        background: rgba(0,26,51,0.7);
+    }
+</style>
+@endpush
+
 @section('content')
-<!-- Enhanced Hero Section -->
-<section id="home" class="relative h-screen flex items-center justify-center text-white overflow-hidden">
-    <div class="absolute inset-0">
-        <img src="https://images.unsplash.com/photo-1566438480900-0609be27a4be?ixlib=rb-4.0.3&auto=format&fit=crop&w=2094&q=80" 
-             class="w-full h-full object-cover brightness-50" alt="NTT Beach Landscape" loading="lazy">
-        <div class="absolute inset-0 bg-gradient-to-r from-blue-900/70 to-teal-700/70"></div>
-    </div>
+
+{{-- ════════════════════ HERO ════════════════════ --}}
+<header class="hero-cinematic">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
     
-    <div class="relative z-10 text-center px-4 max-w-5xl mx-auto">
-        <h1 class="text-4xl md:text-7xl font-extrabold mb-6 leading-tight animate__animated animate__fadeInUp">
-            Unveil the <span class="text-yellow-300 bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-yellow-500">Secret Wonders</span> of Eastern Indonesia
+    <div class="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-20">
+        <h1 class="text-5xl md:text-7xl font-black text-white mb-6 font-montserrat reveal" style="text-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            Explore The World
         </h1>
-        <p class="text-lg md:text-2xl mb-8 text-gray-100 animate__animated animate__fadeInUp animate__delay-1s">
-            Embark on a journey through pristine beaches, vibrant cultures, and awe-inspiring landscapes in East Nusa Tenggara.
+        <p class="text-xl md:text-2xl text-white/90 font-medium mb-12 max-w-3xl mx-auto reveal" style="transition-delay: 0.1s;">
+            Discover unforgettable destinations and experiences curated just for you.
         </p>
-        <div class="flex flex-wrap justify-center gap-4 animate__animated animate__fadeInUp animate__delay-2s">
-            <a href="#destinations" class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl">
-                <i class="fas fa-map-marked-alt mr-2"></i> Discover Destinations
-            </a>
-            <a href="#culture" class="bg-transparent border-2 border-white hover:bg-white hover:text-blue-900 text-white font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl">
-                <i class="fas fa-masks-theater mr-2"></i> Immerse in Culture
+
+        <!-- Search Bar -->
+        <div class="search-panel max-w-4xl mx-auto p-3 hidden md:block reveal" style="transition-delay: 0.2s;">
+            <form action="{{ route('destinations.index') }}" method="GET" class="flex items-center gap-2">
+                <div class="flex-1 px-6 border-r border-gray-200">
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest text-left mb-1">Destination</label>
+                    <input type="text" placeholder="Where to?" class="w-full bg-transparent font-medium text-ocean-900 focus:outline-none placeholder-gray-400">
+                </div>
+                <div class="flex-1 px-6 border-r border-gray-200">
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest text-left mb-1">Date</label>
+                    <input type="text" placeholder="Add dates" class="w-full bg-transparent font-medium text-ocean-900 focus:outline-none placeholder-gray-400" onfocus="(this.type='date')" onblur="(this.type='text')">
+                </div>
+                <div class="flex-1 px-6">
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest text-left mb-1">Travelers</label>
+                    <input type="number" placeholder="2 Guests" class="w-full bg-transparent font-medium text-ocean-900 focus:outline-none placeholder-gray-400" min="1">
+                </div>
+                <button type="submit" class="btn-primary w-14 h-14 !p-0 rounded-full flex-shrink-0">
+                    <i class="fas fa-search text-lg"></i>
+                </button>
+            </form>
+        </div>
+        
+        <!-- Mobile Search CTA -->
+        <div class="md:hidden mt-8 reveal" style="transition-delay: 0.2s;">
+            <a href="{{ route('destinations.index') }}" class="btn-primary px-8 py-4 text-lg">
+                Start Your Journey
             </a>
         </div>
     </div>
-    
-    <div class="absolute bottom-10 left-0 right-0 text-center animate-bounce">
-        <a href="#destinations" class="inline-block text-white">
-            <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-            </svg>
-        </a>
-    </div>
-</section>
+</header>
 
-<!-- Enhanced Destinations Section -->
-<section id="destinations" class="py-20 bg-gradient-to-b from-gray-50 to-white">
+
+{{-- ════════════════════ POPULAR DESTINATIONS ════════════════════ --}}
+<section class="py-24 bg-light">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-            <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
-                <span class="block">Explore Our <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-600">Top Destinations</span></span>
-            </h2>
-            <div class="w-24 h-1 bg-gradient-to-r from-yellow-400 to-yellow-500 mx-auto rounded-full"></div>
-            <p class="mt-6 max-w-3xl mx-auto text-gray-600 text-xl">
-                Discover must-visit spots that showcase the breathtaking beauty and rich heritage of East Nusa Tenggara.
-            </p>
+        <div class="text-center mb-16 reveal">
+            <h2 class="text-3xl md:text-4xl font-black text-ocean-900 mb-4 tracking-tight">Popular Destinations</h2>
+            <div class="h-1 w-20 bg-sunset-500 rounded-full mx-auto mb-6"></div>
+            <p class="text-gray-500 max-w-2xl mx-auto">Discover the most breathtaking locations carefully selected for your next adventure.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             @forelse($destinations as $destination)
-                <div class="group flex flex-col justify-between relative overflow-hidden rounded-2xl shadow-xl transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
-                    {{-- Bagian Atas Kartu (Gambar & Info Awal) --}}
-                    <div>
-                        <div class="relative h-72 overflow-hidden">
-                            <img src="{{ $destination->image ? asset('storage/' . $destination->image) : asset('images/fallback.jpg') }}"
-                                 alt="{{ $destination->name }}"
-                                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                 loading="lazy">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
-                            
-                            <div class="absolute bottom-0 left-0 p-6 text-white z-20">
-                                <h3 class="text-2xl font-bold">{{ $destination->name }}</h3>
-                                <p class="text-sm opacity-90 flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-2"></i> {{ $destination->location }}
-                                </p>
-                            </div>
-                            
-                            <span class="absolute top-4 right-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg z-20">
-                                {{ $destination->category }}
-                            </span>
-
-                            @if($destination->is_popular)
-                                <span class="absolute top-4 left-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg z-20 flex items-center">
-                                    <i class="fas fa-fire mr-1.5"></i> Popular
-                                </span>
-                            @endif
-                            
-                            <div class="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-30">
-                                <a href="{{ route('destinations.show', $destination) }}" class="bg-white text-blue-600 px-6 py-3 rounded-full font-bold hover:bg-blue-600 hover:text-white transition-all duration-300 transform hover:scale-105">
-                                    Explore Now <i class="fas fa-arrow-right ml-2"></i>
-                                </a>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white p-6">
-                            <p class="text-gray-600 mb-4 leading-relaxed h-14">
-                                {{ \Illuminate\Support\Str::limit($destination->description, 120) }}
-                            </p>
-                            <div class="flex justify-between items-center pt-4 border-t border-gray-100">
-                                <div class="flex items-center">
-                                    <div class="flex text-yellow-400">
-                                        @php
-                                            $rating = $destination->rating ?? 0;
-                                            $fullStars = floor($rating);
-                                            $halfStar = ($rating - $fullStars) >= 0.5;
-                                            $emptyStars = 5 - $fullStars - ($halfStar ? 1 : 0);
-                                        @endphp
-                                        @for ($i = 0; $i < $fullStars; $i++) <i class="fas fa-star"></i> @endfor
-                                        @if ($halfStar) <i class="fas fa-star-half-alt"></i> @endif
-                                        @for ($i = 0; $i < $emptyStars; $i++) <i class="far fa-star"></i> @endfor
-                                    </div>
-                                    @if($destination->rating_count > 0)
-                                        <span class="text-gray-500 ml-2 text-sm">
-                                            {{ number_format($destination->rating, 1) }} ({{ $destination->rating_count >= 1000 ? number_format($destination->rating_count / 1000, 1) . 'k' : $destination->rating_count }})
-                                        </span>
-                                    @endif
-                                </div>
-                                <span class="text-blue-600 font-bold text-lg">
-                                    IDR {{ number_format($destination->price, 0, ',', '.') }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white px-6 pb-6 pt-2">
-                        <a href="{{ route('destinations.show', $destination) }}" 
-                           class="block w-full text-center bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                            Book Now
-                        </a>
+            <a href="{{ route('destinations.show', $destination) }}" class="cinematic-card block group reveal">
+                <div class="card-img-wrap h-64">
+                    <img src="{{ $destination->image ? asset('storage/' . $destination->image) : asset('images/fallback.jpg') }}" alt="{{ $destination->name }}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-ocean-900/20 group-hover:bg-transparent transition-colors"></div>
+                    <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-ocean-900">
+                        {{ $destination->category ?? 'Destination' }}
                     </div>
                 </div>
-            @empty
-                <div class="col-span-full text-center py-12">
-                    <div class="inline-block p-8 bg-white rounded-2xl shadow-lg">
-                        <i class="fas fa-map-marked-alt text-5xl text-gray-400 mb-4"></i>
-                        <p class="text-gray-600 text-lg">
-                            Belum ada destinasi populer yang tersedia saat ini.
-                        </p>
-                    </div>
-                </div>
-            @endforelse
-        </div>
-        
-        <div class="mt-16 text-center">
-            <a href="{{ route('destinations.index') }}"
-               class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-full hover:shadow-xl transition-all duration-300 transform hover:scale-105 shadow-lg text-lg font-semibold">
-                Lihat Semua Destinasi
-                <svg class="ml-3 w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                </svg>
-            </a>
-        </div>
-    </div>
-</section>
-
-<!-- Luxury Stays Carousel -->
-<section id="luxury-stays" class="py-20 bg-gradient-to-b from-white to-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="mb-16">
-            <div class="flex flex-col gap-6 text-center">
-                <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900">
-                    Luxury <span class="text-blue-600">Stays & Retreats</span>
-                </h2>
-                <p class="text-xl text-gray-600 max-w-md mx-auto">
-                    Experience unparalleled comfort in East Nusa Tenggara's most exquisite accommodations
-                </p>
-            </div>
-            <div class="w-24 h-1 bg-yellow-400 mx-auto rounded-full mt-6"></div>
-        </div>
-    </div>
-
-    <div class="relative px-12">
-        <div class="swiper luxuryHotelSwiper">
-            <div class="swiper-wrapper pb-12">
-                @forelse($hotels as $hotel)
-                    <div class="swiper-slide h-full flex">
-                        <div class="bg-white h-full rounded-3xl shadow-lg overflow-hidden transform transition-transform duration-300 hover:scale-[1.02] flex flex-col justify-between group">
-                            <div class="relative overflow-hidden">
-                                <img src="{{ $hotel->image ? asset('storage/' . $hotel->image) : asset('images/hotel-fallback.jpg') }}"
-                                     alt="{{ $hotel->name }}"
-                                     class="w-full h-56 object-cover group-hover:scale-110 transition duration-500 ease-in-out"
-                                     loading="lazy">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition duration-300"></div>
-                                <div class="absolute top-4 left-4 bg-yellow-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg flex items-center">
-                                    <i class="fas fa-crown mr-1"></i> PREMIUM
-                                </div>
-                            </div>
-
-                            <div class="p-6 flex flex-col justify-between flex-1">
-                                <div>
-                                    <h3 class="text-xl font-bold text-gray-800 truncate">{{ $hotel->name }}</h3>
-
-                                    <p class="text-gray-500 text-sm mt-2 flex items-center">
-                                        <i class="fas fa-map-marker-alt mr-2 text-blue-500"></i>
-                                        {{ $hotel->location ?? 'East Nusa Tenggara' }}
-                                    </p>
-
-                                    <div class="mt-3 text-blue-600 text-lg font-semibold">
-                                        IDR {{ number_format($hotel->price_per_night ?? $hotel->single_room_price ?? 0, 0, ',', '.') }}
-                                        <span class="text-sm font-normal text-gray-500">/night</span>
-                                    </div>
-
-                                    @php
-                                        $facilities = [];
-                                        if (!empty($hotel->facilities)) {
-                                            $facilities = is_array($hotel->facilities) ? $hotel->facilities : explode(',', $hotel->facilities);
-                                        }
-                                        $highlightedFacilities = array_slice($facilities, 0, 3);
-                                    @endphp
-                                    @if(!empty($facilities))
-                                        <div class="flex flex-wrap gap-2 mt-4 text-sm">
-                                            @foreach($highlightedFacilities as $facility)
-                                                @php $f = strtolower(trim($facility)); @endphp
-                                                <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
-                                                    @if(str_contains($f, 'wifi')) <i class="fas fa-wifi"></i>
-                                                    @elseif(str_contains($f, 'pool')) <i class="fas fa-swimming-pool"></i>
-                                                    @elseif(str_contains($f, 'spa')) <i class="fas fa-spa"></i>
-                                                    @elseif(str_contains($f, 'restaurant')) <i class="fas fa-utensils"></i>
-                                                    @else <i class="fas fa-check-circle text-gray-400"></i>
-                                                    @endif
-                                                    <span>{{ ucwords(trim($facility)) }}</span>
-                                                </div>
-                                            @endforeach
-                                            @if(count($facilities) > 3)
-                                                <div class="flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
-                                                    +{{ count($facilities) - 3 }} more
-                                                </div>
-                                            @endif
-                                        </div>
-                                    @endif
-                                </div>
-
-                                <div class="mt-6 flex gap-3">
-                                    <a href="{{ route('hotels.show', $hotel->id) }}" 
-                                       class="flex-1 text-center bg-white border border-blue-600 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition text-sm font-semibold shadow-sm">
-                                        View Details
-                                    </a>
-                                    <a href="{{ route('hotels.book', $hotel->id) }}" 
-                                       class="flex-1 text-center bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold shadow-md">
-                                        Book Now
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @empty
-                    <div class="swiper-slide text-center text-gray-600 text-lg py-10">
-                        No hotels available at the moment.
-                    </div>
-                @endforelse
-            </div>
-            
-            <div class="swiper-pagination !relative !mt-10"></div>
-        </div>
-        
-        <div class="swiper-button-prev luxury-hotel-prev absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-50 transition cursor-pointer">
-            <i class="fas fa-chevron-left text-blue-600"></i>
-        </div>
-        <div class="swiper-button-next luxury-hotel-next absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-blue-50 transition cursor-pointer">
-            <i class="fas fa-chevron-right text-blue-600"></i>
-        </div>
-    </div>
-    
-    <div class="mt-16 text-center">
-        <a href="{{ route('hotels.index') }}" class="inline-flex items-center px-8 py-4 text-white bg-blue-600 rounded-full hover:bg-blue-700 transition duration-300 transform hover:scale-105 shadow-lg text-lg font-semibold">
-            View All Hotels
-            <svg class="ml-3 w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-            </svg>
-        </a>
-    </div>
-</div>
-</section>
-
-<!-- Tour Packages Section -->
-<section id="tour-packages" class="py-20 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-            <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
-                <span class="block">Exclusive <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-600">Tour Packages</span></span>
-            </h2>
-            <div class="w-24 h-1 bg-gradient-to-r from-yellow-400 to-yellow-500 mx-auto rounded-full"></div>
-            <p class="mt-6 max-w-3xl mx-auto text-gray-600 text-xl">
-                Choose from a variety of curated travel experiences to explore the wonders of East Nusa Tenggara.
-            </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            @forelse($TourPackage as $package)
-                <div class="bg-white rounded-2xl shadow-xl overflow-hidden transition hover:-translate-y-1 hover:shadow-2xl group">
-                    <div class="relative h-60 overflow-hidden">
-                          <img src="{{ $package->thumbnail ? asset('storage/' . $package->thumbnail) : asset('image/tour-fallback.jpg') }}"
-                             alt="{{ $package->name }}"
-                             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                             loading="lazy">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
-                        <div class="absolute top-4 left-4 bg-yellow-400 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
-                            {{ ucfirst($package->type) }}
-                        </div>
-                    </div>
-                    <div class="p-6">
-                        <h3 class="text-xl font-bold text-gray-900 mb-2 truncate">{{ $package->name }}</h3>
-                        <p class="text-gray-600 mb-4">
-                            {{ \Illuminate\Support\Str::limit($package->description, 100) }}
-                        </p>
-                        <div class="flex justify-between items-center text-sm text-gray-500">
-                            <span><i class="fas fa-map-marker-alt mr-1 text-blue-500"></i>{{ $package->location }}</span>
-                            <span class="text-blue-600 font-bold">IDR {{ number_format($package->price, 0, ',', '.') }}</span>
-                        </div>
-                        <div class="mt-4 flex gap-2">
-                        <a href="{{ route('paket-tour.create', $package->id) }}#booking"
-                        class="flex-1 text-center bg-white text-blue-600 border border-blue-600 py-2 rounded-md hover:bg-blue-50 transition font-semibold text-sm">
-                            Book Now
-                        </a>
-                    </div>
-                    </div>
-                </div>
-            @empty
-                <div class="col-span-3 text-center py-12">
-                    <div class="inline-block p-6 bg-white rounded-xl shadow-lg">
-                        <i class="fas fa-suitcase-rolling text-4xl text-gray-400 mb-4"></i>
-                        <p class="text-gray-600 text-lg">No tour packages available at the moment.</p>
-                    </div>
-                </div>
-            @endforelse
-        </div>
-
-        <div class="mt-16 text-center">
-            <a href="{{ route('paket-tours.index') }}"
-               class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-full hover:shadow-xl transition-all duration-300 transform hover:scale-105 shadow-lg text-lg font-semibold">
-                View All Tour Packages
-                <svg class="ml-3 w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                </svg>
-            </a>
-        </div>
-    </div>
-</section>
-
-
-<!-- Enhanced Culture Section -->
-<section id="culture" class="py-20 bg-gradient-to-b from-white to-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-            <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
-                <span class="block">Immerse in <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-600">NTT Culture</span></span>
-            </h2>
-            <div class="w-24 h-1 bg-gradient-to-r from-yellow-400 to-yellow-500 mx-auto rounded-full"></div>
-            <p class="mt-6 max-w-3xl mx-auto text-gray-600 text-xl">
-                Discover the rich traditions, unique customs, and vibrant festivals of East Nusa Tenggara.
-            </p>
-        </div>
-
-        @php
-            $tagStyles = [
-                ['bg' => 'bg-gradient-to-r from-yellow-100 to-yellow-200', 'text' => 'text-yellow-800', 'icon' => 'fa-sun'],
-                ['bg' => 'bg-gradient-to-r from-blue-100 to-blue-200', 'text' => 'text-blue-800', 'icon' => 'fa-water'],
-                ['bg' => 'bg-gradient-to-r from-green-100 to-green-200', 'text' => 'text-green-800', 'icon' => 'fa-leaf'],
-                ['bg' => 'bg-gradient-to-r from-pink-100 to-pink-200', 'text' => 'text-pink-800', 'icon' => 'fa-heart'],
-                ['bg' => 'bg-gradient-to-r from-purple-100 to-purple-200', 'text' => 'text-purple-800', 'icon' => 'fa-masks-theater'],
-            ];
-        @endphp
-
-        @foreach($cultures as $index => $culture)
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center mb-20 scroll-animate" 
-                 data-animate-in="fadeInUp" 
-                 data-animate-out="fadeOutDown"
-                 data-delay="{{ $index * 0.1 }}s">
-                
-                <div class="{{ $index % 2 === 0 ? 'order-2 md:order-1' : 'order-2 md:order-2' }}">
-                    <h3 class="text-3xl font-bold text-gray-800 mb-6">{{ $culture->title }}</h3>
-                    <p class="text-gray-600 mb-6 leading-relaxed">{{ $culture->description_1 }}</p>
-                    
-                    @if($culture->description_2)
-                        <p class="text-gray-600 mb-6 leading-relaxed">{{ $culture->description_2 }}</p>
-                    @endif
-                    
-                    @if($culture->tags)
-                        <div class="flex flex-wrap gap-3">
-                            @foreach($culture->tags as $tagIndex => $tag)
-                                @php $style = $tagStyles[$tagIndex % count($tagStyles)]; @endphp
-                                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold {{ $style['text'] }} {{ $style['bg'] }} shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                                    <i class="fas {{ $style['icon'] }}"></i>
-                                    {{ $tag }}
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-
-                <div class="{{ $index % 2 === 0 ? 'order-1 md:order-2' : 'order-1 md:order-1' }} relative">
-                    <div class="relative overflow-hidden rounded-2xl shadow-xl floating">
-                        <img src="{{ asset('storage/' . $culture->image) }}" 
-                             alt="{{ $culture->title }}" 
-                             class="w-full h-auto object-cover transition-transform duration-700 hover:scale-105">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 via-black/10 to-transparent"></div>
-                    </div>
-                    <div class="absolute -bottom-4 {{ $index % 2 === 0 ? '-left-4' : '-right-4' }} w-20 h-20 rounded-full bg-gradient-to-r {{ $index % 2 === 0 ? 'from-yellow-400 to-yellow-500' : 'from-blue-400 to-blue-500' }} z-0"></div>
-                </div>
-            </div>
-        @endforeach
-
-        <div class="mt-16 text-center animate__animated animate__fadeInUp">
-            <a href="{{ route('cultures.index') }}" 
-               class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-full hover:shadow-xl transition-all duration-300 transform hover:scale-105 shadow-lg text-lg font-semibold">
-                Discover More Cultural Experiences
-                <svg class="ml-3 w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                </svg>
-            </a>
-        </div>
-    </div>
-</section>
-
-<!-- Newsletter Section -->
-<section class="py-16 bg-gradient-to-r from-blue-600 to-teal-600 text-white">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 class="text-3xl md:text-4xl font-bold mb-4">Stay Updated</h2>
-        <p class="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Subscribe to our newsletter for the latest travel deals and updates from East Nusa Tenggara.
-        </p>
-        
-        <form class="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <input type="email" placeholder="Your email address" 
-                   class="flex-grow px-5 py-3 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-yellow-400">
-            <button type="submit" 
-                    class="px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-bold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg">
-                Subscribe
-            </button>
-        </form>
-    </div>
-</section>
-
-<!-- Testimonials Section -->
-<section class="py-20 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16">
-            <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
-                <span class="block">Traveler <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-600">Testimonials</span></span>
-            </h2>
-            <div class="w-24 h-1 bg-gradient-to-r from-yellow-400 to-yellow-500 mx-auto rounded-full"></div>
-            <p class="mt-6 max-w-3xl mx-auto text-gray-600 text-xl">
-                Hear what our visitors say about their experiences in East Nusa Tenggara.
-            </p>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            @foreach([1, 2, 3] as $testimonial)
-                <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <div class="flex items-center mb-4">
-                        <div class="flex text-yellow-400 mr-2">
-                            @for($i = 0; $i < 5; $i++)
-                                <i class="fas fa-star"></i>
-                            @endfor
-                        </div>
-                        <span class="text-gray-500 text-sm">5.0</span>
-                    </div>
-                    <p class="text-gray-600 mb-6 italic">
-                        "The cultural experiences in East Nusa Tenggara were unforgettable. The local guides were knowledgeable and the landscapes were breathtaking."
+                <div class="p-6">
+                    <h3 class="text-xl font-bold text-ocean-900 mb-2 font-montserrat">{{ $destination->name }}</h3>
+                    <p class="text-gray-500 text-sm mb-4 line-clamp-2">
+                        {{ \Illuminate\Support\Str::limit($destination->description, 100) }}
                     </p>
-                    <div class="flex items-center">
-                        <img src="https://randomuser.me/api/portraits/{{ $testimonial % 2 ? 'men' : 'women' }}/{{ $testimonial }}2.jpg" 
-                             alt="Traveler" 
-                             class="w-12 h-12 rounded-full object-cover mr-4">
-                        <div>
-                            <h4 class="font-bold text-gray-800">{{ $testimonial % 2 ? 'John' : 'Sarah' }} {{ $testimonial == 2 ? 'W.' : 'D.' }}</h4>
-                            <p class="text-sm text-gray-500">From Australia</p>
+                    <div class="flex items-center justify-between mt-auto">
+                        <div class="flex items-center gap-1.5 text-sunset-500 text-sm font-medium">
+                            <i class="fas fa-map-marker-alt"></i> {{ $destination->location }}
+                        </div>
+                        <div class="text-ocean-900 font-black">
+                            Rp {{ number_format($destination->price, 0, ',', '.') }}
                         </div>
                     </div>
                 </div>
+            </a>
+            @empty
+            <div class="col-span-full py-10 text-center text-gray-400">
+                <i class="fas fa-map-signs text-4xl mb-4 text-gray-300"></i>
+                <p>No destinations found.</p>
+            </div>
+            @endforelse
+        </div>
+        
+        <div class="text-center mt-12 reveal">
+            <a href="{{ route('destinations.index') }}" class="btn-outline !text-ocean-900 !border-ocean-900 hover:!bg-ocean-900 hover:!text-white">
+                View All Destinations
+            </a>
+        </div>
+    </div>
+</section>
+
+
+{{-- ════════════════════ TRAVEL EXPERIENCES (CATEGORIES) ════════════════════ --}}
+<section class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 reveal">
+            <div>
+                <h2 class="text-3xl md:text-4xl font-black text-ocean-900 mb-4 tracking-tight">Travel Experiences</h2>
+                <div class="h-1 w-20 bg-sunset-500 rounded-full mb-6 relative"></div>
+                <p class="text-gray-500 max-w-lg">Find the perfect trip based on your preferred travel style.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            @php
+                $experiences = [
+                    ['title' => 'Adventure', 'img' => 'https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&q=80', 'count' => '12 Tours'],
+                    ['title' => 'Beach Vibes', 'img' => 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80', 'count' => '18 Tours'],
+                    ['title' => 'Culture', 'img' => 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=800&q=80', 'count' => '8 Tours'],
+                    ['title' => 'Nature', 'img' => 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80', 'count' => '15 Tours'],
+                ];
+            @endphp
+            @foreach($experiences as $exp)
+            <a href="#" class="exp-card group border border-gray-100 reveal">
+                <img src="{{ $exp['img'] }}" alt="{{ $exp['title'] }}">
+                <div class="exp-overlay"></div>
+                <div class="absolute bottom-0 left-0 p-6 z-10 w-full">
+                    <h3 class="text-2xl font-bold text-white mb-1 font-montserrat">{{ $exp['title'] }}</h3>
+                    <p class="text-white/80 text-sm flex items-center justify-between">
+                        {{ $exp['count'] }}
+                        <i class="fas fa-arrow-right opacity-0 group-hover:opacity-100 transition-opacity transform -translate-x-2 group-hover:translate-x-0 transition-transform"></i>
+                    </p>
+                </div>
+            </a>
             @endforeach
         </div>
     </div>
 </section>
 
-<!-- Dependencies -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 
-<!-- Additional Styles -->
-<style>
-    .floating {
-        animation: float 6s ease-in-out infinite;
-    }
+{{-- ════════════════════ TRAVEL PACKAGES ════════════════════ --}}
+<section class="py-24 bg-light">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16 reveal">
+            <h2 class="text-3xl md:text-4xl font-black text-ocean-900 mb-4 tracking-tight">Exclusive Packages</h2>
+            <div class="h-1 w-20 bg-sunset-500 rounded-full mx-auto mb-6"></div>
+        </div>
+
+        <div class="space-y-6">
+            @forelse($TourPackage ?? [] as $idx => $package)
+                @if($idx < 3)
+                <div class="cinematic-package-card reveal">
+                    <div class="md:w-1/3 relative h-60 md:h-auto overflow-hidden">
+                        <img src="{{ $package->thumbnail ? asset('storage/' . $package->thumbnail) : asset('images/tour-fallback.jpg') }}" alt="{{ $package->name }}" class="w-full h-full object-cover">
+                        <div class="absolute top-4 left-4 bg-sunset-500 text-white text-xs font-bold px-3 py-1 rounded-full">Best Value</div>
+                    </div>
+                    <div class="md:w-2/3 p-6 flex flex-col justify-center relative">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-2xl font-bold text-ocean-900 font-montserrat tracking-tight">{{ $package->name }}</h3>
+                            <div class="text-right">
+                                <span class="text-xs text-gray-400 block">From</span>
+                                <span class="text-xl font-black text-sunset-500">Rp {{ number_format($package->price, 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-4 text-sm text-gray-500 mb-4 font-medium">
+                            <span class="flex items-center gap-1.5"><i class="far fa-clock text-ocean-500"></i> {{ $package->duration ?? '3 Days 2 Nights' }}</span>
+                            <span class="flex items-center gap-1.5"><i class="fas fa-map-marker-alt text-ocean-500"></i> {{ $package->location }}</span>
+                            <span class="flex items-center gap-1.5 text-yellow-500"><i class="fas fa-star"></i> 4.8 (120 Reviews)</span>
+                        </div>
+                        
+                        <p class="text-gray-600 mb-6 line-clamp-2">
+                            {{ \Illuminate\Support\Str::limit($package->description, 150) }}
+                        </p>
+                        
+                        <div class="mt-auto flex justify-between items-center border-t border-gray-100 pt-5">
+                            <div class="flex -space-x-2">
+                                <img src="https://randomuser.me/api/portraits/women/10.jpg" class="w-8 h-8 rounded-full border-2 border-white">
+                                <img src="https://randomuser.me/api/portraits/men/20.jpg" class="w-8 h-8 rounded-full border-2 border-white">
+                                <img src="https://randomuser.me/api/portraits/women/30.jpg" class="w-8 h-8 rounded-full border-2 border-white">
+                                <span class="w-8 h-8 rounded-full border-2 border-white bg-gray-100 text-xs flex items-center justify-center font-bold text-gray-500">+1k</span>
+                            </div>
+                            <a href="{{ route('paket-tour.create', $package->id) }}" class="btn-primary py-2 px-6">Book Package</a>
+                        </div>
+                    </div>
+                </div>
+                @endif
+            @empty
+                <div class="text-center py-10 text-gray-400 border border-dashed border-gray-300 rounded-2xl">
+                    <p>No packages available at the moment.</p>
+                </div>
+            @endforelse
+        </div>
+        
+        @if(isset($TourPackage) && count($TourPackage) > 0)
+        <div class="text-center mt-12 reveal">
+            <a href="{{ route('paket-tours.index') }}" class="btn-outline !text-ocean-900 !border-ocean-900 hover:!bg-ocean-900 hover:!text-white">
+                View All Packages
+            </a>
+        </div>
+        @endif
+    </div>
+</section>
+
+
+{{-- ════════════════════ AI TRAVEL CHATBOT BANNER ════════════════════ --}}
+<section class="py-20 bg-gradient-to-r from-ocean-900 to-ocean-950 text-white relative overflow-hidden">
+    <!-- Background accents -->
+    <div class="absolute top-0 right-0 w-96 h-96 bg-sunset-500/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
+    <div class="absolute bottom-0 left-0 w-96 h-96 bg-ocean-500/10 rounded-full blur-3xl -ml-20 -mb-20"></div>
     
-    @keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
-    }
-    
-    .scroll-animate {
-        opacity: 0;
-        transition: opacity 0.6s ease, transform 0.6s ease;
-    }
-    
-    .scroll-animate.animate__animated {
-        opacity: 1;
-    }
-    
-    /* Custom Swiper Styles for Luxury Hotel */
-   .luxuryHotelSwiper .swiper-wrapper {
-        /* 1. Memaksa wrapper untuk meregangkan semua slide di dalamnya */
-        align-items: stretch;
-    }
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div class="lg:col-span-8 reveal">
+                <div class="inline-flex items-center gap-2 bg-sunset-500/10 border border-sunset-500/30 text-sunset-500 font-bold text-xs uppercase tracking-widest px-3.5 py-1.5 rounded-full mb-6">
+                    <i class="fas fa-robot"></i> Asisten Perjalanan Pintar
+                </div>
+                <h2 class="text-3xl md:text-5xl font-black mb-4 font-montserrat tracking-tight leading-tight">
+                    Bingung Menentukan Itinerary di NTT?<br class="hidden md:inline"> Tanya <span class="text-sunset-500">Ara AI</span> Saja!
+                </h2>
+                <p class="text-gray-300 text-lg mb-8 max-w-2xl leading-relaxed">
+                    Ara akan membantu Anda menyusun rencana liburan kustom ke destinasi-destinasi tersembunyi (*hidden gems*) di NTT yang jarang terjamah wisatawan umum, lengkap dengan estimasi akomodasi, rute harian, dan rekomendasi kuliner lokal.
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a href="{{ route('travel.chat') }}" class="btn-primary py-3.5 px-8 text-base font-bold shadow-[0_4px_15px_rgba(255,107,53,0.3)]">
+                        Mulai Chat Dengan Ara
+                    </a>
+                    <a href="{{ route('destinations.index') }}" class="btn-outline border-white/20 hover:border-white py-3.5 px-8 text-base font-bold">
+                        Jelajahi Manual
+                    </a>
+                </div>
+            </div>
+            
+            <div class="lg:col-span-4 flex justify-center reveal" style="transition-delay: 0.2s;">
+                <div class="relative">
+                    <!-- Glowing frame -->
+                    <div class="absolute -inset-1 bg-gradient-to-r from-sunset-500 to-ocean-500 rounded-2xl blur-lg opacity-30 animate-pulse"></div>
+                    <div class="bg-white/5 border border-white/10 p-8 rounded-2xl backdrop-blur-md max-w-sm relative text-center">
+                        <div class="w-16 h-16 rounded-full bg-sunset-500 flex items-center justify-center text-white text-3xl mx-auto mb-4 shadow-[0_0_20px_rgba(255,107,53,0.4)]">
+                            <i class="fas fa-compass"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2 font-montserrat">Ara Asisten AI</h3>
+                        <p class="text-gray-400 text-sm mb-4">"Halo! Siap menjelajahi Kampung Adat Wae Rebo, Pulau Alor, atau Pantai Koka? Katakan apa preferensi liburan Anda!"</p>
+                        <div class="flex justify-center gap-1.5 text-xs">
+                            <span class="px-2.5 py-1 bg-sunset-500/10 text-sunset-500 rounded-full font-semibold">100% NTT Hidden Gems</span>
+                            <span class="px-2.5 py-1 bg-sunset-500/10 text-sunset-500 rounded-full font-semibold">Gratis & Cepat</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
-    .luxuryHotelSwiper .swiper-slide {
-        /* 2. Mengatur tinggi slide agar otomatis mengikuti wrapper */
-        height: auto;
-        display: flex; /* 3. Membuat slide menjadi flex container */
-    }
 
-    .luxuryHotelSwiper .swiper-slide > div {
-        /* 4. Memastikan kartu di dalam slide mengisi 100% tinggi yang tersedia */
-        width: 100%;
-    }
-    
-    #luxury-stays:hover .luxury-hotel-prev,
-    #luxury-stays:hover .luxury-hotel-next {
-        opacity: 1;
-        transform: scale(1);
-    }
-    
-    .luxury-hotel-prev:hover, .luxury-hotel-next:hover {
-        background: #EFF6FF !important;
-    }
-</style>
+{{-- ════════════════════ TESTIMONIALS ════════════════════ --}}
+<section class="py-24 bg-white overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16 reveal">
+            <h2 class="text-3xl md:text-4xl font-black text-ocean-900 mb-4 tracking-tight">Traveler Stories</h2>
+            <div class="h-1 w-20 bg-sunset-500 rounded-full mx-auto mb-6"></div>
+        </div>
 
-<!-- JavaScript -->
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize Luxury Hotel Swiper
-        const luxuryHotelSwiper = new Swiper('.luxuryHotelSwiper', {
-            slidesPerView: 1,
-            spaceBetween: 30,
-            loop: true,
-            autoplay: {
-                delay: 5000,
-                disableOnInteraction: true,
-            },
-            navigation: {
-                nextEl: '.luxury-hotel-next',
-                prevEl: '.luxury-hotel-prev',
-            },
-            pagination: {
-                el: '.luxuryHotelSwiper .swiper-pagination',
-                clickable: true,
-                dynamicBullets: true,
-            },
-            breakpoints: {
-                640: {
-                    slidesPerView: 1,
-                    spaceBetween: 20
-                },
-                768: {
-                    slidesPerView: 2,
-                    spaceBetween: 25
-                },
-                1024: {
-                    slidesPerView: 3,
-                    spaceBetween: 30
-                },
-            }
-        });
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            @foreach([
+                ['name'=>'Sarah D.', 'img'=>'women/12', 'text'=>'Absolutely magical experience. The landscapes were breathtaking and the entire trip was organized perfectly from start to finish.'],
+                ['name'=>'Michael R.', 'img'=>'men/32', 'text'=>'The cultural tours opened my eyes to traditions I never knew existed. The cinematic beauty of the islands is unmatched.'],
+                ['name'=>'Elena K.', 'img'=>'women/44', 'text'=>'A seamless booking experience and top-tier luxury. Watching the sunset over the ocean from our pristine resort was unforgettable.']
+            ] as $t)
+            <div class="bg-light p-8 rounded-2xl relative border border-gray-100 reveal">
+                <i class="fas fa-quote-right absolute top-6 right-8 text-4xl text-gray-200"></i>
+                <div class="flex items-center gap-4 mb-6 relative z-10">
+                    <img src="https://randomuser.me/api/portraits/{{ $t['img'] }}.jpg" class="w-14 h-14 rounded-full object-cover shadow-md">
+                    <div>
+                        <h4 class="font-bold text-ocean-900 font-montserrat">{{ $t['name'] }}</h4>
+                        <div class="text-yellow-400 text-xs"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    </div>
+                </div>
+                <p class="text-gray-600 leading-relaxed text-sm relative z-10">"{{ $t['text'] }}"</p>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</section>
 
-        // Pause autoplay when hovering
-        const swiperContainer = document.querySelector('.luxuryHotelSwiper');
-        swiperContainer.addEventListener('mouseenter', () => {
-            luxuryHotelSwiper.autoplay.stop();
-        });
-        swiperContainer.addEventListener('mouseleave', () => {
-            luxuryHotelSwiper.autoplay.start();
-        });
 
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    window.scrollTo({
-                        top: target.offsetTop - 80,
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
+{{-- ════════════════════ BLOG / CULTURE ════════════════════ --}}
+<section class="py-24 bg-light">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-end mb-16 reveal">
+            <div>
+                <h2 class="text-3xl md:text-4xl font-black text-ocean-900 mb-4 tracking-tight">Travel Guides & Tips</h2>
+                <div class="h-1 w-20 bg-sunset-500 rounded-full"></div>
+            </div>
+            <a href="{{ route('cultures.index') }}" class="hidden md:inline-flex text-ocean-900 font-bold hover:text-sunset-500 transition-colors">
+                View All Posts <i class="fas fa-arrow-right ml-2 mt-1"></i>
+            </a>
+        </div>
 
-        // Scroll animation observer
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const animateIn = entry.target.getAttribute('data-animate-in');
-                    const delay = entry.target.getAttribute('data-delay') || '0s';
-                    
-                    entry.target.style.animationDelay = delay;
-                    entry.target.classList.add('animate__animated', animateIn);
-                    
-                    // Remove the animation class after it completes to avoid repetition
-                    const handleAnimationEnd = () => {
-                        entry.target.classList.remove('animate__animated', animateIn);
-                        entry.target.removeEventListener('animationend', handleAnimationEnd);
-                    };
-                    
-                    entry.target.addEventListener('animationend', handleAnimationEnd);
-                }
-            });
-        }, {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        });
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            @forelse($cultures ?? [] as $index => $culture)
+                @if($index < 3)
+                <div class="bg-white rounded-2xl overflow-hidden shadow-soft reveal group">
+                    <div class="h-48 overflow-hidden relative">
+                        <img src="{{ asset('storage/' . $culture->image) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute top-4 left-4 bg-ocean-900/80 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full">Culture</div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-lg font-bold text-ocean-900 mb-3 font-montserrat group-hover:text-sunset-500 transition-colors">{{ $culture->title }}</h3>
+                        <p class="text-sm text-gray-500 mb-4 line-clamp-2">{{ $culture->description_1 }}</p>
+                        <a href="{{ route('cultures.index') }}" class="text-sm font-bold text-sunset-500">Read More →</a>
+                    </div>
+                </div>
+                @endif
+            @empty
+                <div class="col-span-full text-center text-gray-400">No guides found.</div>
+            @endforelse
+        </div>
+    </div>
+</section>
 
-        // Observe all elements with scroll-animate class
-        document.querySelectorAll('.scroll-animate').forEach(el => {
-            observer.observe(el);
-        });
-    });
-</script>
+
+{{-- ════════════════════ CTA ════════════════════ --}}
+<section class="cta-cinematic reveal">
+    <div class="relative z-10 max-w-4xl mx-auto px-4 text-center">
+        <span class="text-sunset-500 font-bold tracking-widest uppercase mb-4 block">Are you ready?</span>
+        <h2 class="text-4xl md:text-6xl font-black text-white mb-8 font-montserrat tracking-tight leading-tight">
+            Your Next Adventure Awaits
+        </h2>
+        <a href="{{ route('destinations.index') }}" class="btn-primary py-4 px-10 text-lg">
+            Start Planning
+        </a>
+    </div>
+</section>
+
 @endsection

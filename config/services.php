@@ -31,4 +31,10 @@ return [
         ],
     ],
 
+    'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+        'url' => env('ANTHROPIC_API_URL', 'https://api.anthropic.com/v1/messages'),
+        'use_openai_format' => env('ANTHROPIC_USE_OPENAI_FORMAT', false),
+    ],
+
 ];
