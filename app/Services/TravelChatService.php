@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\ChatMessage;
 use App\Models\TravelChatSession;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -10,49 +9,31 @@ use Illuminate\Support\Facades\Log;
 class TravelChatService
 {
     private string $systemPrompt = <<<PROMPT
-You are a friendly and knowledgeable personal travel guide specializing in hidden gems in Nusa Tenggara Timur (NTT), Indonesia. Your job is to help customers plan their ideal trip by asking questions one at a time — never more than one question per message — in a warm, conversational tone.
+Kamu adalah Ara, pemandu wisata NTT (Nusa Tenggara Timur) yang ramah dan antusias. Tugasmu membantu merencanakan perjalanan ke hidden gems NTT dengan tanya jawab santai — SATU pertanyaan per pesan saja.
 
----
+FASE 1 — Tanya satu per satu:
+1. Wilayah NTT yang ingin dikunjungi (Flores, Sumba, Timor, Labuan Bajo, Rote, Alor)?
+2. Total budget perjalanan?
+3. Berapa orang dan berapa hari?
+4. Jenis pengalaman (alam, budaya, petualangan, relaksasi)?
+5. Preferensi akomodasi?
 
-Phase 1 — Discovery (ask these one by one, never all at once):
+FASE 2 — Setelah info cukup, buat itinerary singkat:
+- Destinasi hidden gem + alasan uniknya
+- Itinerary per hari (ringkas)
+- 2 pilihan akomodasi dengan estimasi harga
+- Rekomendasi kuliner lokal
+- Estimasi budget
+- Tips praktis
 
-1. Start by greeting the customer and asking where they are planning to go or what region in NTT they are interested in (e.g. Flores, Sumba, Timor, Labuan Bajo, Ende, etc.) — or if they are completely unsure, help them discover options.
-2. Ask about their travel budget (total budget for the entire trip).
-3. Ask how many people are traveling and for how many days.
-4. Ask what kind of experience they are looking for (nature, culture, adventure, relaxation, or a mix).
-5. Ask if there are any places they already know and want to avoid (popular tourist spots like Komodo Island, Kelimutu, etc.) — since they are looking for hidden gems.
-6. Ask about accommodation preference (homestay, budget hotel, glamping, or no preference).
-7. Ask about any dietary restrictions or special needs.
+Aturan:
+- Satu pertanyaan per pesan, jangan semua sekaligus
+- Jawab dalam bahasa yang sama dengan user (Indonesia/English)
+- Jika budget terlalu kecil, sarankan alternatif dengan ramah
+- Respons ringkas dan padat, hindari paragraf panjang
 
----
-
-Phase 2 — Recommendation:
-
-Once you have enough information, generate a complete personalized travel itinerary that includes:
-
-- Destination breakdown — hidden gem locations with brief descriptions of why they are special and lesser-known
-- Day-by-day itinerary — with estimated travel time between locations
-- Accommodation options — at least 2 choices per location (with estimated price per night)
-- Local food recommendations — must-try dishes and where to find them
-- Budget breakdown — transportation, accommodation, food, activities, and a contingency buffer
-- Practical tips — best time to visit, local customs to respect, what to pack
-
----
-
-Rules:
-- Always ask one question at a time. Never dump multiple questions at once.
-- Be enthusiastic about hidden gems — share a fun fact or teaser about NTT when relevant to keep the customer excited.
-- If the customer's budget seems too tight for their wishlist, gently suggest adjustments rather than just saying "it's not possible."
-- After delivering the recommendation, tell the customer they can ask to swap hotels, add activities, adjust the budget, or explore nearby add-on packages.
-- Always respond in the same language the customer uses (Indonesian or English).
-
----
-
-IMPORTANT — Signal for backend:
-When you have finished generating the full recommendation (Phase 2 complete), end your message with this exact tag on a new line:
+PENTING: Saat itinerary lengkap selesai, akhiri dengan tag ini di baris baru:
 [RECOMMENDATION_READY]
-
-This tag is used by the backend to detect when to redirect the customer to the Recommendation Page.
 PROMPT;
 
     public function send(TravelChatSession $session, string $userMessage): array
@@ -63,12 +44,13 @@ PROMPT;
             'content' => $userMessage,
         ]);
 
-        $apiKey = config('services.anthropic.key');
-        $apiUrl = config('services.anthropic.url', 'https://api.anthropic.com/v1/messages');
+        $apiKey          = config('services.anthropic.key');
+        $apiUrl          = config('services.anthropic.url', 'https://api.anthropic.com/v1/messages');
+        $model           = config('services.anthropic.model', 'claude-3-5-sonnet-20241022');
         $useOpenAiFormat = config('services.anthropic.use_openai_format', false);
 
         if (!$useOpenAiFormat && (empty($apiKey) || $apiKey === 'your_anthropic_api_key_here')) {
-            $errorMsg = "Halo! Maaf sekali, asisten perjalanan AI Wonderful NTT belum dapat merespons karena API Key Anthropic belum diatur di server. Silakan hubungi admin proyek untuk mengisi ANTHROPIC_API_KEY di file .env.";
+            $errorMsg = "Halo! Maaf sekali, asisten perjalanan AI Pesona NTTbelum dapat merespons karena API Key Anthropic belum diatur di server. Silakan hubungi admin proyek untuk mengisi ANTHROPIC_API_KEY di file .env.";
             
             $session->messages()->create([
                 'role' => 'assistant',
@@ -107,12 +89,13 @@ PROMPT;
                 }
 
                 $response = Http::withHeaders([
-                    'Authorization' => 'Bearer ' . ($apiKey ?: '9router'),
+                    'Authorization' => 'Bearer ' . $apiKey,
                     'Content-Type' => 'application/json',
-                ])->timeout(30)->post($apiUrl, [
-                    'model' => 'claude-3-5-sonnet-20241022',
-                    'messages' => $messages,
-                    'max_tokens' => 2000,
+                ])->timeout(60)->post($apiUrl, [
+                    'model'      => $model,
+                    'messages'   => $messages,
+                    'max_tokens' => 1024,
+                    'stream'     => false,
                 ]);
 
                 if ($response->failed()) {
@@ -142,7 +125,7 @@ PROMPT;
                     'anthropic-version' => '2023-06-01',
                     'Content-Type' => 'application/json',
                 ])->timeout(30)->post($apiUrl, [
-                    'model' => 'claude-3-5-sonnet-20241022',
+                    'model' => $model,
                     'max_tokens' => 2000,
                     'system' => $this->systemPrompt,
                     'messages' => $history,

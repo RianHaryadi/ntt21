@@ -13,11 +13,16 @@ class RegisterForm extends Component
     public $email = '';
     public $password = '';
     public $password_confirmation = '';
+    public $referral_code = '';
 
     public function mount()
     {
         if (request()->has('redirect')) {
             session(['login_redirect' => request()->query('redirect')]);
+        }
+
+        if (request()->has('ref')) {
+            $this->referral_code = strtoupper(request()->query('ref'));
         }
     }
 
@@ -27,12 +32,19 @@ class RegisterForm extends Component
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
             'password' => 'required|min:6|confirmed',
+            'referral_code' => 'nullable|string|max:20',
         ]);
+
+        $referrer = null;
+        if (!empty($this->referral_code)) {
+            $referrer = User::where('referral_code', strtoupper($this->referral_code))->first();
+        }
 
         $user = User::create([
             'name' => $this->name,
             'email' => $this->email,
             'password' => Hash::make($this->password),
+            'referred_by_id' => $referrer?->id,
         ]);
 
         Auth::login($user);

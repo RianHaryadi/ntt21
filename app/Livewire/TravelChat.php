@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\TravelChatSession;
 use App\Services\TravelChatService;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\Attributes\On;
@@ -58,6 +59,13 @@ class TravelChat extends Component
     public function sendMessage(TravelChatService $service)
     {
         $this->validate(['input' => 'required|string|max:1000']);
+
+        $rateKey = 'travel-chat:' . request()->ip();
+        if (RateLimiter::tooManyAttempts($rateKey, 15)) {
+            $this->addError('input', 'Terlalu banyak pesan dalam waktu singkat. Silakan tunggu sebentar.');
+            return;
+        }
+        RateLimiter::hit($rateKey, 60);
 
         $userInput = trim($this->input);
         $this->input = '';

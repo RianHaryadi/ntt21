@@ -12,8 +12,8 @@
         
         <!-- Header -->
         <div class="mb-10 text-center">
-            <h1 class="text-4xl md:text-5xl font-black text-ocean-900 font-montserrat tracking-tight mb-4">Secure Your Adventure</h1>
-            <p class="text-gray-500 text-lg">Complete the form below to book your spot at {{ $destination->name ?? 'this destination' }}.</p>
+            <h1 class="text-4xl md:text-5xl font-black text-ink font-serif tracking-tight tracking-tight mb-4">Secure Your Adventure</h1>
+            <p class="text-muted text-lg">Complete the form below to book your spot at {{ $destination->name ?? 'this destination' }}.</p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
@@ -25,19 +25,19 @@
                         <img src="{{ isset($destination) && $destination->image ? asset('storage/' . ltrim($destination->image, '/')) : asset('images/fallback.jpg') }}"
                              class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                              alt="{{ $destination->name ?? 'Destination' }}">
-                        <div class="absolute inset-0 bg-gradient-to-t from-ocean-900/80 via-transparent to-transparent"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-petrol/80 via-transparent to-transparent"></div>
                         
                         <div class="absolute bottom-6 left-6 right-6">
                             <div class="flex items-center justify-between">
                                 <div>
                                     <div class="flex items-center mb-2">
-                                        <i class="fas fa-map-marker-alt text-sunset-500 mr-2"></i>
+                                        <i class="fas fa-map-marker-alt text-laut mr-2"></i>
                                         <span class="font-bold text-white uppercase tracking-widest text-sm">{{ $destination->location ?? 'Unknown Location' }}</span>
                                     </div>
-                                    <h2 class="text-3xl font-black text-white font-montserrat drop-shadow-lg">{{ $destination->name ?? 'Destination' }}</h2>
+                                    <h2 class="text-3xl font-black text-white font-serif tracking-tight drop-shadow-lg">{{ $destination->name ?? 'Destination' }}</h2>
                                 </div>
-                                <div class="bg-sunset-500/20 backdrop-blur-md border border-sunset-500/30 text-sunset-100 px-4 py-2 rounded-full text-sm font-bold flex items-center">
-                                    <i class="fas fa-check-circle mr-2 text-sunset-500"></i>
+                                <div class="bg-laut/20 backdrop-blur-md border border-laut/30 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center">
+                                    <i class="fas fa-check-circle mr-2 text-laut"></i>
                                     Available
                                 </div>
                             </div>
@@ -45,10 +45,10 @@
                     </div>
                     
                     <div class="p-8 bg-white">
-                        <h3 class="text-xl font-black text-ocean-900 mb-4 font-montserrat tracking-tight flex items-center">
-                            <i class="fas fa-info-circle text-sunset-500 mr-3"></i> About Destination
+                        <h3 class="text-xl font-black text-ink mb-4 font-serif tracking-tight tracking-tight flex items-center">
+                            <i class="fas fa-info-circle text-laut mr-3"></i> About Destination
                         </h3>
-                        <div class="prose max-w-none text-gray-600 leading-relaxed">
+                        <div class="prose max-w-none text-muted leading-relaxed">
                             {!! $destination->description ?? '<p>No description available.</p>' !!}
                         </div>
                     </div>
@@ -57,25 +57,38 @@
 
             {{-- Right Column: Booking Form --}}
             <div class="lg:col-span-2">
-                <div id="bookingCard" 
+                @php
+                    $bookUnitPrice = $destination->isOnFlashSale() ? $destination->flash_sale_price : ($destination->price ?? 0);
+                @endphp
+                <div id="bookingCard"
                      class="cinematic-card p-0 border-0 shadow-2xl rounded-3xl overflow-hidden lg:sticky lg:top-24"
-                     data-price-per-ticket="{{ $destination->price ?? 0 }}">
-                    
+                     data-price-per-ticket="{{ $bookUnitPrice }}">
+
                     {{-- Price Header --}}
-                    <div class="bg-ocean-900 px-8 py-6 relative overflow-hidden">
-                        <div class="absolute -right-6 -top-6 w-32 h-32 bg-sunset-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
+                    <div class="bg-petrol px-8 py-6 relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 w-32 h-32 bg-laut rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
+                        @if($destination->isOnFlashSale())
+                        <div class="mb-2 relative z-10">
+                            @include('partials.flash-sale-badge', ['endsAt' => $destination->flash_sale_ends_at])
+                        </div>
+                        @endif
                         <div class="flex justify-between items-center relative z-10">
                             <span class="text-white/70 font-bold uppercase tracking-widest text-xs">Starting from</span>
-                            <span class="text-3xl font-black text-sunset-500 font-montserrat">
-                                Rp {{ number_format($destination->price ?? 0, 0, ',', '.') }}
-                                <span class="text-base font-medium text-white/70">/ pax</span>
+                            <span class="text-right">
+                                @if($destination->isOnFlashSale())
+                                <span class="block text-white/50 text-xs line-through">Rp {{ number_format($destination->price ?? 0, 0, ',', '.') }}</span>
+                                @endif
+                                <span class="text-3xl font-black text-laut font-serif tracking-tight">
+                                    Rp {{ number_format($bookUnitPrice, 0, ',', '.') }}
+                                    <span class="text-base font-medium text-white/70">/ pax</span>
+                                </span>
                             </span>
                         </div>
                     </div>
 
                     <div class="p-8 bg-white">
-                        <h2 class="text-2xl font-black text-ocean-900 mb-1 font-montserrat tracking-tight">Booking Details</h2>
-                        <p class="text-gray-500 text-sm mb-6">Fill in your information to secure tickets.</p>
+                        <h2 class="text-2xl font-black text-ink mb-1 font-serif tracking-tight tracking-tight">Booking Details</h2>
+                        <p class="text-muted text-sm mb-6">Fill in your information to secure tickets.</p>
 
                         @if ($errors->any())
                             <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-xl my-6" role="alert">
@@ -104,80 +117,105 @@
                             {{-- Customer Information --}}
                             <div class="space-y-4">
                                 <div>
-                                    <label for="customer_name" class="block text-xs uppercase tracking-widest font-bold text-gray-400 mb-1.5">Full Name</label>
+                                    <label for="customer_name" class="block text-xs uppercase tracking-widest font-bold text-muted mb-1.5">Full Name</label>
                                     <input type="text" name="customer_name" id="customer_name" value="{{ old('customer_name') }}" required 
-                                           class="block w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-ocean-900 focus:border-transparent transition-all font-medium text-ocean-900">
+                                           class="block w-full px-4 py-3.5 bg-surface border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-petrol focus:border-transparent transition-all font-medium text-ink">
                                 </div>
                                 <div>
-                                    <label for="customer_email" class="block text-xs uppercase tracking-widest font-bold text-gray-400 mb-1.5">Email Address</label>
+                                    <label for="customer_email" class="block text-xs uppercase tracking-widest font-bold text-muted mb-1.5">Email Address</label>
                                     <input type="email" name="customer_email" id="customer_email" value="{{ old('customer_email') }}" required 
-                                           class="block w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-ocean-900 focus:border-transparent transition-all font-medium text-ocean-900">
+                                           class="block w-full px-4 py-3.5 bg-surface border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-petrol focus:border-transparent transition-all font-medium text-ink">
                                 </div>
                                 <div>
-                                    <label for="customer_phone" class="block text-xs uppercase tracking-widest font-bold text-gray-400 mb-1.5">Phone Number</label>
+                                    <label for="customer_phone" class="block text-xs uppercase tracking-widest font-bold text-muted mb-1.5">Phone Number</label>
                                     <input type="tel" name="customer_phone" id="customer_phone" value="{{ old('customer_phone') }}" required 
-                                           class="block w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-ocean-900 focus:border-transparent transition-all font-medium text-ocean-900">
+                                           class="block w-full px-4 py-3.5 bg-surface border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-petrol focus:border-transparent transition-all font-medium text-ink">
                                 </div>
                             </div>
                             
-                            <hr class="border-gray-100 my-6">
+                            <hr class="border-line my-6">
                             
                             {{-- Booking Details --}}
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label for="booking_date" class="block text-xs uppercase tracking-widest font-bold text-gray-400 mb-1.5">Visit Date</label>
+                                    <label for="booking_date" class="block text-xs uppercase tracking-widest font-bold text-muted mb-1.5">Visit Date</label>
                                     <input type="date" name="booking_date" id="booking_date" value="{{ old('booking_date') }}" min="{{ date('Y-m-d') }}" required 
-                                           class="block w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-ocean-900 focus:border-transparent transition-all font-medium text-ocean-900">
+                                           class="block w-full px-4 py-3.5 bg-surface border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-petrol focus:border-transparent transition-all font-medium text-ink">
                                 </div>
                                 <div>
-                                    <label for="number_of_tickets" class="block text-xs uppercase tracking-widest font-bold text-gray-400 mb-1.5">Passengers</label>
+                                    <label for="number_of_tickets" class="block text-xs uppercase tracking-widest font-bold text-muted mb-1.5">Passengers</label>
                                     <input type="number" name="number_of_tickets" id="number_of_tickets" value="{{ old('number_of_tickets', 1) }}" min="1" max="50" required 
-                                           class="block w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-ocean-900 focus:border-transparent transition-all font-medium text-ocean-900">
+                                           class="block w-full px-4 py-3.5 bg-surface border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-petrol focus:border-transparent transition-all font-medium text-ink">
                                 </div>
                             </div>
                             
-                            <hr class="border-gray-100 my-6">
+                            <hr class="border-line my-6">
                             
                             {{-- Promo Code --}}
                             <div>
-                                <label for="promoCode" class="block text-xs uppercase tracking-widest font-bold text-gray-400 mb-1.5">Promo Vouchers</label>
+                                <label for="promoCode" class="block text-xs uppercase tracking-widest font-bold text-muted mb-1.5">Promo Vouchers</label>
                                 <div class="flex gap-2">
                                     <input type="text" id="promoCode" name="promo_code" value="{{ old('promo_code') }}" 
-                                           class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-ocean-900 focus:border-transparent transition-all font-medium text-ocean-900" placeholder="Enter code">
-                                    <button type="button" id="applyPromoBtn" class="px-6 py-3.5 bg-ocean-100 text-ocean-900 rounded-xl hover:bg-ocean-200 transition-colors duration-200 font-bold whitespace-nowrap">Apply</button>
+                                           class="w-full bg-surface border border-line rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-petrol focus:border-transparent transition-all font-medium text-ink" placeholder="Enter code">
+                                    <button type="button" id="applyPromoBtn" class="px-6 py-3.5 bg-laut/10 text-ink rounded-xl hover:bg-laut/20 transition-colors duration-200 font-bold whitespace-nowrap">Apply</button>
                                 </div>
                                 <div id="promoMessage" class="hidden mt-3 text-sm p-3 rounded-lg font-medium"></div>
                             </div>
 
+                            {{-- Travel Insurance Add-on --}}
+                            <div class="bg-surface rounded-2xl p-5 border border-line mt-6">
+                                <label class="flex items-start gap-3 cursor-pointer">
+                                    <input type="checkbox" name="has_insurance" id="hasInsurance" value="1"
+                                           class="mt-1 w-5 h-5 rounded border-line text-laut focus:ring-laut">
+                                    <span class="flex-1">
+                                        <span class="flex items-center gap-2 font-black text-ink text-sm">
+                                            <i class="fas fa-shield-alt text-laut"></i> Tambahkan Asuransi Perjalanan
+                                        </span>
+                                        <span class="block text-muted text-xs font-medium mt-1">
+                                            Perlindungan kecelakaan &amp; pembatalan — Rp{{ number_format(config('services.insurance.price_per_ticket'), 0, ',', '.') }} / tiket
+                                        </span>
+                                    </span>
+                                </label>
+                                <input type="hidden" id="insurancePricePerTicket" value="{{ config('services.insurance.price_per_ticket') }}">
+                            </div>
+
                             {{-- Price Summary --}}
-                            <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100 mt-6">
-                                <h3 class="text-sm font-black text-ocean-900 mb-4 uppercase tracking-widest">Payment Summary</h3>
+                            <div class="bg-surface rounded-2xl p-6 border border-line mt-6">
+                                <h3 class="text-sm font-black text-ink mb-4 uppercase tracking-widest">Payment Summary</h3>
                                 <div class="space-y-3 font-medium text-sm">
                                     <div class="flex justify-between">
-                                        <span class="text-gray-500">Ticket Price</span>
-                                        <span class="text-ocean-900" id="subtotal-display">Rp 0</span>
+                                        <span class="text-muted">Ticket Price</span>
+                                        <span class="text-ink" id="subtotal-display">Rp 0</span>
                                     </div>
                                     <div class="flex justify-between">
-                                        <span class="text-gray-500">Discount</span>
-                                        <span id="discount-display" class="text-sunset-500 font-bold">- Rp 0</span>
+                                        <span class="text-muted">Discount</span>
+                                        <span id="discount-display" class="text-laut font-bold">- Rp 0</span>
                                     </div>
-                                    <div class="flex justify-between font-black text-lg pt-4 border-t border-gray-200 mt-2">
-                                        <span class="text-ocean-900">Total Price</span>
-                                        <span id="total-price-display" class="text-sunset-500">Rp 0</span>
+                                    <div class="flex justify-between" id="insurance-row" style="display:none;">
+                                        <span class="text-muted">Travel Insurance</span>
+                                        <span id="insurance-display" class="text-ink font-bold">Rp 0</span>
+                                    </div>
+                                    <div class="flex justify-between font-black text-lg pt-4 border-t border-line mt-2">
+                                        <span class="text-ink">Total Price</span>
+                                        <span id="total-price-display" class="text-laut">Rp 0</span>
                                     </div>
                                 </div>
                             </div>
 
                             {{-- Submit Button --}}
-                            <div class="mt-8">
-                                <button type="submit" class="btn-primary w-full py-4 rounded-xl flex items-center justify-center gap-x-2 shadow-xl shadow-sunset-500/20 text-lg">
+                            <div class="mt-8 space-y-3">
+                                <button type="submit" class="btn-primary w-full py-4 rounded-xl flex items-center justify-center gap-x-2 shadow-xl shadow-laut/20 text-lg">
                                     <i class="fas fa-lock"></i>
                                     Proceed to Payment
                                 </button>
+                                <button type="button" id="addToCartBtn" class="w-full py-3.5 rounded-xl flex items-center justify-center gap-x-2 bg-surface border border-line text-ink font-semibold text-sm hover:border-clay hover:text-clay transition-all">
+                                    <i class="fas fa-shopping-bag"></i>
+                                    Tambah ke Keranjang
+                                </button>
                             </div>
 
-                            <p class="text-xs text-gray-400 font-medium text-center mt-4 border-t border-gray-100 pt-4">
-                                By continuing, you agree to our <a href="#" class="text-ocean-900 hover:text-sunset-500 underline transition-colors">Terms & Conditions</a>.
+                            <p class="text-xs text-muted font-medium text-center mt-4 border-t border-line pt-4">
+                                By continuing, you agree to our <a href="#" class="text-ink hover:text-laut underline transition-colors">Terms & Conditions</a>.
                             </p>
                         </form>
 
@@ -222,7 +260,12 @@ document.addEventListener('DOMContentLoaded', () => {
         discountDisplay: document.getElementById('discount-display'),
         totalPriceDisplay: document.getElementById('total-price-display'),
         form: document.getElementById('bookingForm'),
+        hasInsurance: document.getElementById('hasInsurance'),
+        insuranceRow: document.getElementById('insurance-row'),
+        insuranceDisplay: document.getElementById('insurance-display'),
     };
+
+    const insurancePricePerTicket = parseFloat(document.getElementById('insurancePricePerTicket').value) || 0;
     
     const promoDataEl = ui.bookingCard.querySelector('#promoData');
     const allPromos = promoDataEl ? JSON.parse(promoDataEl.dataset.promos || '{}') : {};
@@ -249,10 +292,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const calculateTotals = () => {
         const subtotal = state.pricePerTicket * state.ticketCount;
-        const total = Math.max(0, subtotal - state.promo.discountValue);
+        const insurance = ui.hasInsurance.checked ? insurancePricePerTicket * state.ticketCount : 0;
+        const total = Math.max(0, subtotal - state.promo.discountValue) + insurance;
 
         ui.subtotalDisplay.textContent = `${formatter.format(state.pricePerTicket)} x ${state.ticketCount}`;
         ui.discountDisplay.textContent = `- ${formatter.format(state.promo.discountValue)}`;
+        ui.insuranceDisplay.textContent = formatter.format(insurance);
+        ui.insuranceRow.style.display = insurance > 0 ? 'flex' : 'none';
         ui.totalPriceDisplay.textContent = formatter.format(total);
         ui.discountAmountInput.value = state.promo.discountValue.toFixed(0);
     };
@@ -316,6 +362,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ui.applyPromoBtn.addEventListener('click', applyPromoCode);
 
+        ui.hasInsurance.addEventListener('change', calculateTotals);
+
         ui.form.addEventListener('submit', (e) => {
             if (ui.promoInput.value && !state.promo.applied) {
                 e.preventDefault();
@@ -338,6 +386,43 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeEventListeners();
         calculateTotals();
     };
+
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    if (addToCartBtn) {
+        addToCartBtn.addEventListener('click', () => {
+            const bookingDate = document.getElementById('booking_date').value;
+            if (!bookingDate) {
+                showPromoMessage('Pilih tanggal kunjungan terlebih dahulu.', false);
+                return;
+            }
+
+            addToCartBtn.disabled = true;
+            fetch('{{ route('cart.add') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    itemable_type: 'destination',
+                    itemable_id: {{ $destination->id }},
+                    booking_date: bookingDate,
+                    number_of_tickets: state.ticketCount,
+                }),
+            }).then((response) => {
+                if (response.ok || response.redirected) {
+                    window.location.href = '{{ route('cart.index') }}';
+                } else {
+                    addToCartBtn.disabled = false;
+                    showPromoMessage('Gagal menambahkan ke keranjang. Coba lagi.', false);
+                }
+            }).catch(() => {
+                addToCartBtn.disabled = false;
+                showPromoMessage('Gagal menambahkan ke keranjang. Coba lagi.', false);
+            });
+        });
+    }
 
     init();
 });

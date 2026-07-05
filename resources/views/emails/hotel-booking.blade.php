@@ -6,8 +6,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet" />
     <style>
         :root {
-            --ocean-900: #001a33;
-            --sunset-500: #ff6b35;
+            --petrol: #001a33;
+            --laut: #0F6E63;
             --white: #ffffff;
             --gray-50: #f8fafc;
             --gray-100: #f1f5f9;
@@ -40,7 +40,7 @@
             letter-spacing: -1px;
             margin-bottom: 32px;
         }
-        .logo span { color: #ff6b35; }
+        .logo span { color: #0F6E63; }
         .success-circle {
             width: 64px; height: 64px;
             background: rgba(255,255,255,0.1);
@@ -48,7 +48,7 @@
             margin: 0 auto 24px;
             line-height: 64px;
             font-size: 32px;
-            color: #ff6b35;
+            color: #0F6E63;
         }
         .content { padding: 48px; }
         .booking-card {
@@ -69,7 +69,7 @@
         .divider { border-top: 1px solid #f1f5f9; margin: 16px 0; padding-top: 16px; }
         .btn {
             display: inline-block;
-            background: #ff6b35;
+            background: #0F6E63;
             color: white;
             text-decoration: none;
             padding: 16px 32px;
@@ -93,7 +93,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">Wonderful<span>NTT</span></div>
+            <div class="logo">Pesona<span>NTT</span></div>
             <div class="success-circle">✓</div>
             <h1 style="font-family: Montserrat; font-weight: 900; margin: 0; font-size: 28px;">Stay Confirmed</h1>
             <p style="opacity: 0.6; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-top: 8px;">Reservation #{{ $booking->booking_number }}</p>
@@ -106,7 +106,7 @@
             <div class="booking-card">
                 <div class="detail-row">
                     <span class="label">Ref Number</span>
-                    <span class="value" style="color: #ff6b35;">{{ $booking->booking_number }}</span>
+                    <span class="value" style="color: #0F6E63;">{{ $booking->booking_number }}</span>
                 </div>
                 <div class="divider"></div>
                 <div class="detail-row">
@@ -142,7 +142,7 @@
                 <div class="divider"></div>
                 <div class="detail-row" style="font-size: 16px;">
                     <span class="label" style="color: #001a33; font-weight: 800;">Total Charged</span>
-                    <span class="value" style="color: #ff6b35;">Rp {{ number_format($booking->total_price, 0, ',', '.') }}</span>
+                    <span class="value" style="color: #0F6E63;">Rp {{ number_format($booking->total_price, 0, ',', '.') }}</span>
                 </div>
             </div>
 
@@ -153,7 +153,7 @@
         </div>
 
         <div class="footer">
-            <p>&copy; {{ date('Y') }} WONDERFUL NTT • HOSPITALITY DIVISION</p>
+            <p>&copy; {{ date('Y') }} Pesona NTT• HOSPITALITY DIVISION</p>
             <p>Managed for Luxury and Comfort</p>
         </div>
     </div>

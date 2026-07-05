@@ -5,10 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Hotel;
 use App\Models\BookingHotel;
 use App\Models\CodePromotion;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class HotelBookingController extends Controller
 {
@@ -23,16 +28,12 @@ class HotelBookingController extends Controller
         Log::debug('Entering create method', ['hotel_id' => $hotelId]);
 
         $hotel = Hotel::findOrFail($hotelId);
-        $promos = CodePromotion::active()
-            ->where(function ($query) {
-                $query->whereNull('valid_from')
-                      ->orWhere('valid_from', '<=', Carbon::now());
-            })
-            ->where(function ($query) {
-                $query->whereNull('valid_until')
-                      ->orWhere('valid_until', '>=', Carbon::now());
-            })
-            ->get();
+        $promos = Cache::remember('promos.valid', 600, fn() =>
+            CodePromotion::active()
+                ->where(fn($q) => $q->whereNull('valid_from')->orWhere('valid_from', '<=', Carbon::now()))
+                ->where(fn($q) => $q->whereNull('valid_until')->orWhere('valid_until', '>=', Carbon::now()))
+                ->get()
+        );
 
         Log::info('Create booking page accessed', [
             'hotel_id' => $hotelId,
@@ -42,6 +43,29 @@ class HotelBookingController extends Controller
         ]);
 
         return view('booking.create', compact('hotel', 'promos'));
+    }
+
+    /**
+     * Cek ketersediaan kamar secara real-time (dipanggil via AJAX dari form booking).
+     */
+    public function checkAvailability(Request $request, Hotel $hotel)
+    {
+        $validated = $request->validate([
+            'room_type' => 'required|in:single,double,family',
+            'check_in_date' => 'required|date',
+            'check_out_date' => 'required|date|after:check_in_date',
+        ]);
+
+        $remaining = $hotel->availableRooms(
+            $validated['room_type'],
+            $validated['check_in_date'],
+            $validated['check_out_date']
+        );
+
+        return response()->json([
+            'available' => $remaining > 0,
+            'remaining' => $remaining,
+        ]);
     }
 
     /**
@@ -76,6 +100,7 @@ class HotelBookingController extends Controller
                 'promo_code' => 'nullable|string|max:255',
                 'status' => 'required|in:pending,confirmed,canceled',
                 'special_requests' => 'nullable|string|max:1000',
+                'has_insurance' => 'nullable|boolean',
             ]);
 
             Log::debug('Validation passed', ['validated' => $validated]);
@@ -83,7 +108,9 @@ class HotelBookingController extends Controller
             // Fetch hotel and verify room price
             $hotel = Hotel::findOrFail($validated['hotel_id']);
             $priceKey = $validated['room_type'] . '_room_price';
-            $roomPrice = $hotel->$priceKey ?? 0;
+            $baseRoomPrice = $hotel->$priceKey ?? 0;
+            // Pakai harga flash sale jika sedang aktif (dihitung di server, bukan dari input client)
+            $roomPrice = $hotel->flashSalePrice($baseRoomPrice) ?? $baseRoomPrice;
 
             if (abs($roomPrice - $validated['room_price']) > 0.01) {
                 Log::warning('Room price mismatch', [
@@ -112,6 +139,17 @@ class HotelBookingController extends Controller
                 return back()->withErrors(['night_count' => 'The number of nights is invalid.'])->withInput();
             }
 
+            // Cek ketersediaan kamar untuk rentang tanggal ini (anti double-booking)
+            if (!$hotel->isRoomAvailable($validated['room_type'], $checkIn, $checkOut)) {
+                Log::warning('Room not available for requested dates', [
+                    'hotel_id' => $hotel->id,
+                    'room_type' => $validated['room_type'],
+                    'check_in' => $validated['check_in_date'],
+                    'check_out' => $validated['check_out_date'],
+                ]);
+                return back()->withErrors(['room_type' => 'Maaf, kamar tipe ini sudah penuh untuk tanggal yang Anda pilih. Silakan pilih tanggal lain.'])->withInput();
+            }
+
             // Handle promo code
             $discount = (float) ($validated['discount_amount'] ?? 0);
             $promoCode = $validated['promo_code'] ?? null;
@@ -127,15 +165,16 @@ class HotelBookingController extends Controller
                 }
 
                 $promo = CodePromotion::find($promoCodeId);
-                if (!$promo || !$promo->isValid() || strtoupper($promo->code) !== strtoupper($promoCode)) {
+                if (!$promo || !$promo->isValid() || strtoupper($promo->code) !== strtoupper($promoCode) || !$promo->isUsableBy(auth()->id())) {
                     Log::warning('Invalid promo usage', [
                         'promo_code' => $promoCode,
                         'promo_code_id' => $promoCodeId,
                         'promo_exists' => !!$promo,
                         'is_valid' => $promo ? $promo->isValid() : false,
                         'code_match' => $promo ? strtoupper($promo->code) === strtoupper($promoCode) : false,
+                        'usable_by_user' => $promo ? $promo->isUsableBy(auth()->id()) : false,
                     ]);
-                    return back()->withErrors(['promo_code' => $promo ? 'The promo code is invalid or expired.' : 'The promo code does not exist.'])->withInput();
+                    return back()->withErrors(['promo_code' => $promo ? 'Kode promo tidak valid, kedaluwarsa, atau bukan milik Anda.' : 'The promo code does not exist.'])->withInput();
                 }
 
                 // Calculate server-side discount (bypassing destination check)
@@ -174,8 +213,12 @@ class HotelBookingController extends Controller
                 return back()->withErrors(['tax' => 'The tax or service charge is invalid.'])->withInput();
             }
 
+            // Asuransi perjalanan (opsional) — flat per booking, dihitung di server
+            $hasInsurance = (bool) $request->boolean('has_insurance');
+            $insuranceAmount = $hasInsurance ? (float) config('services.insurance.price_per_booking') : 0;
+
             // Verify total price
-            $expectedTotal = max($baseTotal - $discount, 0);
+            $expectedTotal = max($baseTotal - $discount, 0) + $insuranceAmount;
             if (abs($expectedTotal - $validated['total_price']) > 0.01) {
                 Log::warning('Total price mismatch, using server value', [
                     'client_total' => $validated['total_price'],
@@ -203,6 +246,8 @@ class HotelBookingController extends Controller
                 'discount_amount' => round($discount, 2),
                 'promo_code_id' => $promoCodeId,
                 'promo_code' => $promoCode,
+                'has_insurance' => $hasInsurance,
+                'insurance_amount' => round($insuranceAmount, 2),
                 'total_price' => round($validated['total_price'], 2),
                 'payment_method' => $validated['payment_method'],
                 'special_requests' => $validated['special_requests'] ?? null,
@@ -211,8 +256,36 @@ class HotelBookingController extends Controller
             ];
             Log::debug('Booking data before creation', ['booking_data' => $bookingData]);
 
-            // Create booking
-            $booking = BookingHotel::create($bookingData);
+            // Buat booking di dalam transaksi dengan row lock agar dua request
+            // simultan untuk kamar yang sama tidak lolos cek ketersediaan bersamaan.
+            $booking = DB::transaction(function () use ($hotel, $validated, $checkIn, $checkOut, $bookingData) {
+                $lockedHotel = Hotel::where('id', $hotel->id)->lockForUpdate()->first();
+
+                if (!$lockedHotel->isRoomAvailable($validated['room_type'], $checkIn, $checkOut)) {
+                    return null;
+                }
+
+                return BookingHotel::create($bookingData);
+            });
+
+            if (!$booking) {
+                Log::warning('Room became unavailable during concurrent booking attempt', [
+                    'hotel_id' => $hotel->id,
+                    'room_type' => $validated['room_type'],
+                ]);
+                return back()->withErrors(['room_type' => 'Maaf, kamar tipe ini baru saja penuh dipesan orang lain. Silakan pilih tanggal atau tipe kamar lain.'])->withInput();
+            }
+
+            // Kirim notifikasi in-app ke user yang login
+            if (Auth::check()) {
+                Notification::create([
+                    'user_id' => Auth::id(),
+                    'title'   => 'Booking Hotel Berhasil',
+                    'body'    => "Booking #{$booking->booking_number} di {$hotel->name} sedang menunggu konfirmasi.",
+                    'type'    => 'info',
+                    'link'    => route('dashboard'),
+                ]);
+            }
 
             Log::info('Booking successfully created', [
                 'booking_id' => $booking->id,
@@ -275,5 +348,18 @@ class HotelBookingController extends Controller
             ]);
             return redirect()->route('home')->with('error', 'Booking not found.');
         }
+    }
+
+    /**
+     * Generate and download the official PDF voucher for a hotel booking.
+     */
+    public function downloadVoucher($id)
+    {
+        $booking = BookingHotel::with('hotel')->findOrFail($id);
+
+        $pdf = Pdf::loadView('pdf.hotel-voucher', compact('booking'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download('Voucher-' . $booking->booking_number . '.pdf');
     }
 }

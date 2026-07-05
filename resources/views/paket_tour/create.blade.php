@@ -3,39 +3,39 @@
 @section('title', 'Book Tour Package')
 
 @section('content')
-<section class="py-12 bg-gradient-to-b from-blue-50 to-white">
+<section class="py-12 bg-gradient-to-b from-surface to-paper">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="bg-white p-8 rounded-3xl shadow-xl border border-blue-100">
+        <div class="bg-paper p-8 rounded-3xl shadow-xl border border-laut/20">
             <!-- Progress Steps -->
             <div class="mb-8">
                 <div class="flex items-center justify-between relative">
-                    <div class="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -translate-y-1/2 z-0"></div>
+                    <div class="absolute top-1/2 left-0 right-0 h-1 bg-line -translate-y-1/2 z-0"></div>
                     <div class="flex items-center justify-between w-full relative z-10">
                         <div class="flex flex-col items-center">
-                            <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold mb-2">
+                            <div class="w-10 h-10 rounded-full bg-laut text-white flex items-center justify-center font-bold mb-2">
                                 1
                             </div>
-                            <span class="text-sm font-medium text-blue-600">Booking Details</span>
+                            <span class="text-sm font-medium text-laut">Booking Details</span>
                         </div>
                         <div class="flex flex-col items-center">
-                            <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-bold mb-2">
+                            <div class="w-10 h-10 rounded-full bg-line text-muted flex items-center justify-center font-bold mb-2">
                                 2
                             </div>
-                            <span class="text-sm font-medium text-gray-500">Payment</span>
+                            <span class="text-sm font-medium text-muted">Payment</span>
                         </div>
                         <div class="flex flex-col items-center">
-                            <div class="w-10 h-10 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center font-bold mb-2">
+                            <div class="w-10 h-10 rounded-full bg-line text-muted flex items-center justify-center font-bold mb-2">
                                 3
                             </div>
-                            <span class="text-sm font-medium text-gray-500">Confirmation</span>
+                            <span class="text-sm font-medium text-muted">Confirmation</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="flex items-center justify-between mb-8">
-                <h2 class="text-3xl font-bold text-gray-800 font-serif">Book Your Adventure</h2>
-                <div class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium flex items-center">
+                <h2 class="text-3xl font-bold text-ink">Book Your Adventure</h2>
+                <div class="bg-laut/10 text-laut px-4 py-2 rounded-full text-sm font-medium flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -60,10 +60,10 @@
                 <input type="hidden" name="discount_amount" id="discountInput">
 
                 <!-- Tour Package Card -->
-                <div class="bg-blue-50 rounded-xl p-6 border border-blue-100 transition-all duration-300 hover:shadow-md">
+                <div class="bg-laut/5 rounded-xl p-6 border border-laut/20 transition-all duration-300 hover:shadow-md">
                     <div class="flex flex-col md:flex-row gap-6">
                         <div class="md:w-1/3 relative">
-                            <div class="aspect-w-16 aspect-h-9 bg-gray-200 rounded-xl overflow-hidden shadow-md">
+                            <div class="aspect-w-16 aspect-h-9 bg-line rounded-xl overflow-hidden shadow-md">
                                 <img src="{{ asset('storage/' . $tourPackage->thumbnail) }}" 
                                     alt="{{ $tourPackage->name }} tour"
                                     class="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
@@ -71,14 +71,14 @@
                                     width="400"
                                     height="288">
                             </div>
-                            <div class="absolute top-3 left-3 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                            <div class="absolute top-3 left-3 bg-laut text-white text-xs font-bold px-2 py-1 rounded-full">
                                 {{ $tourPackage->days }} Days
                             </div>
                         </div>
                         <div class="md:w-2/3">
-                            <h3 class="text-2xl font-bold text-gray-800 mb-2 font-serif">{{ $tourPackage->name }}</h3>
-                            <div class="flex items-center text-gray-600 mb-4">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <h3 class="text-2xl font-bold text-ink mb-2">{{ $tourPackage->name }}</h3>
+                            <div class="flex items-center text-muted mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-laut mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
@@ -86,7 +86,7 @@
                             </div>
                             <div class="grid grid-cols-2 gap-4 mb-4">
                                 <div>
-                                    <p class="text-sm text-gray-500">Difficulty</p>
+                                    <p class="text-sm text-muted">Difficulty</p>
                                     <p class="font-medium flex items-center">
                                         @for($i = 0; $i < $tourPackage->difficulty; $i++)
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
@@ -96,22 +96,22 @@
                                     </p>
                                 </div>
                                 <div>
-                                    <p class="text-sm text-gray-500">Price</p>
-                                    <p class="font-bold text-blue-600 text-lg" id="pricePerTicketDisplay">
+                                    <p class="text-sm text-muted">Price</p>
+                                    <p class="font-bold text-laut text-lg" id="pricePerTicketDisplay">
                                         Rp {{ number_format($tourPackage->price, 0, ',', '.') }} <span class="text-sm font-normal">/ person</span>
                                     </p>
                                     <input type="hidden" id="pricePerTicket" value="{{ $tourPackage->price }}">
                                 </div>
                             </div>
-                            <p class="text-gray-600">{{ Str::limit($tourPackage->description, 150) }}</p>
+                            <p class="text-muted">{{ Str::limit($tourPackage->description, 150) }}</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Customer Information -->
                 <div class="space-y-6">
-                    <h3 class="text-xl font-bold text-gray-800 border-b pb-2 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <h3 class="text-xl font-bold text-ink border-b pb-2 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-laut" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         Your Information
@@ -119,17 +119,17 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Full Name -->
                         <div>
-                            <label for="customer_name" class="block text-sm font-medium text-gray-700 mb-1">
+                            <label for="customer_name" class="block text-sm font-medium text-ink mb-1">
                                 Full Name <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
                                 </div>
                                 <input type="text" name="customer_name" id="customer_name" value="{{ old('customer_name') }}" required
-                                    class="pl-10 block w-full border border-gray-300 rounded-lg shadow-sm py-3 px-4 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition duration-200">
+                                    class="pl-10 block w-full border border-line rounded-lg shadow-sm py-3 px-4 focus:ring-laut focus:border-laut hover:border-laut/60 transition duration-200">
                             </div>
                             @error('customer_name')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -138,17 +138,17 @@
 
                         <!-- Email -->
                         <div>
-                            <label for="customer_email" class="block text-sm font-medium text-gray-700 mb-1">
+                            <label for="customer_email" class="block text-sm font-medium text-ink mb-1">
                                 Email <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
                                 </div>
                                 <input type="email" name="customer_email" id="customer_email" value="{{ old('customer_email') }}" required
-                                    class="pl-10 block w-full border border-gray-300 rounded-lg shadow-sm py-3 px-4 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition duration-200">
+                                    class="pl-10 block w-full border border-line rounded-lg shadow-sm py-3 px-4 focus:ring-laut focus:border-laut hover:border-laut/60 transition duration-200">
                             </div>
                             @error('customer_email')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -157,17 +157,17 @@
 
                         <!-- Phone Number -->
                         <div>
-                            <label for="customer_phone" class="block text-sm font-medium text-gray-700 mb-1">
+                            <label for="customer_phone" class="block text-sm font-medium text-ink mb-1">
                                 Phone Number <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                     </svg>
                                 </div>
                                 <input type="tel" name="customer_phone" id="customer_phone" value="{{ old('customer_phone') }}" required
-                                    class="pl-10 block w-full border border-gray-300 rounded-lg shadow-sm py-3 px-4 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition duration-200">
+                                    class="pl-10 block w-full border border-line rounded-lg shadow-sm py-3 px-4 focus:ring-laut focus:border-laut hover:border-laut/60 transition duration-200">
                             </div>
                             @error('customer_phone')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -178,26 +178,26 @@
 
                 <!-- Booking Details -->
                 <div class="space-y-6">
-                    <h3 class="text-xl font-bold text-gray-800 border-b pb-2 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <h3 class="text-xl font-bold text-ink border-b pb-2 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-laut" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         Booking Details
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="destination_id" class="block text-sm font-medium text-gray-700 mb-1">
+                            <label for="destination_id" class="block text-sm font-medium text-ink mb-1">
                                 Destination <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                     </svg>
                                 </div>
                                 <select name="destination_id" id="destination_id" required
-                                        class="pl-10 block w-full border border-gray-300 rounded-lg shadow-sm py-3 px-4 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition duration-200 appearance-none bg-white">
+                                        class="pl-10 block w-full border border-line rounded-lg shadow-sm py-3 px-4 focus:ring-laut focus:border-laut hover:border-laut/60 transition duration-200 appearance-none bg-paper">
                                     @foreach ($destinations as $id => $name)
                                         <option value="{{ $id }}">{{ $name }}</option>
                                     @endforeach
@@ -205,74 +205,74 @@
                             </div>
                         </div>
                         <div>
-                            <label for="number_of_tickets" class="block text-sm font-medium text-gray-700 mb-1">
+                            <label for="number_of_tickets" class="block text-sm font-medium text-ink mb-1">
                                 Number of Tickets <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                                     </svg>
                                 </div>
                                 <input type="number" name="number_of_tickets" id="number_of_tickets" min="1" max="10" value="1" required
-                                       class="pl-10 block w-full border border-gray-300 rounded-lg shadow-sm py-3 px-4 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition duration-200">
+                                       class="pl-10 block w-full border border-line rounded-lg shadow-sm py-3 px-4 focus:ring-laut focus:border-laut hover:border-laut/60 transition duration-200">
                             </div>
                         </div>
                         <div>
-                            <label for="booking_date" class="block text-sm font-medium text-gray-700 mb-1">
+                            <label for="booking_date" class="block text-sm font-medium text-ink mb-1">
                                 Booking Date <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                 </div>
                                 <input type="date" name="booking_date" id="booking_date" required min="{{ date('Y-m-d') }}"
-                                       class="pl-10 block w-full border border-gray-300 rounded-lg shadow-sm py-3 px-4 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition duration-200">
+                                       class="pl-10 block w-full border border-line rounded-lg shadow-sm py-3 px-4 focus:ring-laut focus:border-laut hover:border-laut/60 transition duration-200">
                             </div>
                         </div>
                     </div>
                     <div>
-                        <label for="special_request" class="block text-sm font-medium text-gray-700 mb-1">
+                        <label for="special_request" class="block text-sm font-medium text-ink mb-1">
                             Special Requests
                         </label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 pt-3 flex items-start pointer-events-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                                 </svg>
                             </div>
                             <textarea name="special_request" id="special_request" rows="3"
-                                      class="pl-10 block w-full border border-gray-300 rounded-lg shadow-sm py-3 px-4 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition duration-200"
+                                      class="pl-10 block w-full border border-line rounded-lg shadow-sm py-3 px-4 focus:ring-laut focus:border-laut hover:border-laut/60 transition duration-200"
                                       placeholder="Any special requirements or notes..."></textarea>
                         </div>
                     </div>
                 </div>
 
                 <!-- Promo Code Section -->
-                <div class="bg-blue-50 rounded-xl p-6 border border-blue-100 transition-all duration-300 hover:shadow-md">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="bg-laut/5 rounded-xl p-6 border border-laut/20 transition-all duration-300 hover:shadow-md">
+                    <h3 class="text-xl font-bold text-ink mb-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-laut mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                         </svg>
                         Apply Promo Code
                     </h3>
-                    <p class="text-gray-600 mb-4">Enter your promo code below to get discounts</p>
+                    <p class="text-muted mb-4">Enter your promo code below to get discounts</p>
                     
                     <div class="flex flex-col sm:flex-row gap-3">
                         <div class="flex-grow relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
                                 </svg>
                             </div>
                             <input type="text" id="promoInput" name="promo_code" 
-                                   class="pl-10 block w-full border border-gray-300 rounded-lg shadow-sm py-3 px-4 focus:ring-blue-500 focus:border-blue-500 hover:border-blue-400 transition duration-200" 
+                                   class="pl-10 block w-full border border-line rounded-lg shadow-sm py-3 px-4 focus:ring-laut focus:border-laut hover:border-laut/60 transition duration-200" 
                                    placeholder="SUMMER2023">
                         </div>
                         <button type="button" id="applyPromoBtn" 
-                                class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-md transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg flex items-center justify-center">
+                                class="px-6 py-3 bg-laut hover:bg-laut/90 text-white font-medium rounded-lg shadow-md transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                             </svg>
@@ -284,49 +284,86 @@
                     <div id="discountDisplay" class="mt-3 text-green-600 font-medium"></div>
                 </div>
 
+                <!-- Travel Insurance Add-on -->
+                <div class="bg-paper rounded-xl p-6 border border-line shadow-sm">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" name="has_insurance" id="hasInsurance" value="1"
+                               class="mt-1 w-5 h-5 rounded border-line text-laut focus:ring-laut">
+                        <span class="flex-1">
+                            <span class="flex items-center gap-2 font-bold text-ink">
+                                <i class="fas fa-shield-alt text-laut"></i> Tambahkan Asuransi Perjalanan
+                            </span>
+                            <span class="block text-muted text-sm mt-1">
+                                Perlindungan kecelakaan &amp; pembatalan perjalanan — Rp {{ number_format(config('services.insurance.price_per_ticket'), 0, ',', '.') }} / tiket
+                            </span>
+                        </span>
+                    </label>
+                    <input type="hidden" id="insurancePricePerTicket" value="{{ config('services.insurance.price_per_ticket') }}">
+                </div>
+
                 <!-- Price Summary -->
-                <div class="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="bg-paper rounded-xl p-6 border border-line shadow-sm">
+                    <h3 class="text-xl font-bold text-ink mb-4 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-laut" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         Price Summary
                     </h3>
                     <div class="space-y-3">
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Base Price</span>
-                            <span id="basePriceDisplay" class="text-gray-800">Rp {{ number_format($tourPackage->price, 0, ',', '.') }}</span>
+                            <span class="text-muted">Base Price</span>
+                            <span id="basePriceDisplay" class="text-ink">Rp {{ number_format($tourPackage->price, 0, ',', '.') }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Number of Tickets</span>
-                            <span id="ticketCountDisplay" class="text-gray-800">1</span>
+                            <span class="text-muted">Number of Tickets</span>
+                            <span id="ticketCountDisplay" class="text-ink">1</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Subtotal</span>
-                            <span id="subtotalDisplay" class="text-gray-800">Rp {{ number_format($tourPackage->price, 0, ',', '.') }}</span>
+                            <span class="text-muted">Subtotal</span>
+                            <span id="subtotalDisplay" class="text-ink">Rp {{ number_format($tourPackage->price, 0, ',', '.') }}</span>
                         </div>
+                        @if($bundleHotel && $bundleHotelPricePerNight > 0)
+                        @php $bundleHotelTotal = $bundleHotelPricePerNight * $bundleNights * (1 - $bundleDiscountPercent / 100); @endphp
+                        <div class="flex justify-between items-start bg-laut/5 border border-laut/20 rounded-lg px-3 py-2.5 -mx-1">
+                            <span class="text-laut text-xs font-semibold leading-relaxed">
+                                <i class="fas fa-hotel mr-1"></i> Bundle: {{ $bundleHotel->name }}
+                                ({{ $bundleNights }} malam) — hemat {{ $bundleDiscountPercent }}% dari harga hotel
+                            </span>
+                            <span class="text-laut text-xs font-bold whitespace-nowrap ml-3">+Rp {{ number_format($bundleHotelTotal, 0, ',', '.') }}</span>
+                        </div>
+                        @endif
                         <div class="flex justify-between">
-                            <span class="text-gray-600">Discount</span>
+                            <span class="text-muted">Discount</span>
                             <span id="discountAmountDisplay" class="text-green-600">- Rp 0</span>
                         </div>
-                        <div class="border-t border-gray-200 pt-3 mt-3">
+                        <div class="flex justify-between" id="insuranceRow" style="display:none">
+                            <span class="text-muted">Asuransi Perjalanan</span>
+                            <span id="insuranceAmountDisplay" class="text-ink">Rp 0</span>
+                        </div>
+                        <div class="border-t border-line pt-3 mt-3">
                             <div class="flex justify-between font-bold">
-                                <span class="text-gray-800">Total Payment</span>
-                                <span id="totalPriceDisplay" class="text-blue-600 text-xl">Rp {{ number_format($tourPackage->price, 0, ',', '.') }}</span>
+                                <span class="text-ink">Total Payment</span>
+                                <span id="totalPriceDisplay" class="text-laut text-xl">Rp {{ number_format($tourPackage->price, 0, ',', '.') }}</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Submit Button -->
-                <div class="pt-2">
+                <div class="pt-2 space-y-3">
                     <button type="submit"
-                            class="w-full inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-lg font-bold rounded-lg shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            class="w-full inline-flex items-center justify-center px-6 py-4 bg-gradient-to-r from-laut to-petrol hover:from-laut/90 hover:to-petrol/90 text-white text-lg font-bold rounded-lg shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-laut">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
                         Confirm Booking
                     </button>
+                    @if(!$bundleHotel)
+                    <button type="button" id="addToCartBtn"
+                            class="w-full inline-flex items-center justify-center px-6 py-3.5 bg-white border border-line text-ink font-bold rounded-lg hover:border-laut hover:text-laut transition-all">
+                        <i class="fas fa-shopping-bag mr-2"></i> Tambah ke Keranjang
+                    </button>
+                    @endif
                 </div>
             </form>
         </div>
@@ -352,6 +389,11 @@
         const ticketInput = document.getElementById('number_of_tickets');
         const discountDisplay = document.getElementById('discountDisplay');
         const pricePerTicket = parseFloat(document.getElementById('pricePerTicket').value);
+        const bundleHotelPerTicket = {{ $bundleHotel ? ($bundleHotelPricePerNight * $bundleNights * (1 - $bundleDiscountPercent / 100)) : 0 }};
+        const insurancePricePerTicket = parseFloat(document.getElementById('insurancePricePerTicket').value);
+        const hasInsuranceInput = document.getElementById('hasInsurance');
+        const insuranceRow = document.getElementById('insuranceRow');
+        const insuranceAmountDisplay = document.getElementById('insuranceAmountDisplay');
         const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' });
 
         // Price summary elements
@@ -364,13 +406,18 @@
         // Initialize price display
         function updatePriceSummary() {
             const ticketCount = parseInt(ticketInput.value) || 1;
-            const subtotal = ticketCount * pricePerTicket;
+            const tourSubtotal = ticketCount * pricePerTicket;
+            const hotelBundleTotal = ticketCount * bundleHotelPerTicket;
+            const subtotal = tourSubtotal + hotelBundleTotal;
             const discount = parseFloat(discountInput.value) || 0;
-            const total = subtotal - discount;
+            const insurance = hasInsuranceInput.checked ? ticketCount * insurancePricePerTicket : 0;
+            const total = subtotal - discount + insurance;
 
             ticketCountDisplay.textContent = ticketCount;
-            subtotalDisplay.textContent = formatter.format(subtotal);
+            subtotalDisplay.textContent = formatter.format(tourSubtotal);
             discountAmountDisplay.textContent = discount > 0 ? `- ${formatter.format(discount)}` : '- Rp 0';
+            insuranceRow.style.display = insurance > 0 ? 'flex' : 'none';
+            insuranceAmountDisplay.textContent = formatter.format(insurance);
             totalPriceDisplay.textContent = formatter.format(total);
         }
 
@@ -393,7 +440,7 @@
             const promo = promoCodes[code];
             const today = new Date().toISOString().split('T')[0];
             const ticketCount = parseInt(ticketInput.value) || 1;
-            const subtotal = ticketCount * pricePerTicket;
+            const subtotal = (ticketCount * pricePerTicket) + (ticketCount * bundleHotelPerTicket);
 
             if (!promo || !promo.active) {
                 showPromoMessage(`Promo code "${code}" is invalid`, 'error');
@@ -453,8 +500,48 @@
             updatePriceSummary();
         });
 
+        // Insurance checkbox handler
+        hasInsuranceInput.addEventListener('change', updatePriceSummary);
+
         // Initialize price summary
         updatePriceSummary();
+
+        const addToCartBtn = document.getElementById('addToCartBtn');
+        if (addToCartBtn) {
+            addToCartBtn.addEventListener('click', () => {
+                const bookingDate = document.getElementById('booking_date').value;
+                if (!bookingDate) {
+                    showPromoMessage('Pilih tanggal kunjungan terlebih dahulu.', 'error');
+                    return;
+                }
+
+                addToCartBtn.disabled = true;
+                fetch('{{ route('cart.add') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        itemable_type: 'tour',
+                        itemable_id: {{ $tourPackage->id }},
+                        booking_date: bookingDate,
+                        number_of_tickets: parseInt(ticketInput.value, 10) || 1,
+                    }),
+                }).then((response) => {
+                    if (response.ok || response.redirected) {
+                        window.location.href = '{{ route('cart.index') }}';
+                    } else {
+                        addToCartBtn.disabled = false;
+                        showPromoMessage('Gagal menambahkan ke keranjang. Coba lagi.', 'error');
+                    }
+                }).catch(() => {
+                    addToCartBtn.disabled = false;
+                    showPromoMessage('Gagal menambahkan ke keranjang. Coba lagi.', 'error');
+                });
+            });
+        }
     });
 </script>
 @endsection

@@ -379,22 +379,11 @@ class BookingHotelResource extends Resource
                 $roomType = $record->room_type;
                 $hotel = $record->hotel;
 
-                // Hitung booking aktif
-                $pendingCount = \App\Models\BookingHotel::where('hotel_id', $hotel->id)
-                    ->where('room_type', $roomType)
-                    ->whereIn('status', ['pending', 'checked-in'])
-                    ->count();
-
-                $roomCount = match ($roomType) {
-                    'single' => $hotel->room_count_single,
-                    'double' => $hotel->room_count_double,
-                    'family' => $hotel->room_count_family,
-                    default => 0,
-                };
-
-                if ($pendingCount >= $roomCount) {
+                // Cek ketersediaan kamar untuk rentang tanggal booking ini
+                // (kecualikan booking ini sendiri dari hitungan karena statusnya masih 'pending')
+                if (!$hotel->isRoomAvailable($roomType, $record->check_in_date, $record->check_out_date, $record->id)) {
                     \Filament\Notifications\Notification::make()
-                        ->title('Kamar tipe ini sudah penuh!')
+                        ->title('Kamar tipe ini sudah penuh untuk tanggal tersebut!')
                         ->danger()
                         ->send();
                     return;
@@ -403,15 +392,6 @@ class BookingHotelResource extends Resource
                 // Lanjutkan logic approve booking di bawah ini
                 $record->status = 'checked-in';
                 $record->save();
-                
-                if ($roomType === 'single') {
-                    $hotel->decrement('room_count_single');
-                } elseif ($roomType === 'double') {
-                    $hotel->decrement('room_count_double');
-                } elseif ($roomType === 'family') {
-                    $hotel->decrement('room_count_family');
-                }
-                $hotel->save();
 
                 $roomNumber = \App\Models\HotelRoom::generateRoomNumber($roomType);
 
@@ -423,6 +403,8 @@ class BookingHotelResource extends Resource
                     'status' => 'not available',
                     'booking_hotel_id' => $record->id,
                 ]);
+
+                app(\App\Services\LoyaltyService::class)->awardForHotelBooking($record);
             })
             ->requiresConfirmation()
             ->successNotificationTitle('Booking approved!'),
@@ -436,19 +418,7 @@ class BookingHotelResource extends Resource
                     $record->status = 'failed';
                     $record->save();
 
-                    // Menambah jumlah kamar yang tersedia berdasarkan tipe yang dipilih
-                    $roomType = $record->room_type; // single, double, family
-                    $hotel = $record->hotel; // Relasi ke hotel
-
-                    if ($roomType === 'single') {
-                        $hotel->decrement('room_count_single');
-                    } elseif ($roomType === 'double') {
-                        $hotel->decrement('room_count_double');
-                    } elseif ($roomType === 'family') {
-                        $hotel->decrement('room_count_family');
-                    }
-
-                    // Mengupdate status kamar yang sebelumnya digunakan untuk booking
+                    // Bebaskan kamar yang sebelumnya di-assign untuk booking ini (jika ada)
                     $hotelRoom = HotelRoom::where('booking_number', $record->booking_number)->first();
                     if ($hotelRoom) {
                         $hotelRoom->status = 'available';
@@ -465,19 +435,6 @@ class BookingHotelResource extends Resource
     ->action(function ($record) {
         $record->status = 'checked-out';
         $record->save();
-
-        $roomType = $record->room_type;
-        $hotel = $record->hotel;
-
-        // Tambah kembali kuota kamar sesuai tipe
-        if ($roomType === 'single') {
-            $hotel->increment('room_count_single');
-        } elseif ($roomType === 'double') {
-            $hotel->increment('room_count_double');
-        } elseif ($roomType === 'family') {
-            $hotel->increment('room_count_family');
-        }
-        $hotel->save();
 
         // Update status kamar menjadi available
         $hotelRoom = \App\Models\HotelRoom::where('booking_number', $record->booking_number)->first();

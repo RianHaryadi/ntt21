@@ -1,2 +1,9 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /booking/
+Disallow: /transactions/
+Disallow: /travel/chat
+
+Sitemap: /sitemap.xml

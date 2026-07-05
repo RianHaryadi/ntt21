@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@yield('title') - Wonderful NTT</title>
+    <title>@yield('title') - Pesona NTT</title>
     <meta name="description" content="AI Travel Assistant - Explore NTT Hidden Gems.">
 
     <!-- Google Fonts: Montserrat + Inter -->
@@ -31,7 +31,7 @@
                             500: '#0073e6',
                         },
                         sunset: {
-                            500: '#ff6b35', // Sunset Orange
+                            500: '#0F6E63', // Sunset Orange
                             600: '#e55a2b',
                             400: '#ff8559',
                         },
@@ -68,7 +68,7 @@
             background: #000f1f;
         }
         ::-webkit-scrollbar-thumb {
-            background: #ff6b35;
+            background: #0F6E63;
             border-radius: 3px;
         }
     </style>
@@ -77,7 +77,7 @@
 <body class="antialiased overflow-x-hidden">
 
     <!-- Glowing Top Accent -->
-    <div class="fixed top-0 left-0 w-full h-[3px] bg-gradient-to-r from-sunset-500 via-sunset-600 to-ocean-500 z-50 shadow-[0_0_15px_#ff6b35]"></div>
+    <div class="fixed top-0 left-0 w-full h-[3px] bg-gradient-to-r from-laut via-petrol to-ocean-500 z-50 shadow-[0_0_15px_#0F6E63]"></div>
 
     <!-- Main Container -->
     <div class="min-h-screen flex flex-col justify-between">

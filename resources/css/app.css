@@ -1,3 +1,157 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    body {
+        @apply bg-paper text-ink font-sans antialiased;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        @apply font-serif font-normal;
+    }
+}
+
+@layer utilities {
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+/* ============================================================
+   ANIMASI GLOBAL
+   ============================================================ */
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* ── Scroll-triggered reveal (dipicu IntersectionObserver di app.js) ── */
+.reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+}
+.reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+/* Stagger anak-anak langsung di dalam .reveal-group */
+.reveal-group > * {
+    opacity: 0;
+    transform: translateY(24px);
+}
+.reveal-group.is-visible > * {
+    animation: fade-in-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.reveal-group.is-visible > *:nth-child(1) { animation-delay: 0s; }
+.reveal-group.is-visible > *:nth-child(2) { animation-delay: 0.08s; }
+.reveal-group.is-visible > *:nth-child(3) { animation-delay: 0.16s; }
+.reveal-group.is-visible > *:nth-child(4) { animation-delay: 0.24s; }
+.reveal-group.is-visible > *:nth-child(5) { animation-delay: 0.32s; }
+.reveal-group.is-visible > *:nth-child(6) { animation-delay: 0.4s; }
+.reveal-group.is-visible > *:nth-child(7) { animation-delay: 0.48s; }
+.reveal-group.is-visible > *:nth-child(8) { animation-delay: 0.56s; }
+
+/* ── Animasi langsung saat halaman dimuat (hero, dsb) ── */
+@keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up {
+    animation: fade-in-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+.fade-in {
+    animation: fade-in 0.6s ease-out both;
+}
+
+@keyframes scale-in {
+    from { opacity: 0; transform: scale(0.94); }
+    to   { opacity: 1; transform: scale(1); }
+}
+.scale-in {
+    animation: scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Micro-interactions reusable ── */
+.card-lift {
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.3s ease;
+}
+.card-lift:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 48px -16px rgba(22, 32, 30, 0.16);
+}
+
+.img-zoom { overflow: hidden; }
+.img-zoom img {
+    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.img-zoom:hover img {
+    transform: scale(1.08);
+}
+
+.btn-press {
+    transition: transform 0.15s ease, box-shadow 0.25s ease;
+}
+.btn-press:active {
+    transform: scale(0.96);
+}
+
+/* ── Navbar dinamis saat discroll ── */
+#main-navbar {
+    transition: box-shadow 0.4s ease, background-color 0.4s ease, backdrop-filter 0.4s ease;
+}
+#main-navbar.navbar-scrolled {
+    box-shadow: 0 8px 30px -12px rgba(22, 32, 30, 0.12);
+}
+
+/* ── Skeleton shimmer (loading state) ── */
+@keyframes shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+.skeleton {
+    background: linear-gradient(90deg, theme('colors.surface') 25%, theme('colors.line') 50%, theme('colors.surface') 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.6s linear infinite;
+}
+
+/* ── Page fade-in halus saat load ── */
+main {
+    animation: fade-in 0.5s ease-out both;
+}
+
+/* ── Flash sale badge pulse ── */
+@keyframes flash-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(210, 103, 74, 0.45); }
+    50%      { box-shadow: 0 0 0 6px rgba(210, 103, 74, 0); }
+}
+.flash-badge {
+    animation: flash-pulse 1.8s ease-out infinite;
+}
+
+/* ── Hormati preferensi pengguna yang menonaktifkan animasi ── */
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal, .reveal-group > *, .fade-in-up, .fade-in, .scale-in, main, .flash-badge {
+        animation: none !important;
+        transition: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}

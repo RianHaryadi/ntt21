@@ -84,6 +84,22 @@ class HotelResource extends Resource
                     ->directory('hotels')
                     ->maxSize(2048)
                     ->columnSpanFull(),
+
+                Forms\Components\Section::make('Flash Sale')
+                    ->description('Aktifkan diskon bertenggat waktu untuk hotel ini (berlaku ke semua tipe kamar).')
+                    ->schema([
+                        Forms\Components\TextInput::make('flash_sale_discount_percent')
+                            ->label('Diskon (%)')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(90)
+                            ->nullable(),
+                        Forms\Components\DateTimePicker::make('flash_sale_ends_at')
+                            ->label('Berakhir Pada')
+                            ->nullable(),
+                    ])
+                    ->columns(2)
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -124,6 +140,13 @@ class HotelResource extends Resource
 
                 Tables\Columns\TextColumn::make('room_count_family')
                     ->label('Family Rooms'),
+
+                Tables\Columns\IconColumn::make('flash_sale_ends_at')
+                    ->label('Flash Sale')
+                    ->boolean()
+                    ->state(fn ($record) => $record->isOnFlashSale())
+                    ->trueIcon('heroicon-o-bolt')
+                    ->falseIcon('heroicon-o-minus'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

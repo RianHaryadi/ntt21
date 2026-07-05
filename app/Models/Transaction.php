@@ -16,6 +16,7 @@ class Transaction extends Model
 
     protected $fillable = [
         'booking_code',
+        'user_id',
         'customer_name',
         'customer_email',
         'customer_phone',
@@ -33,6 +34,11 @@ class Transaction extends Model
         'discount_amount',
         'discount_percent',
         'special_request',
+        'has_insurance',
+        'insurance_amount',
+        'snap_token',
+        'midtrans_payment_type',
+        'order_id',
     ];
 
     protected $casts = [
@@ -42,6 +48,8 @@ class Transaction extends Model
         'discount_percent'   => 'float',
         'total_price'        => 'float',
         'payment_deadline'   => 'datetime',
+        'has_insurance'      => 'boolean',
+        'insurance_amount'   => 'float',
     ];
 
     public const STATUS_PENDING   = 'pending';
@@ -54,6 +62,11 @@ class Transaction extends Model
     // ========================
     // RELATIONS
     // ========================
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function tourPackage()
     {
@@ -90,6 +103,11 @@ class Transaction extends Model
     public function tickets()
     {
         return $this->hasMany(Ticket::class);
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
     }
 
     // Getter dinamis: destination bisa dari direct atau package

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Destination;
 use App\Models\Transaction;
 use App\Models\CodePromotion;
+use App\Services\RecentlyViewedService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -62,8 +63,19 @@ class DestinationController extends Controller
             $query->where('is_popular', true);
         }
 
-        // Order by latest and paginate
-        $destinations = $query->latest()->paginate(12);
+        $query->withCount(['transactions as bookings_count' => function ($q) {
+            $q->where('status', Transaction::STATUS_PAID);
+        }]);
+
+        match ($request->sort) {
+            'popular' => $query->orderByDesc('bookings_count'),
+            'price-asc' => $query->orderBy('price'),
+            'price-desc' => $query->orderByDesc('price'),
+            'rating' => $query->orderByDesc('rating'),
+            default => $query->latest(),
+        };
+
+        $destinations = $query->paginate(12);
 
         // Append query parameters to pagination links
         $destinations->appends($request->only([
@@ -73,7 +85,8 @@ class DestinationController extends Controller
             'max_price',
             'min_rating',
             'max_rating',
-            'is_popular'
+            'is_popular',
+            'sort',
         ]));
 
         // Pass categories to the view
@@ -85,10 +98,21 @@ class DestinationController extends Controller
     /**
      * Menampilkan detail satu destinasi.
      */
-    public function show($id)
+    public function show($id, RecentlyViewedService $recentlyViewed)
     {
-        $destination = Destination::findOrFail($id);
-        return view('destinations.show', compact('destination'));
+        $destination = Destination::with(['tourPackages.hotels', 'reviews.user', 'questions.user', 'questions.answers.user'])->findOrFail($id);
+
+        $recentlyViewedItems = $recentlyViewed->get('destination', $destination->id);
+
+        $similarDestinations = Destination::where('category', $destination->category)
+            ->where('id', '!=', $destination->id)
+            ->orderByDesc('rating')
+            ->limit(4)
+            ->get();
+
+        $recentlyViewed->record('destination', $destination->id);
+
+        return view('destinations.show', compact('destination', 'similarDestinations', 'recentlyViewedItems'));
     }
 
     /**
@@ -122,18 +146,44 @@ class DestinationController extends Controller
             'number_of_tickets'  => 'required|integer|min:1',
             'promo_code_id'      => 'nullable|integer',
             'discount_amount'    => 'nullable|numeric|min:0',
+            'has_insurance'      => 'nullable|boolean',
         ]);
 
         $destination = Destination::findOrFail($request->destination_id);
 
-        // Hitung total harga
-        $subtotal = $destination->price * $request->number_of_tickets;
-        $discount = $request->discount_amount ?? 0;
-        $totalPrice = max($subtotal - $discount, 0);
+        // Hitung total harga — pakai harga flash sale jika sedang aktif (dihitung di server, bukan dari input client)
+        $unitPrice = $destination->isOnFlashSale() ? $destination->flash_sale_price : $destination->price;
+        $subtotal = $unitPrice * $request->number_of_tickets;
+
+        // Validasi kode promo di server — jangan percaya discount_amount dari client
+        $discount = 0;
+        if ($request->promo_code_id) {
+            $promo = CodePromotion::where('id', $request->promo_code_id)
+                ->where('active', true)
+                ->whereDate('valid_from', '<=', now())
+                ->whereDate('valid_until', '>=', now())
+                ->where(fn ($q) => $q->whereNull('user_id')->orWhere('user_id', auth()->id()))
+                ->first();
+
+            if ($promo) {
+                $discount = $promo->discount_percent
+                    ? ($subtotal * $promo->discount_percent / 100)
+                    : ($promo->discount_amount ?? 0);
+            }
+        }
+
+        // Asuransi perjalanan (opsional) — dihitung di server berdasarkan jumlah tiket
+        $hasInsurance = (bool) $request->boolean('has_insurance');
+        $insuranceAmount = $hasInsurance
+            ? config('services.insurance.price_per_ticket') * $request->number_of_tickets
+            : 0;
+
+        $totalPrice = max($subtotal - $discount, 0) + $insuranceAmount;
 
         // Buat transaksi
         $transaction = Transaction::create([
             'booking_code'       => 'DST-' . strtoupper(Str::random(10)),
+            'user_id'            => auth()->id(),
             'customer_name'      => $request->customer_name,
             'customer_email'     => $request->customer_email,
             'customer_phone'     => $request->customer_phone,
@@ -141,8 +191,10 @@ class DestinationController extends Controller
             'tour_package_id'    => null,
             'booking_date'       => $request->booking_date,
             'number_of_tickets'  => $request->number_of_tickets,
-            'package_price'      => $destination->price,
-            'discount'           => $discount,
+            'package_price'      => $unitPrice,
+            'discount_amount'    => $discount,
+            'has_insurance'      => $hasInsurance,
+            'insurance_amount'   => $insuranceAmount,
             'total_price'        => $totalPrice,
             'status'             => Transaction::STATUS_PENDING,
             'promo_code_id'      => $request->promo_code_id,

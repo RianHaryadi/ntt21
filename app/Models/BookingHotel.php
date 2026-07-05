@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use App\Mail\HotelBookingMail;
+use App\Services\WhatsAppService;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 
@@ -36,12 +37,35 @@ class BookingHotel extends Model
         'status',
         'payment_method',
         'booking_number',
+        'cancellation_status',
+        'cancellation_reason',
+        'cancellation_requested_at',
+        'cancellation_processed_at',
+        'has_insurance',
+        'insurance_amount',
+        'order_id',
     ];
 
+
     protected $casts = [
-        'check_in_date' => 'date',
-        'check_out_date' => 'date',
+        'check_in_date'                => 'date',
+        'check_out_date'               => 'date',
+        'cancellation_requested_at'    => 'datetime',
+        'cancellation_processed_at'    => 'datetime',
+        'has_insurance'                => 'boolean',
+        'insurance_amount'             => 'float',
     ];
+
+    public function isCancellable(): bool
+    {
+        return $this->status === 'checked-in'
+            && is_null($this->cancellation_status);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function hotel()
     {
@@ -61,6 +85,11 @@ class BookingHotel extends Model
     public function transactions()
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
     }
 
     public function getHotelNameAttribute()
@@ -125,20 +154,11 @@ class BookingHotel extends Model
 {
     static::creating(function ($booking) {
         if (empty($booking->booking_number)) {
-            $booking->booking_number = 'BOOK-' . Carbon::now()->format('Ymd') . '-' . str_pad(BookingHotel::count() + 1, 4, '0', STR_PAD_LEFT);
+            $booking->booking_number = 'BOOK-' . Carbon::now()->format('YmdHis') . '-' . str_pad(random_int(1, 9999), 4, '0', STR_PAD_LEFT);
         }
     });
 
     static::created(function ($booking) {
-        // hanya kurangi kamar jika status APPROVE saat pertama kali dibuat
-        if ($booking->status === 'approve' && $booking->hotel) {
-            match ($booking->room_type) {
-                'single' => $booking->hotel->decrement('room_count_single'),
-                'double' => $booking->hotel->decrement('room_count_double'),
-                'family' => $booking->hotel->decrement('room_count_family'),
-            };
-        }
-
         // Kirim email jika metode pembayaran transfer atau qris
         try {
             if (in_array($booking->payment_method, ['transfer', 'qris']) && $booking->customer_email) {
@@ -147,45 +167,28 @@ class BookingHotel extends Model
         } catch (\Exception $e) {
             Log::error('Failed to send hotel booking email: ' . $e->getMessage());
         }
-    });
 
-    static::updating(function ($booking) {
-        $original = $booking->getOriginal();
-        $hotel = $booking->hotel;
+        // Kirim notifikasi WhatsApp
+        try {
+            if ($booking->customer_phone) {
+                $hotelName = $booking->hotel->name ?? 'Hotel';
+                $checkIn = $booking->check_in_date?->format('d M Y');
+                $checkOut = $booking->check_out_date?->format('d M Y');
+                $total = 'Rp' . number_format($booking->total_price, 0, ',', '.');
 
-        $originalStatus = $original['status'];
-        $newStatus = $booking->status;
-        $originalRoom = $original['room_type'];
-        $newRoom = $booking->room_type;
+                $message = "Halo {$booking->customer_name}! 👋\n\n"
+                    . "Booking Anda di *Pesona NTT* berhasil dibuat.\n\n"
+                    . "🏨 Hotel: {$hotelName}\n"
+                    . "📋 No. Booking: {$booking->booking_number}\n"
+                    . "📅 Check-in: {$checkIn}\n"
+                    . "📅 Check-out: {$checkOut}\n"
+                    . "💰 Total: {$total}\n\n"
+                    . "Status booking Anda saat ini: *menunggu konfirmasi*. Kami akan segera memprosesnya. Terima kasih! 🙏";
 
-        $roomFieldOld = match ($originalRoom) {
-            'single' => 'room_count_single',
-            'double' => 'room_count_double',
-            'family' => 'room_count_family',
-            default => null,
-        };
-
-        $roomFieldNew = match ($newRoom) {
-            'single' => 'room_count_single',
-            'double' => 'room_count_double',
-            'family' => 'room_count_family',
-            default => null,
-        };
-
-        // 1. Status berubah dari approve → failed/pending → kembalikan kamar
-        if ($originalStatus === 'approve' && in_array($newStatus, ['pending', 'failed']) && $roomFieldOld) {
-            $hotel->increment($roomFieldOld);
-        }
-
-        // 2. Status berubah dari pending/failed → approve → potong kamar
-        if (in_array($originalStatus, ['pending', 'failed']) && $newStatus === 'approve' && $roomFieldNew) {
-            $hotel->decrement($roomFieldNew);
-        }
-
-        // 3. Status tetap approve, tapi jenis kamar berubah
-        if ($originalRoom !== $newRoom && $originalStatus === 'approve' && $newStatus === 'approve') {
-            if ($roomFieldOld) $hotel->increment($roomFieldOld);
-            if ($roomFieldNew) $hotel->decrement($roomFieldNew);
+                app(WhatsAppService::class)->send($booking->customer_phone, $message);
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send hotel booking WhatsApp: ' . $e->getMessage());
         }
     });
 }

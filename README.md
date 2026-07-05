@@ -11,9 +11,9 @@
 
 ---
 
-# 🌴 Wonderful NTT – Tourism Platform
+# 🌴 Pesona NTT– Tourism Platform
 
-Welcome to **Wonderful NTT**, a comprehensive tourism web platform dedicated to showcasing the beauty of **East Nusa Tenggara (NTT)**. Built with **Laravel 11**, **FilamentPHP**, and **Tailwind CSS**, this application provides a seamless experience for travelers to explore destinations, book accommodations, and discover curated tour packages.
+Welcome to **Pesona NTT**, a comprehensive tourism web platform dedicated to showcasing the beauty of **East Nusa Tenggara (NTT)**. Built with **Laravel 11**, **FilamentPHP**, and **Tailwind CSS**, this application provides a seamless experience for travelers to explore destinations, book accommodations, and discover curated tour packages.
 
 ---
 

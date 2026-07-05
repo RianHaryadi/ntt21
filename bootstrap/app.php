@@ -11,7 +11,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->alias([
+            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+        ]);
+        $middleware->validateCsrfTokens(except: [
+            'midtrans/notification',
+        ]);
+        $middleware->web(append: [
+            \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\SetCurrency::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

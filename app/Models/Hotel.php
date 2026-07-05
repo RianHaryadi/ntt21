@@ -22,7 +22,35 @@ class Hotel extends Model
         'room_count_double',
         'room_count_family',
         'image',
+        'flash_sale_discount_percent',
+        'flash_sale_ends_at',
     ];
+
+    protected $casts = [
+        'flash_sale_ends_at' => 'datetime',
+    ];
+
+    public function isOnFlashSale(): bool
+    {
+        return $this->flash_sale_discount_percent
+            && $this->flash_sale_ends_at
+            && $this->flash_sale_ends_at->isFuture();
+    }
+
+    public function flashSalePrice(?float $basePrice): ?float
+    {
+        if (!$basePrice || !$this->isOnFlashSale()) {
+            return null;
+        }
+
+        return round($basePrice - ($basePrice * $this->flash_sale_discount_percent / 100));
+    }
+
+    public function scopeOnFlashSale($query)
+    {
+        return $query->whereNotNull('flash_sale_discount_percent')
+            ->where('flash_sale_ends_at', '>', now());
+    }
 
     /**
      * Relasi ke tabel hotel_rooms
@@ -41,30 +69,75 @@ class Hotel extends Model
     }
 
     /**
-     * Mengurangi jumlah kamar sesuai tipe saat booking dibuat
+     * Total kamar (inventaris tetap) untuk tipe kamar tertentu.
      */
-    public function decrementRoomCount($roomType)
+    public function totalRoomsOfType(string $roomType): int
     {
-        if ($roomType === 'single') {
-            $this->decrement('room_count_single');
-        } elseif ($roomType === 'double') {
-            $this->decrement('room_count_double');
-        } elseif ($roomType === 'family') {
-            $this->decrement('room_count_family');
-        }
+        return (int) match ($roomType) {
+            'single' => $this->room_count_single,
+            'double' => $this->room_count_double,
+            'family' => $this->room_count_family,
+            default => 0,
+        };
     }
 
     /**
-     * Menambahkan kembali kamar saat status booking menjadi check-out
+     * Jumlah kamar tersedia untuk tipe & rentang tanggal tertentu.
+     * Dihitung dari inventaris tetap dikurangi booking aktif yang tanggalnya bentrok
+     * (status pending/checked-in dianggap masih menempati kamar).
+     *
+     * @param int|null $excludeBookingId Kecualikan booking ini dari hitungan (dipakai saat re-cek booking yang sudah ada)
      */
-    public function incrementRoomCount($roomType)
+    public function availableRooms(string $roomType, \DateTimeInterface|string $checkIn, \DateTimeInterface|string $checkOut, ?int $excludeBookingId = null): int
     {
-        if ($roomType === 'single') {
-            $this->increment('room_count_single');
-        } elseif ($roomType === 'double') {
-            $this->increment('room_count_double');
-        } elseif ($roomType === 'family') {
-            $this->increment('room_count_family');
-        }
+        $total = $this->totalRoomsOfType($roomType);
+        $checkIn = $checkIn instanceof \DateTimeInterface ? $checkIn->format('Y-m-d') : $checkIn;
+        $checkOut = $checkOut instanceof \DateTimeInterface ? $checkOut->format('Y-m-d') : $checkOut;
+
+        $overlapping = $this->bookings()
+            ->where('room_type', $roomType)
+            ->whereIn('status', ['pending', 'checked-in'])
+            ->where('check_in_date', '<', $checkOut)
+            ->where('check_out_date', '>', $checkIn)
+            ->when($excludeBookingId, fn ($q) => $q->where('id', '!=', $excludeBookingId))
+            ->count();
+
+        return max($total - $overlapping, 0);
+    }
+
+    /**
+     * Apakah tipe kamar ini tersedia untuk rentang tanggal yang diminta.
+     */
+    public function isRoomAvailable(string $roomType, \DateTimeInterface|string $checkIn, \DateTimeInterface|string $checkOut, ?int $excludeBookingId = null): bool
+    {
+        return $this->availableRooms($roomType, $checkIn, $checkOut, $excludeBookingId) > 0;
+    }
+
+    /**
+     * Relasi ke seluruh booking hotel ini.
+     */
+    public function bookings()
+    {
+        return $this->hasMany(BookingHotel::class);
+    }
+
+    public function reviews()
+    {
+        return $this->morphMany(Review::class, 'reviewable');
+    }
+
+    public function wishlists()
+    {
+        return $this->morphMany(Wishlist::class, 'wishlistable');
+    }
+
+    public function questions()
+    {
+        return $this->morphMany(Question::class, 'questionable')->latest();
+    }
+
+    public function averageRating(): float
+    {
+        return round($this->reviews()->avg('rating') ?? 0, 1);
     }
 }

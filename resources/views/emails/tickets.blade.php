@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Digital Ticket - Wonderful NTT</title>
+  <title>Digital Ticket - Pesona NTT</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --ocean-900: #001a33;
-      --sunset-500: #ff6b35;
+      --petrol: #001a33;
+      --laut: #0F6E63;
       --white: #ffffff;
       --gray-50: #f8fafc;
       --gray-100: #f1f5f9;
@@ -20,7 +20,7 @@
       background-color: var(--gray-100);
       margin: 0;
       padding: 40px 20px;
-      color: var(--ocean-900);
+      color: var(--petrol);
     }
 
     .email-container {
@@ -33,7 +33,7 @@
     }
 
     .header {
-      background-color: var(--ocean-900);
+      background-color: var(--petrol);
       padding: 48px;
       text-align: center;
       position: relative;
@@ -49,7 +49,7 @@
     }
 
     .logo span {
-      color: var(--sunset-500);
+      color: var(--laut);
     }
 
     .success-icon {
@@ -62,7 +62,7 @@
       align-items: center;
       justify-content: center;
       font-size: 32px;
-      color: var(--sunset-500);
+      color: var(--laut);
     }
 
     .headline {
@@ -113,7 +113,7 @@
       font-family: monospace;
       font-size: 24px;
       font-weight: 900;
-      color: var(--ocean-900);
+      color: var(--petrol);
       letter-spacing: 4px;
     }
 
@@ -123,7 +123,7 @@
       font-size: 14px;
       text-transform: uppercase;
       letter-spacing: 1px;
-      color: var(--ocean-900);
+      color: var(--petrol);
       margin-bottom: 16px;
       display: flex;
       align-items: center;
@@ -156,7 +156,7 @@
     .value {
       font-size: 13px;
       font-weight: 800;
-      color: var(--ocean-900);
+      color: var(--petrol);
       text-align: right;
     }
 
@@ -167,7 +167,7 @@
     }
 
     .total-value {
-      color: var(--sunset-500);
+      color: var(--laut);
       font-size: 18px;
     }
 
@@ -202,7 +202,7 @@
 <body>
   <div class="email-container">
     <div class="header">
-      <div class="logo">Wonderful<span>NTT</span></div>
+      <div class="logo">Pesona<span>NTT</span></div>
       <div class="success-icon">✓</div>
       <h1 class="headline">Payment Verified</h1>
       <p class="sub-headline">Your journey begins here</p>
@@ -246,23 +246,23 @@
           <div class="label">Amount for {{ $transaction->number_of_tickets }} Tickets</div>
           <div class="value">Rp {{ number_format($transaction->package_price * $transaction->number_of_tickets, 0, ',', '.') }}</div>
         </div>
-        @if($transaction->discount > 0)
+        @if($transaction->discount_amount > 0)
         <div class="info-row">
           <div class="label">Discount Applied</div>
-          <div class="value" style="color: #ef4444;">- Rp {{ number_format($transaction->discount, 0, ',', '.') }}</div>
+          <div class="value" style="color: #ef4444;">- Rp {{ number_format($transaction->discount_amount, 0, ',', '.') }}</div>
         </div>
         @endif
         <div class="info-row total-row">
-          <div class="label" style="color: var(--ocean-900); font-weight: 800;">TOTAL PAID</div>
+          <div class="label" style="color: var(--petrol); font-weight: 800;">TOTAL PAID</div>
           <div class="value total-value">Rp {{ number_format($transaction->total_price, 0, ',', '.') }}</div>
         </div>
       </div>
     </div>
 
     <div class="footer">
-      <p>&copy; {{ date('Y') }} WONDERFUL NTT • OFFICIAL JOURNEY DOCUMENT</p>
+      <p>&copy; {{ date('Y') }} Pesona NTT• OFFICIAL JOURNEY DOCUMENT</p>
       <p>Kupang, East Nusa Tenggara, Indonesia</p>
-      <p style="margin-top: 16px; color: var(--ocean-900);">Powered by Wonderful NTT Travel Desk</p>
+      <p style="margin-top: 16px; color: var(--petrol);">Powered by Pesona NTTTravel Desk</p>
     </div>
   </div>
 </body>

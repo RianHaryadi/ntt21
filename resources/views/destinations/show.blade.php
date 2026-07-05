@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
-@section('title', $destination->name . ' — Wonderful NTT')
+@section('title', $destination->name . ' — Pesona NTT')
+@section('meta_description', Str::limit(strip_tags($destination->description ?? "Jelajahi {$destination->name} di {$destination->location}, salah satu destinasi terbaik Nusa Tenggara Timur."), 160))
+@section('og_title', $destination->name . ' — Pesona NTT')
+@section('og_image', $destination->image ? asset('storage/' . $destination->image) : asset('images/fallback.jpg'))
 
 @push('styles')
 <style>
@@ -22,9 +25,9 @@
     .dest-hero-vignette {
         position: absolute; inset: 0;
         background:
-            linear-gradient(to top,    rgba(0,26,51,0.96) 0%, rgba(0,26,51,0.35) 40%, transparent 70%),
-            linear-gradient(to right,  rgba(0,26,51,0.45) 0%, transparent 60%),
-            linear-gradient(to bottom, rgba(0,26,51,0.3) 0%, transparent 40%);
+            linear-gradient(to top,    rgba(250,250,249,1) 0%, rgba(15,23,42,0.3) 60%, transparent 100%),
+            linear-gradient(to right,  rgba(15,23,42,0.4) 0%, transparent 60%),
+            linear-gradient(to bottom, rgba(15,23,42,0.2) 0%, transparent 40%);
     }
 
     /* ── HUD elements ── */
@@ -33,7 +36,7 @@
     }
     .hud-corner {
         position: absolute; width: 20px; height: 20px;
-        border-color: rgba(255,107,53,0.6); border-style: solid;
+        border-color: rgba(15,110,99,0.6); border-style: solid;
     }
 
     /* ── Scroll Indicator ── */
@@ -50,28 +53,31 @@
 
     /* ── Info Grid Cards ── */
     .info-glass {
-        background: rgba(255,255,255,0.07);
-        border: 1px solid rgba(255,255,255,0.13);
+        background: #ffffff;
+        border: 1px solid rgba(15, 23, 42, 0.06);
         border-radius: 1.25rem;
-        backdrop-filter: blur(16px);
+        box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.04);
         transition: all 0.3s ease;
     }
-    .info-glass:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,107,53,0.4); }
+    .info-glass:hover { background: #ffffff; border-color: rgba(15,110,99,0.4); }
 
     /* ── Content Section ── */
-    .content-wrap { background: linear-gradient(170deg, #f0f4f8 0%, #e8edf5 60%, #f0f4f8 100%); }
+    .content-wrap { background: #fafaf9; }
 
     /* ── Sticky Booking Card ── */
     .booking-card {
         position: sticky; top: 100px;
-        background: white;
+        background: #ffffff;
+        border: 1px solid rgba(15, 23, 42, 0.06);
         border-radius: 2rem;
-        box-shadow: 0 30px 80px -20px rgba(0,26,51,0.18);
+        box-shadow: 0 20px 50px -15px rgba(15, 23, 42, 0.06);
         overflow: hidden;
+        color: #1e293b;
     }
     .booking-card-header {
-        background: linear-gradient(135deg, #001a33, #002b5e);
+        background: #ffffff;
         padding: 1.75rem;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.05);
     }
 
     /* ── Ticket Counter ── */
@@ -82,40 +88,40 @@
         transition: all 0.2s;
         border: none; cursor: pointer;
     }
-    .qty-btn.minus { background: #f1f5f9; color: #001a33; }
-    .qty-btn.minus:hover { background: #e2e8f0; }
-    .qty-btn.plus { background: #ff6b35; color: white; box-shadow: 0 4px 12px rgba(255,107,53,0.35); }
-    .qty-btn.plus:hover { background: #e55a2b; transform: scale(1.1); }
+    .qty-btn.minus { background: rgba(15, 23, 42, 0.05); color: #1e293b; }
+    .qty-btn.minus:hover { background: rgba(15, 23, 42, 0.1); }
+    .qty-btn.plus { background: #0F6E63; color: white; box-shadow: 0 4px 12px rgba(15,110,99,0.25); }
+    .qty-btn.plus:hover { background: #1C4750; transform: scale(1.1); }
 
     /* ── Description Prose ── */
-    .dest-prose { font-size: 1.0625rem; line-height: 1.85; color: #374151; }
+    .dest-prose { font-size: 1.0625rem; line-height: 1.85; color: #475569; }
     .dest-prose p { margin-bottom: 1.25rem; }
 
     /* ── Feature Chip ── */
     .feat-chip {
         display: flex; align-items: center; gap: 0.75rem;
         padding: 1rem 1.25rem;
-        background: white; border-radius: 1rem;
-        border: 1.5px solid #e5e7eb;
+        background: #ffffff; border-radius: 1rem;
+        border: 1px solid rgba(15, 23, 42, 0.06);
         transition: all 0.3s;
     }
-    .feat-chip:hover { border-color: #ff8559; transform: translateY(-3px); box-shadow: 0 12px 28px -8px rgba(255,107,53,0.15); }
+    .feat-chip:hover { border-color: #0F6E63; transform: translateY(-3px); box-shadow: 0 12px 28px -8px rgba(15,110,99,0.08); }
     .feat-chip .icon-wrap {
         width: 2.5rem; height: 2.5rem; border-radius: 0.75rem;
-        background: linear-gradient(135deg, #ff6b35, #e55a2b);
+        background: linear-gradient(135deg, #0F6E63, #1C4750);
         display: flex; align-items: center; justify-content: center;
         color: white; font-size: 0.8rem; flex-shrink: 0;
-        box-shadow: 0 4px 10px rgba(255,107,53,0.3);
+        box-shadow: 0 4px 10px rgba(15,110,99,0.2);
     }
 
     /* ── Tour Package Card ── */
     .tour-card {
-        background: white; border-radius: 1.5rem;
-        overflow: hidden; border: 1.5px solid #f1f5f9;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        box-shadow: 0 8px 24px -8px rgba(0,0,0,0.06);
+        background: #ffffff; border-radius: 1.5rem;
+        overflow: hidden; border: 1px solid rgba(15, 23, 42, 0.05);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 8px 24px -8px rgba(15,23,42,0.04);
     }
-    .tour-card:hover { transform: translateY(-10px); box-shadow: 0 28px 48px -12px rgba(0,26,51,0.18); border-color: transparent; }
+    .tour-card:hover { transform: translateY(-10px); box-shadow: 0 28px 48px -12px rgba(15,23,42,0.08); border-color: rgba(15, 110, 99, 0.35); }
     .tour-card-img { overflow: hidden; position: relative; }
     .tour-card-img img { transition: transform 0.7s ease; }
     .tour-card:hover .tour-card-img img { transform: scale(1.08); }
@@ -123,8 +129,8 @@
     /* ── Map Container ── */
     .map-wrap {
         border-radius: 2rem; overflow: hidden;
-        box-shadow: 0 40px 80px -20px rgba(0,26,51,0.15);
-        border: 3px solid white;
+        box-shadow: 0 40px 80px -20px rgba(15,23,42,0.05);
+        border: 1px solid rgba(15, 23, 42, 0.05);
     }
 
     /* ── Section Header ── */
@@ -132,7 +138,7 @@
     .section-head::after {
         content: ''; position: absolute;
         bottom: -8px; left: 0; width: 40px; height: 4px;
-        background: linear-gradient(90deg, #ff6b35, #e55a2b);
+        background: linear-gradient(90deg, #0F6E63, #1C4750);
         border-radius: 99px;
     }
 
@@ -187,38 +193,42 @@
             <i class="fas fa-chevron-right text-[8px] text-white/25"></i>
             <a href="{{ route('destinations.index') }}" class="hover:text-white/70 transition-colors">Destinations</a>
             <i class="fas fa-chevron-right text-[8px] text-white/25"></i>
-            <span class="text-sunset-500">{{ $destination->name }}</span>
+            <span class="text-clay">{{ $destination->name }}</span>
         </nav>
 
         <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div class="flex-1">
                 {{-- Category & Popular Badge --}}
-                <div class="flex items-center gap-3 mb-5 anim-up delay-1">
-                    <span class="pill-tag bg-sunset-500/20 border border-sunset-500/40 text-sunset-500 float-badge">
-                        <i class="fas fa-{{ strtolower($destination->category) === 'beach' ? 'umbrella-beach' : (strtolower($destination->category) === 'mountain' ? 'mountain' : (strtolower($destination->category) === 'culture' ? 'landmark' : 'leaf')) }}"></i>
-                        {{ $destination->category }}
-                    </span>
-                    @if($destination->is_popular)
-                    <span class="pill-tag bg-yellow-400/15 border border-yellow-400/35 text-yellow-300">
-                        <i class="fas fa-fire"></i> Popular
-                    </span>
-                    @endif
+                <div class="flex items-center justify-between gap-3 mb-5 anim-up delay-1">
+                    <div class="flex items-center gap-3">
+                        <span class="pill-tag bg-clay/20 border border-clay/40 text-clay float-badge">
+                            <i class="fas fa-{{ strtolower($destination->category) === 'beach' ? 'umbrella-beach' : (strtolower($destination->category) === 'mountain' ? 'mountain' : (strtolower($destination->category) === 'culture' ? 'landmark' : 'leaf')) }}"></i>
+                            {{ $destination->category }}
+                        </span>
+                        @if($destination->is_popular)
+                        <span class="pill-tag bg-clay/15 border border-coral/35 text-clay">
+                            <i class="fas fa-fire"></i> Popular
+                        </span>
+                        @endif
+                    </div>
+                    @php $wishlistType = 'destination'; $wishlistId = $destination->id; @endphp
+                    @include('partials.wishlist-btn')
                 </div>
 
                 {{-- Title --}}
-                <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white font-montserrat leading-none tracking-tight drop-shadow-2xl mb-5 anim-up delay-2">
+                <h1 class="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white font-serif tracking-tight leading-none tracking-tight drop-shadow-2xl mb-5 anim-up delay-2">
                     {{ $destination->name }}
                 </h1>
 
                 {{-- Location + Rating --}}
                 <div class="flex flex-wrap items-center gap-4 anim-up delay-3">
                     <div class="flex items-center gap-2 text-white/70 text-sm font-bold">
-                        <i class="fas fa-map-marker-alt text-sunset-500"></i>
+                        <i class="fas fa-map-marker-alt text-clay"></i>
                         {{ $destination->location }}
                     </div>
 
                     @if($destination->rating)
-                    <div class="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/15">
+                    <div class="flex items-center gap-2 bg-paper/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/15">
                         <div class="flex gap-0.5">
                             @for($i = 1; $i <= 5; $i++)
                             <i class="fas fa-star text-xs {{ $i <= round($destination->rating) ? 'star-filled' : 'star-empty' }}"></i>
@@ -232,8 +242,8 @@
                     @endif
 
                     @if($destination->price)
-                    <div class="flex items-center gap-2 bg-sunset-500/20 backdrop-blur-md px-4 py-2 rounded-full border border-sunset-500/30">
-                        <i class="fas fa-ticket-alt text-sunset-500 text-xs"></i>
+                    <div class="flex items-center gap-2 bg-clay/20 backdrop-blur-md px-4 py-2 rounded-full border border-clay/30">
+                        <i class="fas fa-ticket-alt text-clay text-xs"></i>
                         <span class="text-white font-black text-sm">Rp{{ number_format($destination->price, 0, ',', '.') }}/person</span>
                     </div>
                     @endif
@@ -243,17 +253,17 @@
             {{-- Quick Info Cards --}}
             <div class="grid grid-cols-3 gap-3 md:w-80 anim-up delay-4">
                 <div class="info-glass p-3.5 text-center">
-                    <i class="fas fa-calendar-check text-sunset-500 text-lg mb-1.5 block"></i>
+                    <i class="fas fa-calendar-check text-clay text-lg mb-1.5 block"></i>
                     <p class="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-0.5">Best Time</p>
                     <p class="text-white font-black text-xs leading-tight">Year-round</p>
                 </div>
                 <div class="info-glass p-3.5 text-center">
-                    <i class="fas fa-shield-alt text-sunset-500 text-lg mb-1.5 block"></i>
+                    <i class="fas fa-shield-alt text-clay text-lg mb-1.5 block"></i>
                     <p class="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-0.5">Safety</p>
                     <p class="text-white font-black text-xs leading-tight">Very High</p>
                 </div>
                 <div class="info-glass p-3.5 text-center">
-                    <i class="fas fa-clock text-sunset-500 text-lg mb-1.5 block"></i>
+                    <i class="fas fa-clock text-clay text-lg mb-1.5 block"></i>
                     <p class="text-[10px] uppercase tracking-widest text-white/40 font-bold mb-0.5">Duration</p>
                     <p class="text-white font-black text-xs leading-tight">Full Day</p>
                 </div>
@@ -265,7 +275,7 @@
     <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 z-10">
         <span class="text-white/30 text-[10px] uppercase tracking-widest font-bold">Scroll</span>
         <div class="scroll-ind w-6 h-9 rounded-full border-2 border-white/20 flex items-start justify-center pt-1.5">
-            <div class="w-1 h-2 bg-white/50 rounded-full"></div>
+            <div class="w-1 h-2 bg-paper/50 rounded-full"></div>
         </div>
     </div>
 </section>
@@ -283,26 +293,26 @@
             {{-- ABOUT SECTION --}}
             <section class="reveal">
                 <div class="flex items-center gap-4 mb-8">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sunset-500 to-sunset-600 flex items-center justify-center shadow-lg">
-                        <i class="fas fa-compass text-white text-lg"></i>
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-line/50 flex items-center justify-center shadow-sm">
+                        <i class="fas fa-compass text-slate-700 text-lg"></i>
                     </div>
                     <div>
-                        <h2 class="section-head text-2xl font-black text-ocean-900 font-montserrat">About {{ $destination->name }}</h2>
+                        <h2 class="section-head text-2xl font-black text-ink font-serif tracking-tight">About {{ $destination->name }}</h2>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-3xl p-8 shadow-soft border border-gray-100/60">
+                <div class="bg-paper rounded-3xl p-8 border border-line/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)]">
                     {{-- Main Image --}}
-                    <div class="relative rounded-2xl overflow-hidden mb-8 h-80 sm:h-96 group">
+                    <div class="relative rounded-2xl overflow-hidden mb-8 h-80 sm:h-96 group bg-slate-100">
                         <img src="{{ $destination->image ? asset('storage/' . ltrim($destination->image, '/')) : asset('images/fallback.jpg') }}"
                              alt="{{ $destination->name }}"
                              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                              onerror="this.src='/images/fallback.jpg'">
-                        <div class="absolute inset-0 bg-gradient-to-t from-ocean-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-ink/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                         {{-- Image Caption bar --}}
-                        <div class="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 bg-gradient-to-t from-ocean-900/80 to-transparent">
+                        <div class="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 bg-gradient-to-t from-ink/80 to-transparent">
                             <p class="text-white font-bold text-sm flex items-center gap-2">
-                                <i class="fas fa-image text-sunset-500"></i>
+                                <i class="fas fa-image text-clay"></i>
                                 {{ $destination->name }} — {{ $destination->location }}
                             </p>
                         </div>
@@ -322,11 +332,11 @@
             {{-- HIGHLIGHT FEATURES --}}
             <section class="reveal">
                 <div class="flex items-center gap-4 mb-8">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-ocean-700 to-ocean-900 flex items-center justify-center shadow-lg">
-                        <i class="fas fa-star text-white text-lg"></i>
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-line/50 flex items-center justify-center shadow-sm">
+                        <i class="fas fa-star text-slate-700 text-lg"></i>
                     </div>
                     <div>
-                        <h2 class="section-head text-2xl font-black text-ocean-900 font-montserrat">Highlights</h2>
+                        <h2 class="section-head text-2xl font-black text-ink font-serif tracking-tight">Highlights</h2>
                     </div>
                 </div>
 
@@ -376,8 +386,8 @@
                     <div class="feat-chip">
                         <div class="icon-wrap"><i class="fas {{ $h['icon'] }}"></i></div>
                         <div>
-                            <p class="font-black text-ocean-900 text-sm font-montserrat">{{ $h['title'] }}</p>
-                            <p class="text-gray-400 text-xs font-medium leading-tight mt-0.5">{{ $h['desc'] }}</p>
+                            <p class="font-black text-ink text-sm font-serif tracking-tight">{{ $h['title'] }}</p>
+                            <p class="text-muted text-xs font-medium leading-tight mt-0.5">{{ $h['desc'] }}</p>
                         </div>
                     </div>
                     @endforeach
@@ -391,60 +401,52 @@
             @if($tourPackages->count() > 0)
             <section class="reveal">
                 <div class="flex items-center gap-4 mb-8">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center shadow-lg">
-                        <i class="fas fa-suitcase-rolling text-white text-lg"></i>
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-line/50 flex items-center justify-center shadow-sm">
+                        <i class="fas fa-suitcase-rolling text-slate-700 text-lg"></i>
                     </div>
                     <div>
-                        <h2 class="section-head text-2xl font-black text-ocean-900 font-montserrat">Tour Packages</h2>
-                        <p class="text-gray-400 text-sm font-medium mt-1">Ready-made tours departing to {{ $destination->name }}</p>
+                        <h2 class="section-head text-2xl font-black text-ink font-serif tracking-tight">Tour Packages</h2>
+                        <p class="text-muted text-sm font-medium mt-1">Ready-made tours departing to {{ $destination->name }}</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     @foreach($tourPackages as $tour)
-                    <div class="tour-card">
-                        <div class="tour-card-img h-52">
+                    <div class="tour-card group">
+                        <div class="tour-card-img h-52 bg-slate-100">
                             <img src="{{ $tour->thumbnail ? asset('storage/' . ltrim($tour->thumbnail, '/')) : asset('images/fallback.jpg') }}"
                                  alt="{{ $tour->name }}"
-                                 class="w-full h-full object-cover"
+                                 class="w-full h-full object-cover transition-transform duration-700"
                                  onerror="this.src='/images/fallback.jpg'">
-                            <div class="absolute inset-0 bg-gradient-to-t from-ocean-900/60 to-transparent"></div>
-                            {{-- Badges --}}
-                            <div class="absolute top-4 left-4 flex gap-2">
-                                @if($tour->days)
-                                <span class="bg-ocean-900/80 backdrop-blur text-white text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest border border-white/10">
-                                    {{ $tour->days }}D
-                                </span>
-                                @endif
-                            </div>
-                            <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                                <i class="fas fa-star text-yellow-400 text-[10px]"></i>
-                                <span class="text-ocean-900 font-black text-xs">{{ $tour->rating ?? '4.8' }}</span>
+                            <div class="absolute inset-0 bg-gradient-to-t from-ink/30 to-transparent"></div>
+                            <div class="absolute top-4 right-4 bg-paper/95 border border-slate-100 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm text-slate-700">
+                                <i class="fas fa-star text-yellow-500 text-[10px]"></i>
+                                <span class="font-black text-xs">{{ $tour->rating ?? '4.8' }}</span>
                             </div>
                             {{-- Hover CTA --}}
                             <div class="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
                                 <a href="{{ route('paket-tours.show', $tour->id) }}"
-                                   class="block text-center bg-sunset-500 text-white font-black text-sm py-2.5 rounded-xl shadow-lg">
+                                   class="block text-center bg-clay text-white font-black text-sm py-2.5 rounded-xl shadow-lg">
                                     View Details
                                 </a>
                             </div>
                         </div>
-                        <div class="p-5">
-                            <h3 class="font-black text-ocean-900 text-base font-montserrat mb-1 hover:text-sunset-500 transition-colors">
+                        <div class="p-5 bg-paper">
+                            <h3 class="font-black text-ink text-base font-serif tracking-tight mb-1 hover:text-clay transition-colors">
                                 <a href="{{ route('paket-tours.show', $tour->id) }}">{{ $tour->name }}</a>
                             </h3>
-                            <div class="flex items-center gap-1.5 text-sunset-500 text-xs font-bold mb-4">
+                            <div class="flex items-center gap-1.5 text-clay text-xs font-bold mb-4">
                                 <i class="fas fa-map-marker-alt text-[10px]"></i> {{ $tour->location }}
                             </div>
-                            <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                            <div class="flex items-center justify-between pt-3 border-t border-slate-100">
                                 <div>
-                                    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-black mb-0.5">Price / Person</p>
-                                    <p class="font-black text-ocean-900 text-lg font-montserrat">
+                                    <p class="text-[10px] uppercase tracking-widest text-muted font-black mb-0.5">Price / Person</p>
+                                    <p class="font-black text-ink text-lg font-serif tracking-tight">
                                         Rp{{ number_format($tour->price, 0, ',', '.') }}
                                     </p>
                                 </div>
                                 <a href="{{ route('paket-tours.show', $tour->id) }}"
-                                   class="flex items-center gap-2 bg-ocean-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-ocean-800 transition-all hover:-translate-y-0.5 shadow-md">
+                                    class="flex items-center gap-2 bg-clay text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-clay/90 transition-all hover:-translate-y-0.5 shadow-md">
                                     Book Tour <i class="fas fa-arrow-right text-[10px]"></i>
                                 </a>
                             </div>
@@ -459,15 +461,15 @@
             @if($destination->latitude && $destination->longitude)
             <section class="reveal">
                 <div class="flex items-center gap-4 mb-8">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-lg">
-                        <i class="fas fa-map-marked-alt text-white text-lg"></i>
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-line/50 flex items-center justify-center shadow-sm">
+                        <i class="fas fa-map-marked-alt text-slate-700 text-lg"></i>
                     </div>
                     <div>
-                        <h2 class="section-head text-2xl font-black text-ocean-900 font-montserrat">Location</h2>
-                        <p class="text-gray-400 text-sm font-medium mt-1">
+                        <h2 class="section-head text-2xl font-black text-ink font-serif tracking-tight">Location</h2>
+                        <p class="text-muted text-sm font-medium mt-1">
                             {{ number_format($destination->latitude, 4) }}°, {{ number_format($destination->longitude, 4) }}°
                             @if($destination->maps_url)
-                            — <a href="{{ $destination->maps_url }}" target="_blank" class="text-sunset-500 hover:underline font-bold">Open in Google Maps</a>
+                            — <a href="{{ $destination->maps_url }}" target="_blank" class="text-clay hover:underline font-bold">Open in Google Maps</a>
                             @endif
                         </p>
                     </div>
@@ -492,14 +494,14 @@
             <div class="booking-card">
                 {{-- Card Header --}}
                 <div class="booking-card-header">
-                    <p class="text-white/50 text-[10px] uppercase tracking-widest font-black mb-3">Book Your Visit</p>
-                    <h3 class="text-white font-black text-2xl font-montserrat leading-tight mb-3">{{ $destination->name }}</h3>
+                    <p class="text-muted text-[10px] uppercase tracking-widest font-black mb-3">Book Your Visit</p>
+                    <h3 class="text-ink font-black text-2xl font-serif tracking-tight leading-tight mb-3">{{ $destination->name }}</h3>
                     <div class="flex items-baseline gap-1.5">
                         @if($destination->price)
-                        <span class="text-sunset-500 font-black text-3xl font-montserrat">Rp{{ number_format($destination->price, 0, ',', '.') }}</span>
-                        <span class="text-white/40 text-sm font-medium">per person</span>
+                        <span class="text-clay font-black text-3xl font-serif tracking-tight">Rp{{ number_format($destination->price, 0, ',', '.') }}</span>
+                        <span class="text-slate-400 text-sm font-medium">per person</span>
                         @else
-                        <span class="text-white/50 text-base font-medium">Contact for pricing</span>
+                        <span class="text-muted text-base font-medium">Contact for pricing</span>
                         @endif
                     </div>
                 </div>
@@ -509,26 +511,26 @@
 
                         {{-- Visit Date --}}
                         <div>
-                            <label class="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2">Visit Date</label>
+                            <label class="block text-[10px] uppercase tracking-widest font-black text-muted mb-2">Visit Date</label>
                             <div class="relative">
-                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sunset-500 pointer-events-none w-5 text-center">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-clay pointer-events-none w-5 text-center">
                                     <i class="fas fa-calendar-day text-sm"></i>
                                 </span>
                                 <input type="date" id="visitDate" name="date"
                                        value="{{ date('Y-m-d') }}"
                                        min="{{ date('Y-m-d') }}"
-                                       style="width:100%; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:0.875rem; padding:0.875rem 1rem 0.875rem 2.75rem; font-size:0.875rem; font-weight:700; color:#001a33; outline:none; transition:all 0.25s;">
+                                       style="width:100%; background:#ffffff; border:1px solid rgba(15,23,42,0.12); border-radius:0.875rem; padding:0.875rem 1rem 0.875rem 2.75rem; font-size:0.875rem; font-weight:700; color:#1e293b; outline:none; transition:all 0.25s;">
                             </div>
                         </div>
 
                         {{-- Ticket Quantity --}}
                         <div>
-                            <label class="block text-[10px] uppercase tracking-widest font-black text-gray-400 mb-2">Number of Tickets</label>
-                            <div class="flex items-center gap-4 bg-gray-50 rounded-2xl p-3 border border-gray-100">
+                            <label class="block text-[10px] uppercase tracking-widest font-black text-muted mb-2">Number of Tickets</label>
+                            <div class="flex items-center gap-4 bg-surface rounded-2xl p-3 border border-line/60">
                                 <button type="button" class="qty-btn minus" id="qtyMinus">−</button>
                                 <div class="flex-1 text-center">
-                                    <span id="qtyDisplay" class="text-2xl font-black text-ocean-900 font-montserrat">1</span>
-                                    <span class="text-gray-400 text-xs font-medium block -mt-0.5">ticket(s)</span>
+                                    <span id="qtyDisplay" class="text-2xl font-black text-ink font-serif tracking-tight">1</span>
+                                    <span class="text-muted text-xs font-medium block -mt-0.5">ticket(s)</span>
                                 </div>
                                 <button type="button" class="qty-btn plus" id="qtyPlus">+</button>
                                 <input type="hidden" id="qtyInput" name="qty" value="1">
@@ -537,14 +539,14 @@
 
                         {{-- Price Preview --}}
                         @if($destination->price)
-                        <div class="bg-gradient-to-r from-ocean-900/5 to-sunset-500/5 rounded-2xl p-4 border border-ocean-900/8">
-                            <div class="flex justify-between text-sm text-gray-500 font-medium mb-2">
+                        <div class="bg-surface rounded-2xl p-4 border border-line/60">
+                            <div class="flex justify-between text-sm text-muted font-medium mb-2">
                                 <span>Rp{{ number_format($destination->price, 0, ',', '.') }} × <span id="previewQty">1</span> person</span>
                                 <span id="previewSubtotal">Rp{{ number_format($destination->price, 0, ',', '.') }}</span>
                             </div>
-                            <div class="flex justify-between font-black text-ocean-900 text-base font-montserrat border-t border-gray-200 pt-2 mt-2">
+                            <div class="flex justify-between font-black text-ink text-base font-serif tracking-tight border-t border-line/60 pt-2 mt-2">
                                 <span>Estimated Total</span>
-                                <span id="previewTotal" class="text-sunset-500">Rp{{ number_format($destination->price, 0, ',', '.') }}</span>
+                                <span id="previewTotal" class="text-clay">Rp{{ number_format($destination->price, 0, ',', '.') }}</span>
                             </div>
                         </div>
                         @endif
@@ -554,37 +556,37 @@
                         <a href="{{ route('destinations.book', $destination->id) }}"
                            id="bookNowBtn"
                            class="flex items-center justify-center gap-2.5 w-full py-4 rounded-2xl font-black text-base text-white transition-all duration-300 hover:-translate-y-1"
-                           style="background: linear-gradient(135deg, #ff6b35, #e55a2b); box-shadow: 0 10px 28px rgba(255,107,53,0.4);">
+                           style="background: linear-gradient(135deg, #0F6E63, #1C4750); box-shadow: 0 10px 20px rgba(15,110,99,0.15);">
                             <i class="fas fa-ticket-alt text-sm"></i>
                             Book Tickets Now
                         </a>
                         @else
                         <a href="{{ route('login') }}"
                            class="flex items-center justify-center gap-2.5 w-full py-4 rounded-2xl font-black text-base text-white transition-all duration-300 hover:-translate-y-1"
-                           style="background: linear-gradient(135deg, #374151, #1f2937); box-shadow: 0 10px 28px rgba(0,0,0,0.25);">
-                            <i class="fas fa-lock text-sm text-sunset-400"></i>
+                           style="background: #1e293b; box-shadow: 0 10px 20px rgba(15,23,42,0.1);">
+                            <i class="fas fa-lock text-sm text-clay"></i>
                             Login untuk Booking
                         </a>
-                        <p class="text-xs text-gray-400 text-center">Daftar gratis, booking mudah & aman</p>
+                        <p class="text-xs text-muted text-center">Daftar gratis, booking mudah & aman</p>
                         @endauth
 
                         {{-- Trust Points --}}
                         <div class="grid grid-cols-2 gap-3 pt-2">
                             <div class="flex items-center gap-2">
-                                <i class="fas fa-shield-alt text-green-500 text-xs"></i>
-                                <span class="text-[11px] text-gray-400 font-bold">Secure Booking</span>
+                                <i class="fas fa-shield-alt text-green-600 text-xs"></i>
+                                <span class="text-[11px] text-muted font-bold">Secure Booking</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <i class="fas fa-undo text-blue-500 text-xs"></i>
-                                <span class="text-[11px] text-gray-400 font-bold">Free Cancel</span>
+                                <i class="fas fa-undo text-blue-600 text-xs"></i>
+                                <span class="text-[11px] text-muted font-bold">Free Cancel</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <i class="fas fa-headset text-sunset-500 text-xs"></i>
-                                <span class="text-[11px] text-gray-400 font-bold">24/7 Support</span>
+                                <i class="fas fa-headset text-clay text-xs"></i>
+                                <span class="text-[11px] text-muted font-bold">24/7 Support</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <i class="fas fa-star text-yellow-400 text-xs"></i>
-                                <span class="text-[11px] text-gray-400 font-bold">Top Rated</span>
+                                <i class="fas fa-star text-clay text-xs"></i>
+                                <span class="text-[11px] text-slate-400 font-bold">Top Rated</span>
                             </div>
                         </div>
                     </div>
@@ -592,8 +594,8 @@
 
                 {{-- Share Section --}}
                 <div class="px-6 pb-6">
-                    <div class="border-t border-gray-100 pt-5">
-                        <p class="text-[10px] uppercase tracking-widest font-black text-gray-300 mb-3">Share This Place</p>
+                    <div class="border-t border-white/5 pt-5">
+                        <p class="text-[10px] uppercase tracking-widest font-black text-slate-400 mb-3">Share This Place</p>
                         <div class="flex gap-2.5">
                             @php $shareUrl = urlencode(url()->current()); $shareName = urlencode($destination->name); @endphp
                             <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank"
@@ -605,7 +607,7 @@
                                 <i class="fab fa-whatsapp"></i> WhatsApp
                             </a>
                             <button onclick="navigator.clipboard.writeText(window.location.href).then(()=>{this.innerHTML='<i class=\'fas fa-check\'></i>';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-link\'></i>'},2000)})"
-                                    class="w-10 h-10 rounded-xl bg-gray-100 text-gray-500 text-xs flex items-center justify-center hover:bg-ocean-900 hover:text-white transition-all">
+                                    class="w-10 h-10 rounded-xl bg-paper/5 border border-white/5 text-slate-400 text-xs flex items-center justify-center hover:bg-clay hover:text-white transition-all">
                                 <i class="fas fa-link"></i>
                             </button>
                         </div>
@@ -617,6 +619,46 @@
     </div>{{-- end flex --}}
 </div>
 </div>
+
+{{-- ── AI BEST TIME TO VISIT ── --}}
+@php $destinationId = $destination->id; @endphp
+@include('partials.ai-best-time')
+
+{{-- ── REVIEW SECTION ── --}}
+@php
+    $reviews        = $destination->reviews()->with('user', 'helpfulVotes')->withCount('helpfulVotes')->latest()->get();
+    $reviewableType = 'destination';
+    $reviewableId   = $destination->id;
+    $hasCompletedBooking = auth()->check() && \App\Models\Transaction::where('user_id', auth()->id())
+        ->where('destination_id', $destination->id)
+        ->where('status', \App\Models\Transaction::STATUS_PAID)
+        ->exists();
+@endphp
+@include('partials.ai-review-summary')
+@include('partials.reviews')
+
+{{-- ── Q&A SECTION ── --}}
+@php
+    $questions = $destination->questions;
+    $questionableType = 'destination';
+    $questionableId = $destination->id;
+@endphp
+@include('partials.qa-section')
+
+{{-- ── SIMILAR & RECENTLY VIEWED ── --}}
+@php
+    $carouselTitle = 'Destinasi Serupa';
+    $carouselIcon = 'fas fa-compass';
+    $carouselItems = $similarDestinations->map(fn($d) => ['type' => 'destination', 'model' => $d]);
+@endphp
+@include('partials.item-carousel')
+
+@php
+    $carouselTitle = 'Baru Dilihat';
+    $carouselIcon = 'fas fa-clock-rotate-left';
+    $carouselItems = $recentlyViewedItems;
+@endphp
+@include('partials.item-carousel')
 
 @push('scripts')
 <script>

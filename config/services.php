@@ -32,9 +32,39 @@ return [
     ],
 
     'anthropic' => [
-        'key' => env('ANTHROPIC_API_KEY'),
-        'url' => env('ANTHROPIC_API_URL', 'https://api.anthropic.com/v1/messages'),
+        'key'             => env('ANTHROPIC_API_KEY'),
+        'url'             => env('ANTHROPIC_API_URL', 'https://api.anthropic.com/v1/messages'),
+        'model'           => env('ANTHROPIC_MODEL', 'claude-3-5-sonnet-20241022'),
         'use_openai_format' => env('ANTHROPIC_USE_OPENAI_FORMAT', false),
+    ],
+
+    'google' => [
+        'client_id'     => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect'      => env('GOOGLE_REDIRECT_URI'),
+    ],
+
+    'midtrans' => [
+        'server_key'     => env('MIDTRANS_SERVER_KEY'),
+        'client_key'     => env('MIDTRANS_CLIENT_KEY'),
+        'is_production'  => env('MIDTRANS_IS_PRODUCTION', false),
+    ],
+
+    'fonnte' => [
+        'token' => env('FONNTE_TOKEN'),
+    ],
+
+    'support' => [
+        'whatsapp' => env('SUPPORT_WHATSAPP_NUMBER', '6281234567890'),
+    ],
+
+    'currency' => [
+        'usd_rate' => (float) env('USD_IDR_RATE', 15800),
+    ],
+
+    'insurance' => [
+        'price_per_ticket' => (float) env('INSURANCE_PRICE_PER_TICKET', 15000),
+        'price_per_booking' => (float) env('INSURANCE_PRICE_PER_BOOKING', 25000),
     ],
 
 ];

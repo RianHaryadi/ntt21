@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Destination;
 use App\Models\Hotel;
 use App\Models\TourPackage;
 use App\Models\TravelChatSession;
@@ -11,9 +12,10 @@ class TravelRecommendation extends Component
 {
     public TravelChatSession $session;
 
-    // Hotel & tour data from DB
+    // Data from DB
     public $hotels;
     public $tourPackages;
+    public $destinations;
 
     // User selections
     public ?int $selectedHotelId = null;
@@ -29,9 +31,15 @@ class TravelRecommendation extends Component
             ->where('status', 'completed')
             ->firstOrFail();
 
-        // Load all hotels and tour packages
-        $this->hotels = Hotel::all();
+        // Load all data
+        $this->hotels       = Hotel::all();
         $this->tourPackages = TourPackage::all();
+
+        // Destinations: match keywords from AI text first, then rest
+        $raw = strtolower($this->session->recommendation_raw ?? '');
+        $this->destinations = Destination::all()->sortByDesc(function ($d) use ($raw) {
+            return str_contains($raw, strtolower($d->name)) ? 1 : 0;
+        })->values();
 
         // Restore previous selections if any
         $edited = $this->session->recommendation_edited ?? [];
@@ -74,12 +82,14 @@ class TravelRecommendation extends Component
 
     public function render()
     {
+        $raw = strtolower($this->session->recommendation_raw ?? '');
+
         $selectedHotel = $this->selectedHotelId
             ? $this->hotels->firstWhere('id', $this->selectedHotelId)
             : null;
 
         $selectedTours = $this->tourPackages->whereIn('id', $this->selectedTourIds);
 
-        return view('livewire.travel-recommendation', compact('selectedHotel', 'selectedTours'));
+        return view('livewire.travel-recommendation', compact('selectedHotel', 'selectedTours', 'raw'));
     }
 }

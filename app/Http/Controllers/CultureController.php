@@ -12,7 +12,7 @@ class CultureController extends Controller
      */
     public function index()
     {
-        $cultures = Culture::latest()->get(); // ambil semua budaya, urut terbaru
+        $cultures = Culture::latest()->paginate(12);
         return view('culture.index', compact('cultures'));
     }
 }

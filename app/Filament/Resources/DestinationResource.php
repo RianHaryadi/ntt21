@@ -9,6 +9,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -93,6 +94,22 @@ class DestinationResource extends Resource
                             ->nullable(),
                     ])
                     ->columns(2),
+
+                // Section untuk Flash Sale
+                Section::make('Flash Sale')
+                    ->description('Aktifkan diskon bertenggat waktu untuk destinasi ini.')
+                    ->schema([
+                        TextInput::make('flash_sale_discount_percent')
+                            ->label('Diskon (%)')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(90)
+                            ->nullable(),
+                        DateTimePicker::make('flash_sale_ends_at')
+                            ->label('Berakhir Pada')
+                            ->nullable(),
+                    ])
+                    ->columns(2),
                     // Section untuk Gambar
                 Section::make('Image')
                     ->schema([
@@ -134,6 +151,12 @@ class DestinationResource extends Resource
                     ->label('Rating Count')
                     ->sortable()
                     ->formatStateUsing(fn ($state) => $state ?? '-'),
+                IconColumn::make('flash_sale_ends_at')
+                    ->label('Flash Sale')
+                    ->boolean()
+                    ->state(fn ($record) => $record->isOnFlashSale())
+                    ->trueIcon('heroicon-o-bolt')
+                    ->falseIcon('heroicon-o-minus'),
             ])
             ->filters([
                 //

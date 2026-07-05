@@ -10,6 +10,7 @@ class CodePromotion extends Model
     protected $table = 'promotions';
 
     protected $fillable = [
+        'user_id',
         'code',
         'description',
         'discount_amount',
@@ -18,6 +19,20 @@ class CodePromotion extends Model
         'valid_until',
         'active',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Kode ini bisa dipakai oleh $user tertentu?
+     * Promo global (user_id null) bisa dipakai siapa saja; promo personal hanya oleh pemiliknya.
+     */
+    public function isUsableBy(?int $userId): bool
+    {
+        return is_null($this->user_id) || $this->user_id === $userId;
+    }
 
     /**
      * The attributes that should be cast.

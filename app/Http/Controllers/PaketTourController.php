@@ -10,15 +10,21 @@ use App\Models\CodePromotion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class PaketTourController extends Controller
 {
+    /** Diskon untuk paket yang menyertakan hotel (bundle), dalam persen. */
+    private const BUNDLE_DISCOUNT_PERCENT = 10;
+
     /**
      * Menampilkan daftar semua tour packages dengan filter.
      */
     public function index(Request $request)
     {
-        $destinations = TourPackage::select('location')->distinct()->orderBy('location')->pluck('location');
+        $destinations = Cache::remember('paket_tour.locations', 3600, fn() =>
+            TourPackage::select('location')->distinct()->orderBy('location')->pluck('location')
+        );
         $query = TourPackage::query();
 
         if ($request->filled('q')) {
@@ -50,6 +56,10 @@ class PaketTourController extends Controller
             }
         }
 
+        $query->withCount(['transactions as bookings_count' => function ($q) {
+            $q->where('status', \App\Models\Transaction::STATUS_PAID);
+        }]);
+
         $sort = $request->input('sort', 'popular');
         switch ($sort) {
             case 'price-asc': $query->orderBy('price', 'asc'); break;
@@ -57,7 +67,7 @@ class PaketTourController extends Controller
             case 'duration': $query->orderBy('days', 'asc'); break;
             case 'rating': $query->orderBy('rating', 'desc'); break;
             case 'popular':
-            default: $query->orderBy('created_at', 'desc'); break;
+            default: $query->orderByDesc('bookings_count')->orderBy('created_at', 'desc'); break;
         }
 
         $paketTours = $query->paginate(12)->appends($request->query());
@@ -78,8 +88,30 @@ class PaketTourController extends Controller
      */
     public function create(TourPackage $tourPackage)
 {
-    $destinations = Destination::pluck('name', 'id');
-    $promos = CodePromotion::active()->get(); // scopeActive() di model
+    $tourPackage->load('hotels');
+
+    $bundleHotel = $tourPackage->includes_hotel ? $tourPackage->hotels->first() : null;
+    $bundleHotelPricePerNight = 0;
+    $bundleNights = max($tourPackage->days - 1, 1);
+
+    if ($bundleHotel) {
+        $roomPrices = array_filter([
+            $bundleHotel->single_room_price,
+            $bundleHotel->double_room_price,
+            $bundleHotel->family_room_price,
+        ], fn ($v) => $v > 0);
+        $bundleHotelPricePerNight = !empty($roomPrices) ? min($roomPrices) : 0;
+    }
+
+    $destinations = Cache::remember('destinations.list', 3600, fn() =>
+        Destination::orderBy('name')->pluck('name', 'id')
+    );
+    $promos = Cache::remember('promos.valid', 600, fn() =>
+        CodePromotion::active()
+            ->where(fn($q) => $q->whereNull('valid_from')->orWhere('valid_from', '<=', now()))
+            ->where(fn($q) => $q->whereNull('valid_until')->orWhere('valid_until', '>=', now()))
+            ->get()
+    );
 
     $promoJson = $promos->mapWithKeys(function ($promo) {
         return [strtoupper($promo->code) => [
@@ -92,7 +124,12 @@ class PaketTourController extends Controller
         ]];
     });
 
-    return view('paket_tour.create', compact('tourPackage', 'destinations', 'promos', 'promoJson'));
+    $bundleDiscountPercent = self::BUNDLE_DISCOUNT_PERCENT;
+
+    return view('paket_tour.create', compact(
+        'tourPackage', 'destinations', 'promos', 'promoJson',
+        'bundleHotel', 'bundleHotelPricePerNight', 'bundleNights', 'bundleDiscountPercent'
+    ));
 }
 
 
@@ -114,12 +151,36 @@ class PaketTourController extends Controller
             'discount_percent'   => 'nullable|numeric|min:0|max:100',
             'payment_method'     => 'nullable|in:transfer,qris,cash',
             'special_request'    => 'nullable|string',
+            'has_insurance'      => 'nullable|boolean',
         ]);
 
-        $tourPackage = TourPackage::findOrFail($validated['tour_package_id']);
+        $tourPackage = TourPackage::with('hotels')->findOrFail($validated['tour_package_id']);
         $destination = Destination::findOrFail($validated['destination_id']);
-        $subtotal = $tourPackage->price * $validated['number_of_tickets'];
+        $tourSubtotal = $tourPackage->price * $validated['number_of_tickets'];
         $bookingCode = 'PKT-' . strtoupper(Str::random(10));
+
+        // Bundle hotel: jika paket menyertakan hotel, hitung harga inap nyata
+        // (bukan sekadar flag tampilan) dengan diskon bundel 10%.
+        $bundleDiscountPercent = self::BUNDLE_DISCOUNT_PERCENT;
+        $bundleHotel = $tourPackage->includes_hotel ? $tourPackage->hotels->first() : null;
+        $hotelPrice = 0;
+
+        if ($bundleHotel) {
+            $roomPrices = array_filter([
+                $bundleHotel->single_room_price,
+                $bundleHotel->double_room_price,
+                $bundleHotel->family_room_price,
+            ], fn ($v) => $v > 0);
+
+            if (!empty($roomPrices)) {
+                $pricePerNight = min($roomPrices);
+                $nights = max($tourPackage->days - 1, 1);
+                $hotelSubtotal = $pricePerNight * $nights * $validated['number_of_tickets'];
+                $hotelPrice = $hotelSubtotal * (1 - $bundleDiscountPercent / 100);
+            }
+        }
+
+        $subtotal = $tourSubtotal + $hotelPrice;
 
         // Validasi kode promo
         $promo = null;
@@ -128,6 +189,7 @@ class PaketTourController extends Controller
                 ->where('id', $validated['promo_code_id'])
                 ->whereDate('valid_from', '<=', now())
                 ->whereDate('valid_until', '>=', now())
+                ->where(fn ($q) => $q->whereNull('user_id')->orWhere('user_id', auth()->id()))
                 ->first();
         }
 
@@ -141,11 +203,18 @@ class PaketTourController extends Controller
             $discount = $subtotal * ($validated['discount_percent'] / 100);
         }
 
-        $totalPrice = max($subtotal - $discount, 0);
+        // Asuransi perjalanan (opsional) — dihitung di server berdasarkan jumlah tiket
+        $hasInsurance = (bool) ($validated['has_insurance'] ?? false);
+        $insuranceAmount = $hasInsurance
+            ? config('services.insurance.price_per_ticket') * $validated['number_of_tickets']
+            : 0;
 
-        DB::transaction(function () use ($validated, $tourPackage, $destination, $bookingCode, $subtotal, $discount, $totalPrice, $promo) {
+        $totalPrice = max($subtotal - $discount, 0) + $insuranceAmount;
+
+        DB::transaction(function () use ($validated, $tourPackage, $destination, $bookingCode, $tourSubtotal, $hotelPrice, $discount, $totalPrice, $promo, $hasInsurance, $insuranceAmount) {
     Transaction::create([
         'booking_code'       => $bookingCode,
+        'user_id'            => auth()->id(),
         'tour_package_id'    => $tourPackage->id,
         'destination_id'     => $destination->id,
         'customer_name'      => $validated['customer_name'],
@@ -154,7 +223,9 @@ class PaketTourController extends Controller
         'booking_date'       => $validated['booking_date'],
         'number_of_tickets'  => $validated['number_of_tickets'],
         'package_price'      => $tourPackage->price,
-        'discount'           => $discount,
+        'discount_amount'    => $discount,
+        'has_insurance'      => $hasInsurance,
+        'insurance_amount'   => $insuranceAmount,
         'total_price'        => $totalPrice,
         'status'             => Transaction::STATUS_PENDING,
         'payment_method'     => $validated['payment_method'] ?? null, // Allow NULL instead of 'pending'
@@ -164,12 +235,12 @@ class PaketTourController extends Controller
     TourBooking::create([
         'tour_package_id'    => $tourPackage->id,
         'destination_id'     => $destination->id,
-        'hotel_id'           => $tourPackage->includes_hotel ? optional($tourPackage->hotels()->first())->id : null,
+        'hotel_id'           => $tourPackage->includes_hotel ? optional($tourPackage->hotels->first())->id : null,
         'customer_name'      => $validated['customer_name'],
         'customer_email'     => $validated['customer_email'],
         'customer_phone'     => $validated['customer_phone'],
-        'tour_price'         => $subtotal,
-        'hotel_price'        => 0,
+        'tour_price'         => $tourSubtotal,
+        'hotel_price'        => round($hotelPrice, 2),
         'total_price'        => $totalPrice,
         'status'             => 'pending',
         'payment_method'     => $validated['payment_method'] ?? null, // Allow NULL instead of 'pending'

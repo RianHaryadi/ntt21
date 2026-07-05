@@ -2,66 +2,186 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BookingHotel;
+use App\Models\Order;
 use App\Models\Transaction;
 use App\Models\TourBooking;
+use App\Services\LoyaltyService;
+use App\Services\MidtransService;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TransactionController extends Controller
 {
+    public function __construct(
+        private MidtransService $midtrans,
+        private WhatsAppService $whatsapp,
+        private LoyaltyService $loyalty,
+    ) {}
+
     /**
      * Menampilkan halaman pembayaran berdasarkan booking_code.
+     * Mengambil Snap token dari Midtrans agar widget pembayaran bisa dibuka.
      */
     public function payment($booking_code)
     {
         $transaction = Transaction::where('booking_code', $booking_code)->firstOrFail();
-        return view('transaction.payment', compact('transaction'));
+
+        $snapToken = null;
+        if ($transaction->status === Transaction::STATUS_PENDING) {
+            $snapToken = $transaction->snap_token ?: $this->midtrans->getSnapToken($transaction);
+        }
+
+        return view('transaction.payment', [
+            'transaction' => $transaction,
+            'snapToken' => $snapToken,
+            'midtransConfigured' => $this->midtrans->isConfigured(),
+            'clientKey' => config('services.midtrans.client_key'),
+            'isProduction' => (bool) config('services.midtrans.is_production'),
+        ]);
     }
 
     /**
-     * Memproses konfirmasi pembayaran dari user.
+     * Webhook notifikasi status pembayaran dari server Midtrans.
+     * Ini adalah satu-satunya sumber kebenaran untuk status "paid" — bukan aksi user di browser.
      */
-    public function confirmPayment(Request $request, Transaction $transaction)
+    public function notification(Request $request)
     {
-        // Validasi input dari form
-        $validated = $request->validate([
-            'payment_method' => ['required', 'in:bank_transfer,qris'],
-            'booking_code' => ['required', 'string', 'exists:transactions,booking_code'],
-        ]);
+        $orderId = (string) $request->input('order_id');
+        $statusCode = (string) $request->input('status_code');
+        $grossAmount = (string) $request->input('gross_amount');
+        $signatureKey = (string) $request->input('signature_key');
+        $transactionStatus = (string) $request->input('transaction_status');
+        $fraudStatus = $request->input('fraud_status');
+        $paymentType = $request->input('payment_type');
 
-        // Pastikan booking_code cocok
-        if ($transaction->booking_code !== $validated['booking_code']) {
-            return back()->withErrors(['booking_code' => 'Kode booking tidak cocok.']);
+        if (!$this->midtrans->isValidSignature($orderId, $statusCode, $grossAmount, $signatureKey)) {
+            Log::warning('Midtrans notification: invalid signature', ['order_id' => $orderId]);
+            return response()->json(['message' => 'Invalid signature'], 403);
         }
 
-        // Konversi 'bank_transfer' ke 'transfer' agar cocok dengan enum
-        $paymentMethod = $validated['payment_method'] === 'bank_transfer' ? 'transfer' : 'qris';
+        $newStatus = $this->midtrans->resolveInternalStatus($transactionStatus, $fraudStatus);
+        $paymentMethod = $this->mapPaymentMethod($paymentType);
 
-        // Gunakan transaksi database untuk memastikan konsistensi
-        DB::transaction(function () use ($transaction, $paymentMethod) {
-            // Update transaksi
-            $transaction->update([
-                'payment_method' => $paymentMethod,
-                'status' => 'paid',
+        // Cart checkout: order_id Midtrans = order_code gabungan lintas tipe
+        $order = Order::where('order_code', $orderId)->first();
+        if ($order) {
+            $this->applyOrderStatus($order, $newStatus, $paymentMethod, $paymentType);
+
+            Log::info('Midtrans notification processed (order)', [
+                'order_id' => $orderId,
+                'transaction_status' => $transactionStatus,
+                'resolved_status' => $newStatus,
             ]);
 
-            // Update status booking di tabel tour_bookings
-            $booking = TourBooking::where('booking_number', $transaction->booking_code)->first();
-            if ($booking) {
-                $booking->update([
-                    'status' => 'confirmed',
-                    'payment_method' => $paymentMethod,
-                ]);
-            } else {
-                // Log jika booking tidak ditemukan (untuk debugging)
-                \Illuminate\Support\Facades\Log::warning('Booking not found for booking_code: ' . $transaction->booking_code);
-            }
-        });
+            return response()->json(['message' => 'OK']);
+        }
 
-        // Redirect ke halaman sukses
-        return redirect()
-            ->route('transactions.success', $transaction->booking_code)
-            ->with('success', 'Pembayaran berhasil dikonfirmasi.');
+        // Alur lama: satu Transaction berdiri sendiri (booking langsung, bukan dari keranjang)
+        $transaction = Transaction::where('booking_code', $orderId)->first();
+        if (!$transaction) {
+            Log::warning('Midtrans notification: transaction not found', ['order_id' => $orderId]);
+            return response()->json(['message' => 'Transaction not found'], 404);
+        }
+
+        $this->applyTransactionStatus($transaction, $newStatus, $paymentMethod, $paymentType);
+
+        Log::info('Midtrans notification processed', [
+            'order_id' => $orderId,
+            'transaction_status' => $transactionStatus,
+            'resolved_status' => $newStatus,
+        ]);
+
+        return response()->json(['message' => 'OK']);
+    }
+
+    /**
+     * Terapkan status pembayaran baru ke satu Transaction berdiri sendiri, plus efek samping
+     * (sinkron TourBooking, WhatsApp, poin loyalti) — dipakai baik oleh alur booking langsung
+     * maupun sebagai bagian dari cascade Order gabungan.
+     */
+    private function applyTransactionStatus(Transaction $transaction, string $newStatus, ?string $paymentMethod, ?string $paymentType): void
+    {
+        $wasAlreadyPaid = $transaction->status === Transaction::STATUS_PAID;
+
+        $transaction->update([
+            'status' => $newStatus,
+            'payment_method' => $paymentMethod,
+            'midtrans_payment_type' => $paymentType,
+        ]);
+
+        if ($newStatus !== Transaction::STATUS_PAID) {
+            return;
+        }
+
+        $booking = TourBooking::where('booking_number', $transaction->booking_code)->first();
+        if ($booking) {
+            $booking->update([
+                'status' => 'confirmed',
+                'payment_method' => $paymentMethod,
+            ]);
+        }
+
+        // Kirim notifikasi WhatsApp hanya sekali (Midtrans bisa retry notifikasi berkali-kali)
+        if (!$wasAlreadyPaid && $transaction->customer_phone) {
+            $total = 'Rp' . number_format($transaction->total_price, 0, ',', '.');
+            $message = "Halo {$transaction->customer_name}! 🎉\n\n"
+                . "Pembayaran Anda untuk booking *{$transaction->booking_code}* di Pesona NTT telah *berhasil dikonfirmasi*.\n\n"
+                . "💰 Total dibayar: {$total}\n\n"
+                . "Tiket/detail perjalanan akan segera dikirim ke email Anda. Selamat berlibur! 🌴";
+
+            $this->whatsapp->send($transaction->customer_phone, $message);
+        }
+
+        $this->loyalty->awardForTransaction($transaction);
+    }
+
+    /**
+     * Terapkan status pembayaran baru ke satu BookingHotel yang tergabung dalam Order,
+     * plus efek samping (poin loyalti). BookingHotel dari alur "Book Now" langsung tidak
+     * lewat sini karena tidak pernah bayar via Midtrans.
+     */
+    private function applyBookingHotelStatus(BookingHotel $booking, string $newStatus, ?string $paymentMethod): void
+    {
+        $booking->update([
+            'status' => $newStatus === Transaction::STATUS_PAID ? 'checked-in' : $booking->status,
+            'payment_method' => $paymentMethod,
+        ]);
+
+        if ($newStatus === Transaction::STATUS_PAID) {
+            $this->loyalty->awardForHotelBooking($booking);
+        }
+    }
+
+    /**
+     * Terapkan status pembayaran Order gabungan ke Order itu sendiri, lalu cascade
+     * ke setiap Transaction/BookingHotel anaknya.
+     */
+    private function applyOrderStatus(Order $order, string $newStatus, ?string $paymentMethod, ?string $paymentType): void
+    {
+        $order->update([
+            'status' => $newStatus,
+            'payment_method' => $paymentMethod,
+        ]);
+
+        foreach ($order->transactions as $transaction) {
+            $this->applyTransactionStatus($transaction, $newStatus, $paymentMethod, $paymentType);
+        }
+
+        foreach ($order->bookingHotels as $booking) {
+            $this->applyBookingHotelStatus($booking, $newStatus, $paymentMethod);
+        }
+    }
+
+    private function mapPaymentMethod(?string $paymentType): ?string
+    {
+        return match ($paymentType) {
+            'bank_transfer', 'echannel', 'permata', 'bca_va', 'bni_va', 'bri_va' => 'transfer',
+            'qris', 'gopay', 'shopeepay' => 'qris',
+            default => $paymentType,
+        };
     }
 
     /**
@@ -71,5 +191,20 @@ class TransactionController extends Controller
     {
         $transaction = Transaction::where('booking_code', $booking_code)->firstOrFail();
         return view('transaction.success', compact('transaction'));
+    }
+
+    /**
+     * Generate and download the official PDF e-ticket for a transaction.
+     */
+    public function downloadTicket($booking_code)
+    {
+        $transaction = Transaction::with(['tickets', 'destinationDirect', 'tourPackage.destination'])
+            ->where('booking_code', $booking_code)
+            ->firstOrFail();
+
+        $pdf = Pdf::loadView('pdf.transaction-ticket', compact('transaction'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download('E-Ticket-' . $transaction->booking_code . '.pdf');
     }
 }

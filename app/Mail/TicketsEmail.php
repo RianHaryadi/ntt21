@@ -21,7 +21,7 @@ class TicketsEmail extends Mailable
 
     public function build()
     {
-        return $this->subject('Tiket Pemesanan Anda - Wonderfull NTT')
+        return $this->subject('Tiket Pemesanan Anda - Pesona NTT')
                     ->markdown('emails.tickets');
     }
 }
