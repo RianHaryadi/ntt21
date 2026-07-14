@@ -22,7 +22,9 @@ function initRevealObserver() {
                 }
             });
         },
-        { threshold: 0.12, rootMargin: '0px 0px -60px 0px' }
+        // threshold rendah: grup yang sangat tinggi (mis. daftar kartu bertumpuk) harus
+        // langsung muncul begitu ujung atasnya masuk viewport, bukan menunggu 12% terlihat.
+        { threshold: 0.01, rootMargin: '0px 0px -40px 0px' }
     );
 
     targets.forEach((el) => observer.observe(el));
@@ -165,13 +167,26 @@ function initAnimations() {
 document.addEventListener('DOMContentLoaded', initAnimations);
 document.addEventListener('livewire:navigated', initAnimations);
 
+// Jaring pengaman global: gambar yang gagal dimuat (404, dsb.) diganti fallback
+// alih-alih menampilkan ikon gambar rusak / teks alt.
+document.addEventListener('error', (e) => {
+    const img = e.target;
+    if (!(img instanceof HTMLImageElement) || img.dataset.fallbackApplied) return;
+    img.dataset.fallbackApplied = '1';
+    img.src = '/images/fallback.jpg';
+}, true);
+
 // Re-scan setelah Livewire re-render (mis. hasil pencarian AI, dsb.)
 document.addEventListener('livewire:update', initRevealObserver);
 
-// Jaring pengaman: paksa tampil kalau observer gagal memicu (mis. elemen di luar viewport tak terjangkau)
-window.addEventListener('load', () => {
+// Jaring pengaman: paksa tampil kalau observer gagal memicu (mis. elemen di luar viewport tak terjangkau,
+// atau screenshot/capture terjadi sebelum discroll). Dipicu dari DOMContentLoaded (bukan 'load', yang bisa
+// molor lama di halaman dengan banyak gambar) dan dengan delay singkat agar tidak terlihat "kosong".
+function forceRevealFallback() {
     setTimeout(() => {
         document.querySelectorAll('.reveal:not(.is-visible), .reveal-group:not(.is-visible)')
             .forEach((el) => el.classList.add('is-visible'));
-    }, 4000);
-});
+    }, 350);
+}
+document.addEventListener('DOMContentLoaded', forceRevealFallback);
+document.addEventListener('livewire:navigated', forceRevealFallback);

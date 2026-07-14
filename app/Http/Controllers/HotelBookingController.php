@@ -6,7 +6,10 @@ use App\Models\Hotel;
 use App\Models\BookingHotel;
 use App\Models\CodePromotion;
 use App\Models\Notification;
+use App\Models\Order;
+use App\Services\MidtransService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -74,7 +77,7 @@ class HotelBookingController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request)
+    public function store(Request $request, MidtransService $midtrans)
     {
         Log::debug('Entering store method', ['input' => $request->except(['_token'])]);
 
@@ -88,7 +91,6 @@ class HotelBookingController extends Controller
                 'customer_name' => 'required|string|max:255',
                 'customer_email' => 'required|email|max:255',
                 'customer_phone' => 'required|string|max:20',
-                'payment_method' => 'required|in:transfer,qris,cash',
                 'agree_terms' => 'required|accepted',
                 'room_price' => 'required|numeric|min:0',
                 'night_count' => 'required|integer|min:1',
@@ -104,6 +106,10 @@ class HotelBookingController extends Controller
             ]);
 
             Log::debug('Validation passed', ['validated' => $validated]);
+
+            if (auth()->check() && !auth()->user()->phone) {
+                auth()->user()->update(['phone' => $validated['customer_phone']]);
+            }
 
             // Fetch hotel and verify room price
             $hotel = Hotel::findOrFail($validated['hotel_id']);
@@ -249,7 +255,6 @@ class HotelBookingController extends Controller
                 'has_insurance' => $hasInsurance,
                 'insurance_amount' => round($insuranceAmount, 2),
                 'total_price' => round($validated['total_price'], 2),
-                'payment_method' => $validated['payment_method'],
                 'special_requests' => $validated['special_requests'] ?? null,
                 'status' => 'pending',
                 'booking_number' => 'BOOK-' . now()->format('YmdHis') . '-' . str_pad(random_int(1, 999), 3, '0', STR_PAD_LEFT),
@@ -287,18 +292,41 @@ class HotelBookingController extends Controller
                 ]);
             }
 
+            // Bungkus booking dalam Order agar pembayaran berjalan online via Midtrans
+            // (webhook Order-lah yang nanti mengubah status booking menjadi checked-in).
+            $order = Order::create([
+                'order_code' => 'ORD-' . strtoupper(Str::random(10)),
+                'user_id' => auth()->id(),
+                'customer_name' => $validated['customer_name'],
+                'customer_email' => $validated['customer_email'],
+                'customer_phone' => $validated['customer_phone'],
+                'subtotal' => $booking->total_price - $booking->insurance_amount,
+                'discount_amount' => $booking->discount_amount,
+                'insurance_amount' => $booking->insurance_amount,
+                'total_price' => $booking->total_price,
+                'has_insurance' => $booking->has_insurance,
+                'promo_code_id' => $booking->promo_code_id,
+                'status' => Order::STATUS_PENDING,
+            ]);
+            $booking->update(['order_id' => $order->id]);
+
+            $snapToken = $midtrans->getSnapTokenForOrder($order);
+            if ($snapToken) {
+                $order->update(['payment_gateway_token' => $snapToken]);
+            }
+
             Log::info('Booking successfully created', [
                 'booking_id' => $booking->id,
                 'booking_number' => $booking->booking_number,
+                'order_code' => $order->order_code,
                 'promo_code' => $promoCode,
                 'discount' => $discount,
                 'total_price' => $validated['total_price'],
-                'user_id' => 'guest',
-                'redirecting_to' => route('booking.success', $booking->id),
+                'redirecting_to' => route('orders.payment', $order->order_code),
             ]);
 
-            return redirect()->route('booking.success', $booking->id)
-                           ->with('success', 'Booking successfully created! Please review your booking details.');
+            return redirect()->route('orders.payment', $order->order_code)
+                           ->with('success', 'Booking berhasil dibuat! Silakan selesaikan pembayaran.');
         } catch (ValidationException $e) {
             Log::error('Booking validation error', [
                 'errors' => $e->errors(),

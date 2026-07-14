@@ -75,14 +75,12 @@
 
                 @auth
                     <!-- Cart -->
-                    <a href="{{ route('cart.index') }}" class="relative text-muted hover:text-ink transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-line/50">
+                    <a href="{{ route('cart.index') }}" id="cart-badge-link" class="relative text-muted hover:text-ink transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-line/50">
                         <i class="fas fa-shopping-bag text-sm"></i>
                         @php $cartCount = app(\App\Services\CartService::class)->count(); @endphp
-                        @if($cartCount > 0)
-                        <span class="absolute top-0 right-0 w-3.5 h-3.5 bg-clay rounded-full text-paper text-[9px] font-bold flex items-center justify-center">
+                        <span id="cart-badge-count" class="absolute top-0 right-0 w-3.5 h-3.5 bg-clay rounded-full text-paper text-[9px] font-bold flex items-center justify-center {{ $cartCount > 0 ? '' : 'hidden' }}" data-count="{{ $cartCount }}">
                             {{ $cartCount > 9 ? '9+' : $cartCount }}
                         </span>
-                        @endif
                     </a>
 
                     <!-- Notifications -->
@@ -101,10 +99,12 @@
                         <div id="notif-dropdown" class="hidden absolute right-0 top-full mt-2 w-80 bg-paper border border-line rounded-xl shadow-sm overflow-hidden z-50">
                             <div class="flex items-center justify-between px-4 py-3 border-b border-line">
                                 <span class="text-sm font-semibold text-ink">{{ __('site.nav_notifications') }}</span>
-                                <button onclick="markAllRead()" class="text-xs text-clay hover:text-clay/80 transition-colors">{{ __('site.nav_mark_all_read') }}</button>
+                                <button id="notif-mark-all-btn" class="text-xs text-clay hover:text-clay/80 transition-colors">{{ __('site.nav_mark_all_read') }}</button>
                             </div>
-                            <div id="notif-list" class="max-h-64 overflow-y-auto">
-                                <p class="text-center text-muted text-xs py-6">{{ __('site.nav_check_dashboard') }}</p>
+                            <div id="notif-list" class="max-h-80 overflow-y-auto">
+                                <p class="text-center text-muted text-xs py-6">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -283,6 +283,8 @@
         </div>
     </div>
 
+    @include('partials.quick-add-cart-modal')
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Dropdowns
@@ -304,8 +306,98 @@
             if (notifBtn) {
                 notifBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    const willOpen = notifDropdown.classList.contains('hidden');
                     notifDropdown.classList.toggle('hidden');
-                    if(userDropdown) userDropdown.classList.add('hidden');
+                    if (userDropdown) userDropdown.classList.add('hidden');
+                    if (willOpen) loadNotifications();
+                });
+            }
+
+            const notifList = document.getElementById('notif-list');
+            const notifBadge = document.getElementById('notif-badge');
+            const notifMarkAllBtn = document.getElementById('notif-mark-all-btn');
+            const notifTypeIcon = { success: 'fa-check-circle text-emerald-600', warning: 'fa-exclamation-triangle text-amber-500', info: 'fa-info-circle text-laut' };
+            let notifLoaded = false;
+
+            function timeAgo(dateStr) {
+                const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+                if (diff < 60) return 'baru saja';
+                if (diff < 3600) return Math.floor(diff / 60) + ' menit lalu';
+                if (diff < 86400) return Math.floor(diff / 3600) + ' jam lalu';
+                return Math.floor(diff / 86400) + ' hari lalu';
+            }
+
+            function renderNotifications(items) {
+                if (!items.length) {
+                    notifList.innerHTML = '<p class="text-center text-muted text-xs py-6">Belum ada notifikasi.</p>';
+                    return;
+                }
+                notifList.innerHTML = items.map((n) => {
+                    const icon = notifTypeIcon[n.type] || notifTypeIcon.info;
+                    const unread = !n.read_at;
+                    return `
+                        <a href="${n.link || '#'}" data-notif-id="${n.id}" data-unread="${unread ? '1' : '0'}"
+                           class="notif-item flex gap-3 px-4 py-3 border-b border-line last:border-b-0 hover:bg-surface transition-colors ${unread ? 'bg-clay/5' : ''}">
+                            <i class="fas ${icon} mt-0.5 flex-shrink-0"></i>
+                            <span class="flex-1 min-w-0">
+                                <span class="block text-sm font-semibold text-ink">${n.title}</span>
+                                <span class="block text-xs text-muted mt-0.5 line-clamp-2">${n.body}</span>
+                                <span class="block text-[10px] text-muted/70 mt-1">${timeAgo(n.created_at)}</span>
+                            </span>
+                            ${unread ? '<span class="w-2 h-2 rounded-full bg-clay flex-shrink-0 mt-1.5"></span>' : ''}
+                        </a>
+                    `;
+                }).join('');
+
+                notifList.querySelectorAll('.notif-item').forEach((el) => {
+                    el.addEventListener('click', () => {
+                        if (el.dataset.unread === '1') {
+                            fetch(`/notifications/${el.dataset.notifId}/read`, {
+                                method: 'POST',
+                                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                            }).then(updateBadgeCount);
+                        }
+                    });
+                });
+            }
+
+            function updateBadgeCount() {
+                const stillUnread = notifList.querySelectorAll('[data-unread="1"]').length;
+                if (notifBadge) {
+                    if (stillUnread > 0) {
+                        notifBadge.textContent = stillUnread > 9 ? '9+' : stillUnread;
+                    } else {
+                        notifBadge.remove();
+                    }
+                }
+            }
+
+            function loadNotifications(force = false) {
+                if (notifLoaded && !force) return;
+                fetch('{{ route('notifications.index') }}', { headers: { 'Accept': 'application/json' } })
+                    .then((r) => r.json())
+                    .then((json) => {
+                        notifLoaded = true;
+                        renderNotifications(json.data || []);
+                    })
+                    .catch(() => {
+                        notifList.innerHTML = '<p class="text-center text-muted text-xs py-6">Gagal memuat notifikasi.</p>';
+                    });
+            }
+
+            if (notifMarkAllBtn) {
+                notifMarkAllBtn.addEventListener('click', () => {
+                    fetch('{{ route('notifications.readAll') }}', {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    }).then(() => {
+                        notifList.querySelectorAll('.notif-item').forEach((el) => {
+                            el.dataset.unread = '0';
+                            el.classList.remove('bg-clay/5');
+                            el.querySelector('.bg-clay.rounded-full')?.remove();
+                        });
+                        if (notifBadge) notifBadge.remove();
+                    });
                 });
             }
 
@@ -321,7 +413,156 @@
             });
         });
     </script>
-    
+
+    @auth
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const qaModal = document.getElementById('quick-add-modal');
+            if (!qaModal) return;
+
+            const qaForm = document.getElementById('quick-add-form');
+            const qaTitle = document.getElementById('quick-add-title');
+            const qaError = document.getElementById('quick-add-error');
+            const qaSubmit = document.getElementById('quick-add-submit');
+            const qaFieldsTicket = document.getElementById('quick-add-fields-ticket');
+            const qaFieldsHotel = document.getElementById('quick-add-fields-hotel');
+            const qaBookingDate = document.getElementById('qa-booking-date');
+            const qaQty = document.getElementById('qa-qty');
+            const qaRoomType = document.getElementById('qa-room-type');
+            const qaCheckin = document.getElementById('qa-checkin');
+            const qaCheckout = document.getElementById('qa-checkout');
+            const today = new Date().toISOString().split('T')[0];
+            let currentItem = null;
+
+            window.openQuickAdd = function (item) {
+                currentItem = item;
+                qaTitle.textContent = item.name;
+                qaError.classList.add('hidden');
+                qaSubmit.disabled = false;
+
+                const isHotel = item.type === 'hotel';
+                qaFieldsTicket.classList.toggle('hidden', isHotel);
+                qaFieldsHotel.classList.toggle('hidden', !isHotel);
+
+                // Field yang tersembunyi jangan ikut divalidasi HTML5 (required), atau submit
+                // akan diblokir diam-diam oleh browser karena elemen tak terlihat tak bisa difokus.
+                qaBookingDate.required = !isHotel;
+                qaQty.required = !isHotel;
+                qaCheckin.required = isHotel;
+                qaCheckout.required = isHotel;
+
+                qaBookingDate.min = today;
+                qaBookingDate.value = '';
+                qaQty.value = 1;
+                qaCheckin.min = today;
+                qaCheckin.value = '';
+                qaCheckout.value = '';
+                qaRoomType.value = 'single';
+
+                qaModal.classList.remove('hidden');
+            };
+
+            function closeQuickAdd() {
+                qaModal.classList.add('hidden');
+            }
+
+            document.getElementById('quick-add-close')?.addEventListener('click', closeQuickAdd);
+            qaModal.addEventListener('click', (e) => { if (e.target === qaModal) closeQuickAdd(); });
+
+            qaCheckin.addEventListener('change', () => {
+                if (qaCheckin.value) {
+                    const next = new Date(qaCheckin.value);
+                    next.setDate(next.getDate() + 1);
+                    qaCheckout.min = next.toISOString().split('T')[0];
+                    if (!qaCheckout.value || qaCheckout.value <= qaCheckin.value) {
+                        qaCheckout.value = qaCheckout.min;
+                    }
+                }
+            });
+
+            qaForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (!currentItem) return;
+
+                const payload = { itemable_type: currentItem.type, itemable_id: currentItem.id };
+                if (currentItem.type === 'hotel') {
+                    payload.room_type = qaRoomType.value;
+                    payload.check_in_date = qaCheckin.value;
+                    payload.check_out_date = qaCheckout.value;
+                } else {
+                    payload.booking_date = qaBookingDate.value;
+                    payload.number_of_tickets = qaQty.value;
+                }
+
+                qaSubmit.disabled = true;
+                qaError.classList.add('hidden');
+
+                fetch('{{ route('cart.add') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                }).then((response) => {
+                    if (response.ok || response.redirected) {
+                        closeQuickAdd();
+                        qaSubmit.disabled = false;
+                        bumpCartBadge();
+                        showAddedToCartToast(currentItem.name);
+                        return;
+                    }
+                    return response.json().then((data) => {
+                        const firstError = data.errors ? Object.values(data.errors)[0][0] : 'Gagal menambahkan ke keranjang.';
+                        qaError.textContent = firstError;
+                        qaError.classList.remove('hidden');
+                        qaSubmit.disabled = false;
+                    });
+                }).catch(() => {
+                    qaError.textContent = 'Gagal menambahkan ke keranjang. Coba lagi.';
+                    qaError.classList.remove('hidden');
+                    qaSubmit.disabled = false;
+                });
+            });
+
+            function bumpCartBadge() {
+                const badge = document.getElementById('cart-badge-count');
+                if (!badge) return;
+                const next = parseInt(badge.dataset.count || '0', 10) + 1;
+                badge.dataset.count = next;
+                badge.textContent = next > 9 ? '9+' : next;
+                badge.classList.remove('hidden');
+            }
+
+            function showAddedToCartToast(itemName) {
+                document.getElementById('quick-add-toast')?.remove();
+
+                const toast = document.createElement('div');
+                toast.id = 'quick-add-toast';
+                toast.className = 'fixed bottom-6 right-6 z-[60] bg-ink text-paper rounded-xl shadow-xl px-4 py-3 flex items-center gap-3 max-w-sm animate-fade-in';
+
+                const icon = document.createElement('i');
+                icon.className = 'fas fa-check-circle text-emerald-400';
+
+                const text = document.createElement('span');
+                text.className = 'text-sm flex-1';
+                text.textContent = `"${itemName}" ditambahkan ke keranjang.`;
+
+                const link = document.createElement('a');
+                link.href = '{{ route('cart.index') }}';
+                link.className = 'text-xs font-semibold text-clay hover:underline whitespace-nowrap';
+                link.textContent = 'Lihat Keranjang';
+
+                toast.append(icon, text, link);
+                document.body.appendChild(toast);
+
+                setTimeout(() => toast.remove(), 4000);
+            }
+        });
+    </script>
+    @endauth
+
     @livewireScripts
     @stack('scripts')
     @yield('scripts')

@@ -113,12 +113,22 @@ class CartController extends Controller
     public function checkout(Request $request, CartService $cart, MidtransService $midtrans)
     {
         $request->validate([
-            'customer_name' => 'required|string|max:255',
-            'customer_email' => 'required|email|max:255',
             'customer_phone' => 'required|string|max:20',
             'promo_code' => 'nullable|string|max:50',
             'has_insurance' => 'nullable|boolean',
         ]);
+
+        // Nama & email selalu diambil dari akun yang login, bukan input klien,
+        // karena field itu ditampilkan readonly di form (identitas akun).
+        $user = auth()->user();
+        $request->merge([
+            'customer_name' => $user->name,
+            'customer_email' => $user->email,
+        ]);
+
+        if (!$user->phone) {
+            $user->update(['phone' => $request->customer_phone]);
+        }
 
         $items = $cart->items();
 

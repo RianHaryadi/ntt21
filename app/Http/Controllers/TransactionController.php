@@ -6,9 +6,9 @@ use App\Models\BookingHotel;
 use App\Models\Order;
 use App\Models\Transaction;
 use App\Models\TourBooking;
+use App\Jobs\SendWhatsAppMessage;
 use App\Services\LoyaltyService;
 use App\Services\MidtransService;
-use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -17,7 +17,6 @@ class TransactionController extends Controller
 {
     public function __construct(
         private MidtransService $midtrans,
-        private WhatsAppService $whatsapp,
         private LoyaltyService $loyalty,
     ) {}
 
@@ -132,7 +131,7 @@ class TransactionController extends Controller
                 . "💰 Total dibayar: {$total}\n\n"
                 . "Tiket/detail perjalanan akan segera dikirim ke email Anda. Selamat berlibur! 🌴";
 
-            $this->whatsapp->send($transaction->customer_phone, $message);
+            SendWhatsAppMessage::dispatch($transaction->customer_phone, $message);
         }
 
         $this->loyalty->awardForTransaction($transaction);
@@ -178,9 +177,12 @@ class TransactionController extends Controller
     private function mapPaymentMethod(?string $paymentType): ?string
     {
         return match ($paymentType) {
+            null => null,
             'bank_transfer', 'echannel', 'permata', 'bca_va', 'bni_va', 'bri_va' => 'transfer',
             'qris', 'gopay', 'shopeepay' => 'qris',
-            default => $paymentType,
+            // Tipe lain (credit_card, dst.) dipetakan ke 'transfer' agar muat di enum kolom;
+            // tipe mentahnya tetap tersimpan di kolom midtrans_payment_type.
+            default => 'transfer',
         };
     }
 

@@ -23,5 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // Lapor semua exception tak tertangani ke Sentry.
+        // Nonaktif selama SENTRY_LARAVEL_DSN belum diisi di .env.
+        \Sentry\Laravel\Integration::handles($exceptions);
     })->create();

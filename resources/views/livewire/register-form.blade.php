@@ -39,8 +39,9 @@
     </div>
 
     <!-- Right Panel - Form -->
-    <div class="flex-1 flex items-center justify-center px-6 py-12 bg-transparent overflow-y-auto">
-        <div class="w-full max-w-md bg-white border border-slate-200/60 p-10 rounded-[32px] shadow-2xl">
+    <div class="flex-1 overflow-y-auto bg-transparent">
+        <div class="min-h-full flex flex-col justify-center items-center px-6 py-8 lg:py-12">
+            <div class="w-full max-w-md bg-white border border-slate-200/60 p-8 lg:p-10 rounded-[32px] shadow-2xl">
 
             <!-- Mobile Logo -->
             <div class="lg:hidden text-center mb-10">
@@ -178,6 +179,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <script>

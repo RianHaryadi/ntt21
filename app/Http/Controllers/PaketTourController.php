@@ -141,8 +141,6 @@ class PaketTourController extends Controller
         $validated = $request->validate([
             'tour_package_id'    => 'required|exists:tour_packages,id',
             'destination_id'     => 'required|exists:destinations,id',
-            'customer_name'      => 'required|string|max:255',
-            'customer_email'     => 'required|email|max:255',
             'customer_phone'     => 'required|string|max:20',
             'booking_date'       => 'required|date|after_or_equal:today',
             'number_of_tickets'  => 'required|integer|min:1',
@@ -153,6 +151,15 @@ class PaketTourController extends Controller
             'special_request'    => 'nullable|string',
             'has_insurance'      => 'nullable|boolean',
         ]);
+
+        // Nama & email selalu diambil dari akun yang login (field readonly di form).
+        $user = auth()->user();
+        $validated['customer_name'] = $user->name;
+        $validated['customer_email'] = $user->email;
+
+        if (!$user->phone) {
+            $user->update(['phone' => $validated['customer_phone']]);
+        }
 
         $tourPackage = TourPackage::with('hotels')->findOrFail($validated['tour_package_id']);
         $destination = Destination::findOrFail($validated['destination_id']);

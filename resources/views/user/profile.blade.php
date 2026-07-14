@@ -69,6 +69,15 @@
                             <p class="text-red-500 text-xs mt-1.5 font-medium">{{ $message }}</p>
                         @enderror
                     </div>
+                    <div>
+                        <label class="block text-xs font-bold text-muted uppercase tracking-widest mb-2">Nomor Telepon</label>
+                        <input type="text" name="phone" value="{{ old('phone', $user->phone) }}" placeholder="08xxxxxxxxxx"
+                               class="w-full px-4 py-3 rounded-xl border border-line bg-paper text-ink text-sm font-semibold focus:border-clay focus:outline-none transition-all">
+                        <p class="text-muted text-xs mt-1.5">Dipakai untuk mengisi otomatis form pemesanan &amp; checkout.</p>
+                        @error('phone')
+                            <p class="text-red-500 text-xs mt-1.5 font-medium">{{ $message }}</p>
+                        @enderror
+                    </div>
                     <button type="submit" class="btn-primary py-2.5 px-6 text-sm">Simpan Perubahan</button>
                 </form>
             </div>

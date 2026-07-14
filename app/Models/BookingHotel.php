@@ -5,8 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use App\Jobs\SendWhatsAppMessage;
 use App\Mail\HotelBookingMail;
-use App\Services\WhatsAppService;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 
@@ -185,7 +185,7 @@ class BookingHotel extends Model
                     . "💰 Total: {$total}\n\n"
                     . "Status booking Anda saat ini: *menunggu konfirmasi*. Kami akan segera memprosesnya. Terima kasih! 🙏";
 
-                app(WhatsAppService::class)->send($booking->customer_phone, $message);
+                SendWhatsAppMessage::dispatch($booking->customer_phone, $message);
             }
         } catch (\Exception $e) {
             Log::error('Failed to send hotel booking WhatsApp: ' . $e->getMessage());

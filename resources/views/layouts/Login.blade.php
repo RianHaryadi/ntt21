@@ -21,6 +21,17 @@
                         montserrat: ['Montserrat', 'sans-serif'],
                     },
                     colors: {
+                        paper:   '#F7F6F2',
+                        surface: '#EBEDE5',
+                        ink:     '#16201E',
+                        muted:   '#69736E',
+                        line:    '#DCDED5',
+                        laut:    '#0F6E63',
+                        coral:   '#D2674A',
+                        petrol:  '#1C4750',
+                        clay:    '#0F6E63',
+                        sage:    '#0F6E63',
+                        sea:     '#1C4750',
                         ocean: {
                             950: '#000f1f',
                             900: '#001a33',
@@ -63,7 +74,7 @@
 
     @livewireStyles
 </head>
-<body class="antialiased min-h-screen bg-slate-50 text-slate-800 relative flex flex-col justify-center" style="background-color: #fafaf9;">
+<body class="antialiased min-h-screen bg-slate-50 text-slate-800 relative flex flex-col" style="background-color: #fafaf9;">
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-white via-slate-50 to-slate-100 pointer-events-none z-0"></div>
     <div class="relative z-10 w-full">
         {{ $slot }}

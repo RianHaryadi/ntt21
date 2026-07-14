@@ -4,8 +4,6 @@
 
 @push('styles')
 <style>
-@push('styles')
-<style>
     @keyframes checkPop {
         0%{ transform: scale(0); opacity: 0; }
         60%{ transform: scale(1.2); opacity: 1; }

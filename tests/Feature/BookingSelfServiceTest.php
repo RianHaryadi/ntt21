@@ -43,7 +43,7 @@ class BookingSelfServiceTest extends TestCase
         $response = $this->post(route('booking.resendEmail', $booking->booking_number));
 
         $response->assertSessionHasNoErrors();
-        Mail::assertSent(HotelBookingMail::class, function ($mail) use ($booking) {
+        Mail::assertQueued(HotelBookingMail::class, function ($mail) use ($booking) {
             return $mail->hasTo($booking->customer_email);
         });
     }

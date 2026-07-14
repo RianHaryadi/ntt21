@@ -49,7 +49,6 @@ class HotelAvailabilityTest extends TestCase
             'customer_name' => 'Budi Santoso',
             'customer_email' => 'budi@example.com',
             'customer_phone' => '081234567890',
-            'payment_method' => 'transfer',
             'agree_terms' => '1',
             'room_price' => $roomPrice,
             'night_count' => $nights,

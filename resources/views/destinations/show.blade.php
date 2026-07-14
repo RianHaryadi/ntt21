@@ -211,8 +211,18 @@
                         </span>
                         @endif
                     </div>
-                    @php $wishlistType = 'destination'; $wishlistId = $destination->id; @endphp
-                    @include('partials.wishlist-btn')
+                    <div class="flex items-center gap-2">
+                        @auth
+                        <button type="button"
+                                onclick="openQuickAdd({type: 'destination', id: {{ $destination->id }}, name: '{{ addslashes($destination->name) }}'})"
+                                class="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full border bg-white/10 border-white/30 text-white hover:bg-white/20 transition-all">
+                            <i class="fas fa-shopping-bag opacity-80"></i>
+                            <span>Keranjang</span>
+                        </button>
+                        @endauth
+                        @php $wishlistType = 'destination'; $wishlistId = $destination->id; @endphp
+                        @include('partials.wishlist-btn')
+                    </div>
                 </div>
 
                 {{-- Title --}}

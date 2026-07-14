@@ -40,7 +40,9 @@ return [
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
             'retry_after' => env('DB_QUEUE_RETRY_AFTER', 90),
-            'after_commit' => false,
+            // Job baru didispatch setelah transaksi DB commit, agar worker tidak
+            // memproses email/notifikasi untuk booking yang akhirnya di-rollback.
+            'after_commit' => true,
         ],
 
         'beanstalkd' => [

@@ -128,8 +128,8 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
                                 </div>
-                                <input type="text" name="customer_name" id="customer_name" value="{{ old('customer_name') }}" required
-                                    class="pl-10 block w-full border border-line rounded-lg shadow-sm py-3 px-4 focus:ring-laut focus:border-laut hover:border-laut/60 transition duration-200">
+                                <input type="text" name="customer_name" id="customer_name" value="{{ old('customer_name', auth()->user()->name) }}" required readonly
+                                    class="pl-10 block w-full border border-line rounded-lg shadow-sm py-3 px-4 bg-line/30 text-muted cursor-not-allowed focus:outline-none">
                             </div>
                             @error('customer_name')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -147,8 +147,8 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
                                 </div>
-                                <input type="email" name="customer_email" id="customer_email" value="{{ old('customer_email') }}" required
-                                    class="pl-10 block w-full border border-line rounded-lg shadow-sm py-3 px-4 focus:ring-laut focus:border-laut hover:border-laut/60 transition duration-200">
+                                <input type="email" name="customer_email" id="customer_email" value="{{ old('customer_email', auth()->user()->email) }}" required readonly
+                                    class="pl-10 block w-full border border-line rounded-lg shadow-sm py-3 px-4 bg-line/30 text-muted cursor-not-allowed focus:outline-none">
                             </div>
                             @error('customer_email')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -166,7 +166,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                     </svg>
                                 </div>
-                                <input type="tel" name="customer_phone" id="customer_phone" value="{{ old('customer_phone') }}" required
+                                <input type="tel" name="customer_phone" id="customer_phone" value="{{ old('customer_phone', auth()->user()->phone) }}" required
                                     class="pl-10 block w-full border border-line rounded-lg shadow-sm py-3 px-4 focus:ring-laut focus:border-laut hover:border-laut/60 transition duration-200">
                             </div>
                             @error('customer_phone')

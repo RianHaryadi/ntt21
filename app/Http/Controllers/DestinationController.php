@@ -139,8 +139,6 @@ class DestinationController extends Controller
         // Validasi input
         $request->validate([
             'destination_id'     => 'required|exists:destinations,id',
-            'customer_name'      => 'required|string|max:255',
-            'customer_email'     => 'required|email|max:255',
             'customer_phone'     => 'required|string|max:20',
             'booking_date'       => 'required|date|after_or_equal:today',
             'number_of_tickets'  => 'required|integer|min:1',
@@ -148,6 +146,17 @@ class DestinationController extends Controller
             'discount_amount'    => 'nullable|numeric|min:0',
             'has_insurance'      => 'nullable|boolean',
         ]);
+
+        // Nama & email selalu diambil dari akun yang login (field readonly di form).
+        $user = auth()->user();
+        $request->merge([
+            'customer_name' => $user->name,
+            'customer_email' => $user->email,
+        ]);
+
+        if (!$user->phone) {
+            $user->update(['phone' => $request->customer_phone]);
+        }
 
         $destination = Destination::findOrFail($request->destination_id);
 

@@ -158,11 +158,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/cart/add', [\App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
     Route::delete('/cart/{id}', [\App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
     Route::post('/cart/checkout', [\App\Http\Controllers\CartController::class, 'checkout'])->name('cart.checkout');
-
-    // Order gabungan (hasil checkout keranjang)
-    Route::get('/orders/{order_code}/payment', [\App\Http\Controllers\OrderController::class, 'payment'])->name('orders.payment');
-    Route::get('/orders/{order_code}/success', [\App\Http\Controllers\OrderController::class, 'success'])->name('orders.success');
 });
+
+// Order gabungan (publik — booking hotel langsung mendukung guest checkout;
+// order_code acak & tidak bisa ditebak)
+Route::get('/orders/{order_code}/payment', [\App\Http\Controllers\OrderController::class, 'payment'])->name('orders.payment');
+Route::get('/orders/{order_code}/success', [\App\Http\Controllers\OrderController::class, 'success'])->name('orders.success');
 
 // Webhook Midtrans (publik, dipanggil server Midtrans langsung — tanpa sesi/CSRF)
 Route::post('/midtrans/notification', [TransactionController::class, 'notification'])->name('midtrans.notification');

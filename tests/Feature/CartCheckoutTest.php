@@ -283,4 +283,67 @@ class CartCheckoutTest extends TestCase
         $this->assertEquals($destination->id, $transaction->destination_id);
         $response->assertRedirect(route('orders.payment', $order->order_code));
     }
+
+    public function test_cart_page_prefills_name_email_phone_from_logged_in_user(): void
+    {
+        $user = User::factory()->create(['name' => 'Budi Santoso', 'email' => 'budi@example.com', 'phone' => '081200001111']);
+        $destination = Destination::factory()->create(['price' => 100000]);
+        $this->actingAs($user)->postJson(route('cart.add'), [
+            'itemable_type' => 'destination',
+            'itemable_id' => $destination->id,
+            'booking_date' => now()->addDays(3)->format('Y-m-d'),
+            'number_of_tickets' => 1,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('cart.index'));
+
+        $response->assertOk();
+        $response->assertSee('value="Budi Santoso"', false);
+        $response->assertSee('value="budi@example.com"', false);
+        $response->assertSee('value="081200001111"', false);
+    }
+
+    public function test_checkout_ignores_tampered_name_and_email_and_uses_account_identity(): void
+    {
+        $user = User::factory()->create(['name' => 'Siti Aminah', 'email' => 'siti@example.com', 'phone' => '081200002222']);
+        $destination = Destination::factory()->create(['price' => 100000]);
+        $this->actingAs($user)->postJson(route('cart.add'), [
+            'itemable_type' => 'destination',
+            'itemable_id' => $destination->id,
+            'booking_date' => now()->addDays(3)->format('Y-m-d'),
+            'number_of_tickets' => 1,
+        ]);
+
+        $this->actingAs($user)->post(route('cart.checkout'), [
+            'customer_name' => 'Someone Else',
+            'customer_email' => 'attacker@example.com',
+            'customer_phone' => '081200002222',
+        ]);
+
+        $this->assertDatabaseHas('orders', [
+            'customer_name' => 'Siti Aminah',
+            'customer_email' => 'siti@example.com',
+        ]);
+        $this->assertDatabaseMissing('orders', [
+            'customer_name' => 'Someone Else',
+        ]);
+    }
+
+    public function test_checkout_saves_phone_to_user_account_when_not_already_set(): void
+    {
+        $user = User::factory()->create(['phone' => null]);
+        $destination = Destination::factory()->create(['price' => 100000]);
+        $this->actingAs($user)->postJson(route('cart.add'), [
+            'itemable_type' => 'destination',
+            'itemable_id' => $destination->id,
+            'booking_date' => now()->addDays(3)->format('Y-m-d'),
+            'number_of_tickets' => 1,
+        ]);
+
+        $this->actingAs($user)->post(route('cart.checkout'), [
+            'customer_phone' => '081299998888',
+        ]);
+
+        $this->assertEquals('081299998888', $user->refresh()->phone);
+    }
 }

@@ -182,7 +182,7 @@
                 {{-- Hotel Info Card --}}
                 <div class="bg-paper rounded-3xl overflow-hidden shadow-sm border border-line/60 fade-up fade-up-1">
                     <div class="relative h-44">
-                        <img src="{{ $hotel->image ? asset('storage/' . ltrim($hotel->image, '/')) : asset('images/fallback-hotel.jpg') }}"
+                        <img src="{{ $hotel->image ? asset('storage/' . ltrim($hotel->image, '/')) : asset('images/hotel-fallback.jpg') }}"
                              alt="{{ $hotel->name }}" class="w-full h-full object-cover">
                         <div class="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent"></div>
                         <div class="absolute top-3 left-3">
@@ -242,8 +242,8 @@
                                 ['label' => 'Room Type', 'desc' => 'Choose single, double or family', 'icon' => 'fa-bed'],
                                 ['label' => 'Dates & Promo', 'desc' => 'Set dates, apply discount code', 'icon' => 'fa-calendar-alt'],
                                 ['label' => 'Guest Info', 'desc' => 'Name, email and phone number', 'icon' => 'fa-user-circle'],
-                                ['label' => 'Payment', 'desc' => 'Transfer, QRIS or cash', 'icon' => 'fa-credit-card'],
                                 ['label' => 'Confirm', 'desc' => 'Review and complete booking', 'icon' => 'fa-check-circle'],
+                                ['label' => 'Payment', 'desc' => 'Bayar online via Midtrans', 'icon' => 'fa-credit-card'],
                             ];
                         @endphp
                         @foreach($steps as $idx => $step)
@@ -494,7 +494,7 @@
                                 <label class="block text-[10px] uppercase tracking-widest font-black text-muted mb-2">Full Name <span class="text-red-500">*</span></label>
                                 <div class="relative">
                                     <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none w-5 text-center"><i class="fas fa-user text-sm"></i></span>
-                                    <input type="text" name="customer_name" value="{{ old('customer_name') }}"
+                                    <input type="text" name="customer_name" value="{{ old('customer_name', auth()->user()->name ?? '') }}"
                                            placeholder="Your full name" class="form-input" required>
                                 </div>
                                 @error('customer_name')<p class="text-red-500 text-xs font-bold mt-1 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> {{ $message }}</p>@enderror
@@ -503,7 +503,7 @@
                                 <label class="block text-[10px] uppercase tracking-widest font-black text-muted mb-2">Email Address <span class="text-red-500">*</span></label>
                                 <div class="relative">
                                     <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none w-5 text-center"><i class="fas fa-envelope text-sm"></i></span>
-                                    <input type="email" name="customer_email" value="{{ old('customer_email') }}"
+                                    <input type="email" name="customer_email" value="{{ old('customer_email', auth()->user()->email ?? '') }}"
                                            placeholder="your@email.com" class="form-input" required>
                                 </div>
                                 @error('customer_email')<p class="text-red-500 text-xs font-bold mt-1 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> {{ $message }}</p>@enderror
@@ -512,7 +512,7 @@
                                 <label class="block text-[10px] uppercase tracking-widest font-black text-muted mb-2">Phone Number <span class="text-red-500">*</span></label>
                                 <div class="relative">
                                     <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none w-5 text-center"><i class="fas fa-phone text-sm"></i></span>
-                                    <input type="tel" name="customer_phone" value="{{ old('customer_phone') }}"
+                                    <input type="tel" name="customer_phone" value="{{ old('customer_phone', auth()->user()->phone ?? '') }}"
                                            placeholder="08xxxxxxxxxx" class="form-input" required>
                                 </div>
                                 @error('customer_phone')<p class="text-red-500 text-xs font-bold mt-1 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> {{ $message }}</p>@enderror
@@ -528,46 +528,28 @@
                         </div>
                     </div>
 
-                    {{-- ── SECTION 5: Payment Method ── --}}
+                    {{-- ── SECTION 5: Payment via Midtrans ── --}}
                     <div class="bg-paper rounded-3xl p-7 shadow-sm border border-line/60 fade-up fade-up-5">
                         <div class="section-label">
                             <div class="icon-wrap"><i class="fas fa-credit-card"></i></div>
                             <div>
-                                <h2 class="text-ink font-black text-lg font-serif tracking-tight leading-none">Payment Method</h2>
-                                <p class="text-muted text-xs font-medium mt-0.5">How would you like to pay?</p>
+                                <h2 class="text-ink font-black text-lg font-serif tracking-tight leading-none">Pembayaran Online</h2>
+                                <p class="text-muted text-xs font-medium mt-0.5">Diproses aman melalui Midtrans setelah konfirmasi</p>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="paymentCards">
-                            @php
-                                $methods = [
-                                    ['value'=>'transfer','label'=>'Bank Transfer','desc'=>'Via ATM or internet banking','icon'=>'fa-university','extra'=>'BCA · BNI · Mandiri · BRI'],
-                                    ['value'=>'qris','label'=>'QRIS','desc'=>'Scan QR code to pay instantly','icon'=>'fa-qrcode','extra'=>'GoPay · OVO · Dana · LinkAja'],
-                                    ['value'=>'cash','label'=>'Pay on Arrival','desc'=>'Pay cash at check-in','icon'=>'fa-money-bill-wave','extra'=>'No upfront payment needed'],
-                                ];
-                            @endphp
-                            @foreach($methods as $pm)
-                            <div class="payment-card {{ old('payment_method') === $pm['value'] ? 'selected' : '' }}"
-                                 data-value="{{ $pm['value'] }}" style="cursor:pointer; flex-direction:column; align-items:flex-start; gap:0.75rem;">
-                                <div class="flex items-center gap-3 w-full">
-                                    <div class="radio-ring flex-shrink-0 border-slate-300 bg-surface"></div>
-                                    <div class="flex-1">
-                                        <p class="font-black text-ink text-sm leading-none">{{ $pm['label'] }}</p>
-                                        <p class="text-muted text-[11px] font-medium mt-0.5">{{ $pm['desc'] }}</p>
-                                    </div>
-                                    <div class="w-9 h-9 rounded-xl bg-surface border border-line/60 shadow-sm flex items-center justify-center flex-shrink-0">
-                                        <i class="fas {{ $pm['icon'] }} text-slate-600 text-sm"></i>
-                                    </div>
-                                </div>
-                                <p class="text-[10px] text-muted font-bold pl-7">{{ $pm['extra'] }}</p>
-                                <input type="radio" name="payment_method" value="{{ $pm['value'] }}" class="hidden"
-                                    {{ old('payment_method') === $pm['value'] ? 'checked' : '' }} required>
+                        <div class="bg-surface rounded-2xl p-5 border border-line/60 flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-laut/10 border border-laut/20 flex items-center justify-center flex-shrink-0 text-laut">
+                                <i class="fas fa-shield-alt"></i>
                             </div>
-                            @endforeach
+                            <div class="text-sm">
+                                <p class="font-black text-ink mb-1">Transfer Bank · QRIS · E-Wallet · Kartu Kredit</p>
+                                <p class="text-muted text-xs font-medium leading-relaxed">
+                                    Setelah menekan tombol konfirmasi, Anda akan diarahkan ke halaman pembayaran Midtrans
+                                    untuk memilih metode dan menyelesaikan pembayaran secara aman.
+                                </p>
+                            </div>
                         </div>
-                        @error('payment_method')
-                            <p class="text-red-500 text-xs font-bold mt-3 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> {{ $message }}</p>
-                        @enderror
                     </div>
 
                     {{-- ── Travel Insurance Add-on ── --}}
@@ -730,7 +712,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const hPromoCodeId   = document.getElementById('hPromoCodeId');
     const hTotal         = document.getElementById('hTotal');
     const roomCards      = document.querySelectorAll('#roomCards .room-card');
-    const paymentCards   = document.querySelectorAll('#paymentCards .payment-card');
 
     // ── Summary DOM refs ──
     const elNightLabel   = document.getElementById('nightLabel');
@@ -806,16 +787,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasRoom     = !!hRoomType.value;
         const hasDates    = !!checkIn.value && !!checkOut.value;
         const hasGuest    = document.querySelector('[name="customer_name"]')?.value.trim().length > 0;
-        const hasPayment  = !!document.querySelector('[name="payment_method"]:checked');
+        const hasTerms    = !!document.getElementById('agreeTerms')?.checked;
 
-        const done = [hasRoom ? 0 : -1, hasDates ? 1 : -1, hasGuest ? 2 : -1, hasPayment ? 3 : -1];
-        steps.forEach((s, i) => {
-            s.classList.remove('done','active');
-            if (done.includes(i)) s.classList.add('done');
-            else { if (!done.includes(i-1) && i === done.filter(x=>x>=0).length) s.classList.add('active'); }
-        });
-        // Smarter: mark done steps
-        const allDone = [hasRoom, hasDates, hasGuest, hasPayment];
+        const allDone = [hasRoom, hasDates, hasGuest, hasTerms];
         steps.forEach((s, i) => {
             s.classList.remove('done','active');
             if (i < 4) {
@@ -888,16 +862,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ── Payment selection ──
-    paymentCards.forEach(card => {
-        card.addEventListener('click', () => {
-            paymentCards.forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            card.querySelector('input[type=radio]').checked = true;
-            updateSteps();
-        });
-    });
-
     // ── Dates ──
     checkIn.addEventListener('change', () => {
         const nextDay = new Date(checkIn.value);
@@ -920,6 +884,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[name="customer_name"],[name="customer_email"],[name="customer_phone"]').forEach(el => {
         el.addEventListener('blur', updateSteps);
     });
+    document.getElementById('agreeTerms')?.addEventListener('change', updateSteps);
 
     // ── Promo ──
     function clearPromo(keepInput = false) {
@@ -981,11 +946,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Submit validation ──
     document.getElementById('bookingForm').addEventListener('submit', function(e) {
-        if (!document.querySelector('input[name="payment_method"]:checked')) {
-            e.preventDefault();
-            document.querySelector('#paymentCards').scrollIntoView({ behavior:'smooth', block:'center' });
-            return;
-        }
         if (!document.getElementById('agreeTerms').checked) {
             e.preventDefault();
             document.getElementById('agreeTerms').scrollIntoView({ behavior:'smooth', block:'center' });
@@ -995,7 +955,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const sub = state.roomPrice * state.nights;
         const tax = sub * 0.10;
         const svc = sub * 0.05;
-        const total = Math.max(sub + tax + svc - state.discount, 0);
+        const insurance = hasInsurance.checked ? insurancePricePerBooking : 0;
+        const total = Math.max(sub + tax + svc - state.discount, 0) + insurance;
         hTotal.value = total.toFixed(2);
         hTax.value   = tax.toFixed(2);
         hService.value = svc.toFixed(2);

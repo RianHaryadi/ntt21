@@ -190,6 +190,14 @@
                         <a href="{{ route('hotels.show', $hotel->id) }}" class="flex-1 text-center inline-flex items-center justify-center gap-2 bg-surface text-ink font-semibold text-sm py-3 rounded-full border border-line hover:border-clay hover:text-clay transition-all">
                             {{ __('site.hotel_details') }}
                         </a>
+                        @auth
+                        <button type="button"
+                                onclick="openQuickAdd({type: 'hotel', id: {{ $hotel->id }}, name: '{{ addslashes($hotel->name) }}'})"
+                                class="w-12 flex-shrink-0 inline-flex items-center justify-center rounded-full bg-ink text-paper hover:bg-ink/90 transition-all"
+                                title="Tambah ke Keranjang">
+                            <i class="fas fa-shopping-bag text-xs"></i>
+                        </button>
+                        @endauth
                         <a href="{{ route('hotels.book', $hotel->id) }}" class="flex-1 text-center inline-flex items-center justify-center gap-2 bg-clay text-paper font-semibold text-sm py-3 rounded-full hover:bg-clay/90 active:scale-[0.98] transition-all">
                             {{ __('site.hotel_book_now') }}
                         </a>

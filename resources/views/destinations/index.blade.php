@@ -174,9 +174,19 @@
                         @endif
                     </div>
                     
-                    <a href="{{ route('destinations.show', $destination->id) }}" class="inline-flex items-center justify-center gap-2 bg-surface text-ink font-semibold text-sm w-full py-3 rounded-xl border border-line hover:border-clay hover:text-clay transition-all">
-                        {{ __('site.dest_explore') }}
-                    </a>
+                    <div class="flex gap-2">
+                        <a href="{{ route('destinations.show', $destination->id) }}" class="flex-1 inline-flex items-center justify-center gap-2 bg-surface text-ink font-semibold text-sm py-3 rounded-xl border border-line hover:border-clay hover:text-clay transition-all">
+                            {{ __('site.dest_explore') }}
+                        </a>
+                        @auth
+                        <button type="button"
+                                onclick="openQuickAdd({type: 'destination', id: {{ $destination->id }}, name: '{{ addslashes($destination->name) }}'})"
+                                class="w-12 flex-shrink-0 inline-flex items-center justify-center rounded-xl bg-ink text-paper hover:bg-ink/90 transition-all"
+                                title="Tambah ke Keranjang">
+                            <i class="fas fa-shopping-bag text-xs"></i>
+                        </button>
+                        @endauth
+                    </div>
                 </div>
             </div>
             @empty

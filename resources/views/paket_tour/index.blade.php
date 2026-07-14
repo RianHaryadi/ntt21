@@ -207,6 +207,16 @@
                             <a href="{{ route('paket-tours.show', $paket->id) }}" class="inline-flex items-center justify-center gap-2 bg-paper text-ink font-semibold text-sm px-6 py-2 rounded-full border border-line hover:border-clay hover:text-clay transition-all">
                                 Details
                             </a>
+                            @auth
+                            @if(!$paket->includes_hotel)
+                            <button type="button"
+                                    onclick="openQuickAdd({type: 'tour', id: {{ $paket->id }}, name: '{{ addslashes($paket->name) }}'})"
+                                    class="w-10 flex-shrink-0 inline-flex items-center justify-center rounded-full bg-ink text-paper hover:bg-ink/90 transition-all"
+                                    title="Tambah ke Keranjang">
+                                <i class="fas fa-shopping-bag text-xs"></i>
+                            </button>
+                            @endif
+                            @endauth
                             <a href="{{ route('paket-tour.create', $paket) }}" class="inline-flex items-center justify-center gap-2 bg-clay text-paper font-semibold text-sm px-6 py-2 rounded-full hover:bg-clay/90 transition-all">
                                 Book Now
                             </a>

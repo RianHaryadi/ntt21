@@ -118,17 +118,17 @@
                             <div class="space-y-4">
                                 <div>
                                     <label for="customer_name" class="block text-xs uppercase tracking-widest font-bold text-muted mb-1.5">Full Name</label>
-                                    <input type="text" name="customer_name" id="customer_name" value="{{ old('customer_name') }}" required 
-                                           class="block w-full px-4 py-3.5 bg-surface border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-petrol focus:border-transparent transition-all font-medium text-ink">
+                                    <input type="text" name="customer_name" id="customer_name" value="{{ old('customer_name', auth()->user()->name) }}" required readonly
+                                           class="block w-full px-4 py-3.5 bg-line/30 border border-line rounded-xl focus:outline-none font-medium text-muted cursor-not-allowed">
                                 </div>
                                 <div>
                                     <label for="customer_email" class="block text-xs uppercase tracking-widest font-bold text-muted mb-1.5">Email Address</label>
-                                    <input type="email" name="customer_email" id="customer_email" value="{{ old('customer_email') }}" required 
-                                           class="block w-full px-4 py-3.5 bg-surface border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-petrol focus:border-transparent transition-all font-medium text-ink">
+                                    <input type="email" name="customer_email" id="customer_email" value="{{ old('customer_email', auth()->user()->email) }}" required readonly
+                                           class="block w-full px-4 py-3.5 bg-line/30 border border-line rounded-xl focus:outline-none font-medium text-muted cursor-not-allowed">
                                 </div>
                                 <div>
                                     <label for="customer_phone" class="block text-xs uppercase tracking-widest font-bold text-muted mb-1.5">Phone Number</label>
-                                    <input type="tel" name="customer_phone" id="customer_phone" value="{{ old('customer_phone') }}" required 
+                                    <input type="tel" name="customer_phone" id="customer_phone" value="{{ old('customer_phone', auth()->user()->phone) }}" required
                                            class="block w-full px-4 py-3.5 bg-surface border border-line rounded-xl focus:outline-none focus:ring-2 focus:ring-petrol focus:border-transparent transition-all font-medium text-ink">
                                 </div>
                             </div>

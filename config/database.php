@@ -52,6 +52,12 @@ return [
             'prefix' => '',
             'strict' => true,
             'engine' => null,
+            // Dipakai spatie/laravel-backup. Kosongkan dump_binary_path jika
+            // mysqldump sudah ada di PATH (umumnya di server produksi).
+            'dump' => [
+                'dump_binary_path' => env('MYSQL_DUMP_BINARY_PATH', ''),
+                'useSingleTransaction' => true,
+            ],
 ],
 
         'mariadb' => [

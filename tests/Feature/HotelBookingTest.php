@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\BookingHotel;
 use App\Models\Hotel;
+use App\Models\Order;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -29,7 +30,6 @@ class HotelBookingTest extends TestCase
             'customer_name' => 'Budi Santoso',
             'customer_email' => 'budi@example.com',
             'customer_phone' => '081234567890',
-            'payment_method' => 'transfer',
             'agree_terms' => '1',
             'room_price' => $roomPrice,
             'night_count' => $nights,
@@ -55,8 +55,12 @@ class HotelBookingTest extends TestCase
             'status' => 'pending',
         ]);
 
+        // Booking langsung kini dibungkus Order dan diarahkan ke pembayaran Midtrans
         $booking = BookingHotel::first();
-        $response->assertRedirect(route('booking.success', $booking->id));
+        $order = Order::first();
+        $this->assertNotNull($order);
+        $this->assertEquals($order->id, $booking->order_id);
+        $response->assertRedirect(route('orders.payment', $order->order_code));
     }
 
     public function test_guest_can_create_hotel_booking_without_logging_in(): void
@@ -72,8 +76,9 @@ class HotelBookingTest extends TestCase
             'status' => 'pending',
         ]);
 
-        $booking = BookingHotel::first();
-        $response->assertRedirect(route('booking.success', $booking->id));
+        $order = Order::first();
+        $this->assertNotNull($order);
+        $response->assertRedirect(route('orders.payment', $order->order_code));
     }
 
     public function test_booking_rejects_tampered_room_price(): void

@@ -91,22 +91,27 @@
 
                         <div>
                             <label class="block text-xs font-semibold text-ink mb-1.5">Nama Lengkap</label>
-                            <input type="text" name="customer_name" required value="{{ old('customer_name', auth()->user()->name ?? '') }}"
-                                   class="w-full border border-line rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-laut">
+                            <input type="text" name="customer_name" required readonly value="{{ old('customer_name', auth()->user()->name) }}"
+                                   class="w-full border border-line rounded-xl px-4 py-3 text-sm bg-line/30 text-muted cursor-not-allowed focus:outline-none">
+                            <p class="text-[11px] text-muted mt-1">Sesuai akun Anda. Ubah di <a href="{{ route('profile.edit') }}" class="text-laut font-semibold hover:underline">halaman profil</a>.</p>
                             @error('customer_name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
                             <label class="block text-xs font-semibold text-ink mb-1.5">Email</label>
-                            <input type="email" name="customer_email" required value="{{ old('customer_email', auth()->user()->email ?? '') }}"
-                                   class="w-full border border-line rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-laut">
+                            <input type="email" name="customer_email" required readonly value="{{ old('customer_email', auth()->user()->email) }}"
+                                   class="w-full border border-line rounded-xl px-4 py-3 text-sm bg-line/30 text-muted cursor-not-allowed focus:outline-none">
+                            <p class="text-[11px] text-muted mt-1">Sesuai akun Anda. Ubah di <a href="{{ route('profile.edit') }}" class="text-laut font-semibold hover:underline">halaman profil</a>.</p>
                             @error('customer_email') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
                             <label class="block text-xs font-semibold text-ink mb-1.5">Nomor Telepon</label>
-                            <input type="text" name="customer_phone" required value="{{ old('customer_phone') }}"
+                            <input type="text" name="customer_phone" required value="{{ old('customer_phone', auth()->user()->phone) }}"
                                    class="w-full border border-line rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-laut">
+                            @if(!auth()->user()->phone)
+                            <p class="text-[11px] text-muted mt-1">Belum ada nomor tersimpan — akan disimpan ke akun setelah checkout.</p>
+                            @endif
                             @error('customer_phone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
