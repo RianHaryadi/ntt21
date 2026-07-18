@@ -80,6 +80,7 @@ Route::get('/booking/{id}/voucher', [HotelBookingController::class, 'downloadVou
 Route::prefix('ai')->name('ai.')->group(function () {
     Route::get('/', [AIController::class, 'hub'])->name('hub');
     Route::get('/search', [AIController::class, 'searchPage'])->name('search');
+    Route::get('/itinerary', [AIController::class, 'itinerary'])->name('itinerary');
 
     // Endpoint yang memanggil Claude API — dibatasi rate agar tidak disalahgunakan
     Route::middleware('throttle:20,1')->group(function () {
@@ -156,8 +157,10 @@ Route::middleware('auth')->group(function () {
     // Keranjang (lintas tipe: destinasi, hotel, paket tour dalam satu checkout)
     Route::get('/cart', [\App\Http\Controllers\CartController::class, 'index'])->name('cart.index');
     Route::post('/cart/add', [\App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
+    Route::delete('/cart/clear', [\App\Http\Controllers\CartController::class, 'clear'])->name('cart.clear');
     Route::delete('/cart/{id}', [\App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
     Route::post('/cart/checkout', [\App\Http\Controllers\CartController::class, 'checkout'])->name('cart.checkout');
+    Route::post('/cart/validate-promo', [\App\Http\Controllers\CartController::class, 'validatePromo'])->name('cart.validatePromo');
 });
 
 // Order gabungan (publik — booking hotel langsung mendukung guest checkout;

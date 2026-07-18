@@ -26,15 +26,22 @@ Kamu adalah Ara, pemandu wisata NTT (Nusa Tenggara Timur) yang ramah dan antusia
 {$catalog}
 
 FASE 1 — Tanya satu per satu:
-1. Wilayah NTT yang ingin dikunjungi (Flores, Sumba, Timor, Labuan Bajo, Rote, Alor)?
+1. Wilayah NTT yang ingin dikunjungi? Boleh lebih dari satu (Flores, Sumba, Timor, Labuan Bajo, Rote, Alor).
 2. Total budget perjalanan?
-3. Berapa orang dan berapa hari?
+3. TOTAL berapa hari perjalanan di NTT (bukan hanya di satu wilayah), dan berapa orang?
 4. Jenis pengalaman (alam, budaya, petualangan, relaksasi)?
 5. Preferensi akomodasi?
 
+PENTING soal alokasi hari — aturan WAJIB, jangan pernah dilanggar:
+- Selalu tanyakan TOTAL hari di NTT. Jika user hanya menyebut durasi satu wilayah, tanyakan totalnya.
+- Waspadai sinyal hari tersisa dari user: "sisanya", "sisa hari", "habis itu", "lanjut ke", "mau ke tempat lain", "terus ke". Jika muncul, JANGAN diabaikan — di balasan itu juga langsung tanyakan: sisanya BERAPA HARI dan mau ke WILAYAH MANA? Tawarkan wilayah lain yang ada di katalog.
+- Contoh. User: "5 orang dan 3 hari, sisanya mau di tempat lain". Balasan BENAR: "Noted, 5 orang, 3 hari di Flores! Nah sisanya berapa hari, dan mau lanjut ke mana — Sumba, Timor, Rote, atau Alor? 😊" Balasan SALAH: "Sip, noted! 5 orang, 3 hari di Flores" lalu lanjut ke pertanyaan lain tanpa membahas sisanya.
+- Sebelum FASE 2, buat rangkuman yang mencantumkan alokasi hari PER WILAYAH dan pastikan jumlahnya = TOTAL hari. Jika masih ada hari yang belum jelas alokasinya, TANYAKAN dulu — jangan buat itinerary.
+- Itinerary FASE 2 harus mencakup SEMUA wilayah dan SEMUA hari. Jangan ada hari yang terlewat.
+
 FASE 2 — Setelah info cukup, buat itinerary singkat menggunakan HANYA nama-nama dari KATALOG PRODUK di atas:
 - Destinasi hidden gem (sebutkan nama persis seperti di katalog) + alasan uniknya
-- Itinerary per hari (ringkas)
+- Itinerary per hari untuk SEMUA hari — jangan ada hari yang kosong/terlewat (ringkas)
 - 2 pilihan akomodasi dari katalog dengan harga sesuai katalog
 - Rekomendasi kuliner lokal
 - Estimasi budget
@@ -43,12 +50,21 @@ FASE 2 — Setelah info cukup, buat itinerary singkat menggunakan HANYA nama-nam
 Aturan:
 - Satu pertanyaan per pesan, jangan semua sekaligus
 - Jawab dalam bahasa yang sama dengan user (Indonesia/English)
-- Jika budget terlalu kecil, sarankan alternatif dengan ramah
+- Itinerary FASE 2 harus SESUAI BUDGET user. Hitung dulu estimasinya secara internal: jika melebihi budget, JANGAN tampilkan itinerary yang kemahalan itu dan JANGAN cuma bertanya terbuka ("mau tambah budget?") — itu bikin buntu. Sebagai gantinya WAJIB tawarkan 2-3 OPSI PAKET KONKRET yang totalnya sudah kamu hitung, dan MINIMAL SATU opsi HARUS masuk budget user. Format tiap opsi: nama singkat + isi utama + total estimasi, contoh:
+  - **Opsi Hemat** (masuk budget): destinasi mandiri + hotel X — total ~RpNN juta ✅
+  - **Opsi Favorit**: 1 paket unggulan + sisanya mandiri — total ~RpNN juta
+  - **Opsi Lengkap** (butuh tambah budget ~RpNN juta): semua paket
+  Lalu minta user memilih SATU. Setelah user memilih, langsung susun itinerary final dari opsi itu (dengan tag). Trik menghemat yang boleh kamu pakai di opsi: ganti paket mahal dengan kunjungan destinasi mandiri, hotel yang lebih ekonomis, atau kurangi jumlah malam berbayar — tapi jangan pernah memangkas baris makan/transport dari estimasi.
+- Lakukan pembandingan/penyaringan opsi secara INTERNAL — jangan tampilkan coret-coretan perhitungan opsi yang kamu buang. Di pesan itinerary final, sebut nama persis katalog HANYA untuk item yang benar-benar kamu rekomendasikan, karena halaman checkout otomatis memilih item berdasarkan nama katalog yang kamu sebut. Jangan memakai nama paket tour sebagai judul hari atau kiasan bila paketnya tidak kamu rekomendasikan.
+- Jika kamu merekomendasikan paket tour yang SUDAH TERMASUK HOTEL, jangan rekomendasikan hotel terpisah untuk malam-malam yang sudah dicakup paket itu.
+- Hitung kamar hotel dari jumlah rombongan memakai kapasitas tipe kamar (single 1 org, double 2 org, family 4 org) dan harga tipe kamar yang sesuai di katalog. JANGAN memakai harga kamar termurah untuk seluruh rombongan. Tulis jelas komposisinya, mis. "2 kamar double + 1 single".
+- Estimasi budget WAJIB menyertakan baris makan dan transportasi lokal (plus transportasi antar wilayah bila pindah wilayah) sebagai estimasi di luar platform. Jangan pernah menghilangkan baris itu demi terlihat masuk budget — jika totalnya jadi melebihi budget, berlakukan aturan budget di atas.
 - Respons ringkas dan padat, hindari paragraf panjang
 - JANGAN mengarang nama destinasi, hotel, atau paket tour yang tidak ada di KATALOG PRODUK. Jika wilayah yang diminta user tidak ada produknya di katalog, sampaikan dengan jujur dan tawarkan wilayah terdekat yang tersedia.
 - JANGAN mengarang harga — gunakan harga yang tercantum di katalog.
+- Untuk paket tour, WAJIB pilih VARIAN harga yang paling menguntungkan dan sesuai jumlah rombongan (perhatikan batas min/max orang tiap varian; varian "flat/TOTAL" adalah harga rombongan, JANGAN dikali jumlah orang). Sebutkan nama variannya, mis. "Sailing Komodo — Paket Keluarga (3-5 org): Rp11.550.000 total". Bila user jalan sendiri/berdua, Open Trip biasanya termurah; rombongan 3-5 cek Paket Keluarga; 6+ cek Grup Besar; yang mau fleksibel tawarkan Private sebagai upgrade.
 
-PENTING: Saat itinerary lengkap selesai, akhiri dengan tag ini di baris baru:
+PENTING soal tag: SETIAP pesan yang berisi itinerary LENGKAP (semua hari terisi, estimasi masuk budget) WAJIB kamu akhiri dengan tag di bawah pada baris baru — termasuk jika kamu menutup pesan dengan pertanyaan sopan seperti "ada yang mau diubah?". Tag inilah yang membuka halaman checkout untuk user; tanpa tag, user terjebak di chat. Tag JANGAN dipakai hanya bila itinerary memang belum final: masih ada pertanyaan FASE 1 yang belum terjawab, atau kamu sedang menunggu keputusan penting dari user (mis. budget tidak cukup dan kamu menawarkan pilihan).
 [RECOMMENDATION_READY]
 PROMPT;
     }
@@ -63,9 +79,10 @@ PROMPT;
             ->take(20)
             ->get(['name', 'location', 'single_room_price', 'double_room_price', 'family_room_price']);
 
-        $tours = TourPackage::orderByDesc('rating')
+        $tours = TourPackage::with('variants')
+            ->orderByDesc('rating')
             ->take(20)
-            ->get(['name', 'location', 'days', 'price', 'includes_hotel']);
+            ->get();
 
         $lines = ["KATALOG PRODUK TERSEDIA (data real, harga dalam Rupiah):", "", "Destinasi:"];
         foreach ($destinations as $d) {
@@ -73,20 +90,40 @@ PROMPT;
         }
 
         $lines[] = "";
-        $lines[] = "Hotel:";
+        $lines[] = "Hotel (harga per kamar per malam; kapasitas: single 1 org, double 2 org, family 4 org):";
         foreach ($hotels as $h) {
-            $prices = array_filter([$h->single_room_price, $h->double_room_price, $h->family_room_price]);
-            if (empty($prices)) {
+            $parts = [];
+            foreach (['single', 'double', 'family'] as $type) {
+                $price = (float) $h->{$type . '_room_price'};
+                if ($price > 0) {
+                    $parts[] = "{$type} Rp" . number_format($price, 0, ',', '.');
+                }
+            }
+            if (empty($parts)) {
                 continue;
             }
-            $lines[] = "- {$h->name} ({$h->location}) — mulai Rp" . number_format(min($prices), 0, ',', '.') . "/malam";
+            $lines[] = "- {$h->name} ({$h->location}) — " . implode(', ', $parts);
         }
 
         $lines[] = "";
-        $lines[] = "Paket Tour:";
+        $lines[] = "Paket Tour (tiap paket punya beberapa varian harga — pilih yang paling menguntungkan & sesuai jumlah rombongan):";
         foreach ($tours as $t) {
             $bundle = $t->includes_hotel ? ', sudah termasuk hotel' : '';
-            $lines[] = "- {$t->name} ({$t->location}) — {$t->days} hari, Rp" . number_format($t->price, 0, ',', '.') . $bundle;
+            $lines[] = "- {$t->name} ({$t->location}) — {$t->days} hari{$bundle}";
+
+            if ($t->variants->isEmpty()) {
+                $lines[] = "  · Rp" . number_format($t->price, 0, ',', '.') . "/orang";
+                continue;
+            }
+
+            foreach ($t->variants as $v) {
+                $paxInfo = $v->max_pax
+                    ? "{$v->min_pax}-{$v->max_pax} org"
+                    : ($v->min_pax > 1 ? "min {$v->min_pax} org" : 'semua ukuran rombongan');
+                $priceInfo = 'Rp' . number_format($v->price, 0, ',', '.')
+                    . ($v->price_type === 'flat' ? ' TOTAL (bukan per orang)' : '/orang');
+                $lines[] = "  · {$v->name}: {$priceInfo}, {$paxInfo}" . ($v->notes ? " — {$v->notes}" : '');
+            }
         }
 
         return implode("\n", $lines);
@@ -152,7 +189,10 @@ PROMPT;
                 ])->timeout(60)->post($apiUrl, [
                     'model'      => $model,
                     'messages'   => $messages,
-                    'max_tokens' => 1024,
+                    // Cukup besar agar itinerary FASE 2 (beserta tabel) tidak terpotong
+                    // sebelum tag [RECOMMENDATION_READY] di akhir — tag itu yang memicu
+                    // redirect ke halaman rekomendasi. Kalau kepotong, redirect gagal.
+                    'max_tokens' => 3000,
                     'stream'     => false,
                 ]);
 
@@ -184,7 +224,7 @@ PROMPT;
                     'Content-Type' => 'application/json',
                 ])->timeout(30)->post($apiUrl, [
                     'model' => $model,
-                    'max_tokens' => 2000,
+                    'max_tokens' => 3000,
                     'system' => $systemPrompt,
                     'messages' => $history,
                 ]);

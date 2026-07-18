@@ -67,12 +67,24 @@ class TourPackage extends Model
     }
 
     /**
-     * Jika kamu aktifkan varian paket tur (tur tidak bundling)
+     * Varian harga paket (Open Trip per orang, Paket Keluarga flat, Private, dst.)
      */
-    // public function variants()
-    // {
-    //     return $this->hasMany(TourPackageVariant::class);
-    // }
+    public function variants()
+    {
+        return $this->hasMany(TourPackageVariant::class);
+    }
+
+    /**
+     * Varian termurah yang berlaku untuk jumlah rombongan tertentu.
+     * Null bila paket belum punya varian (fallback: harga dasar per orang).
+     */
+    public function bestVariantFor(int $pax): ?TourPackageVariant
+    {
+        return $this->variants
+            ->filter(fn ($v) => $v->fitsPax($pax))
+            ->sortBy(fn ($v) => $v->totalFor($pax))
+            ->first();
+    }
 
     // =======================
     // ACCESSORS

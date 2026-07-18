@@ -40,6 +40,17 @@
             </a>
         </div>
         @else
+        <div class="flex items-center justify-between mb-6">
+            <p class="text-sm font-semibold text-ink">{{ $items->count() }} item di keranjang</p>
+            <form method="POST" action="{{ route('cart.clear') }}"
+                  onsubmit="return confirm('Hapus semua item dari keranjang?');">
+                @csrf @method('DELETE')
+                <button type="submit" class="inline-flex items-center gap-2 text-xs font-bold text-red-500 hover:text-red-700 border border-red-200 hover:border-red-300 bg-red-50 px-4 py-2 rounded-full transition">
+                    <i class="fas fa-trash-alt"></i> Kosongkan Keranjang
+                </button>
+            </form>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
 
             {{-- Item List --}}
@@ -59,7 +70,9 @@
                         <h3 class="font-serif font-bold text-ink truncate">{{ $item->details['label'] ?? $item->itemable?->name }}</h3>
                         <p class="text-xs text-muted mt-1">
                             @if($type === 'hotel')
-                                {{ ucfirst($item->details['room_type']) }} Room · {{ \Carbon\Carbon::parse($item->details['check_in_date'])->format('d M') }} &rarr; {{ \Carbon\Carbon::parse($item->details['check_out_date'])->format('d M Y') }} ({{ $item->quantity() }} malam)
+                                {{ ucfirst($item->details['room_type']) }} Room · {{ \Carbon\Carbon::parse($item->details['check_in_date'])->format('d M') }} &rarr; {{ \Carbon\Carbon::parse($item->details['check_out_date'])->format('d M Y') }} ({{ $item->quantity() }} malam · {{ $item->rooms() }} kamar)
+                            @elseif(($item->details['price_type'] ?? null) === 'flat')
+                                {{ \Carbon\Carbon::parse($item->details['booking_date'])->format('d M Y') }} · 1 paket ({{ $item->details['pax'] ?? '-' }} orang)
                             @else
                                 {{ \Carbon\Carbon::parse($item->details['booking_date'])->format('d M Y') }} · {{ $item->quantity() }} tiket
                             @endif
@@ -117,8 +130,16 @@
 
                         <div>
                             <label class="block text-xs font-semibold text-ink mb-1.5">Kode Promo <span class="font-normal text-muted">(opsional)</span></label>
-                            <input type="text" name="promo_code" value="{{ old('promo_code') }}" placeholder="Masukkan kode"
-                                   class="w-full border border-line rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-laut">
+                            <div class="flex gap-2">
+                                <input type="text" id="promo_code_input" name="promo_code" value="{{ old('promo_code') }}" placeholder="Masukkan kode"
+                                       class="flex-1 border border-line rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-laut uppercase tracking-widest"
+                                       autocomplete="off" oninput="this.value = this.value.toUpperCase()">
+                                <button type="button" id="apply_promo_btn"
+                                        class="px-5 py-3 bg-clay text-paper text-xs font-bold rounded-xl hover:bg-clay/90 active:scale-95 transition-all whitespace-nowrap flex-shrink-0">
+                                    Terapkan
+                                </button>
+                            </div>
+                            <div id="promo_feedback" class="mt-2 hidden text-xs font-semibold rounded-lg px-3 py-2"></div>
                         </div>
 
                         <label class="flex items-start gap-3 cursor-pointer bg-paper rounded-xl p-4 border border-line">
@@ -133,12 +154,20 @@
                             </span>
                         </label>
 
-                        <div class="border-t border-line pt-4 mt-4">
-                            <div class="flex justify-between text-sm text-muted mb-2">
+                        <div class="border-t border-line pt-4 mt-4 space-y-2">
+                            <div class="flex justify-between text-sm text-muted">
                                 <span>Subtotal</span>
-                                <span>{{ format_price($subtotal) }}</span>
+                                <span id="summary_subtotal">{{ format_price($subtotal) }}</span>
                             </div>
-                            <p class="text-xs text-muted mb-4">Pajak, layanan, diskon promo, dan asuransi dihitung final saat checkout.</p>
+                            <div id="summary_discount_row" class="hidden flex justify-between text-sm text-green-600 font-semibold">
+                                <span id="summary_discount_label">Diskon Promo</span>
+                                <span id="summary_discount_value">-Rp 0</span>
+                            </div>
+                            <div id="summary_total_row" class="hidden flex justify-between text-sm font-bold text-ink border-t border-line pt-2 mt-1">
+                                <span>Total Setelah Diskon</span>
+                                <span id="summary_total_value" class="text-clay">{{ format_price($subtotal) }}</span>
+                            </div>
+                            <p class="text-xs text-muted">Pajak, layanan, dan asuransi dihitung final saat checkout.</p>
                         </div>
 
                         <button type="submit" class="btn-primary w-full py-4 rounded-xl flex items-center justify-center gap-2 text-sm font-bold">
@@ -151,5 +180,96 @@
         @endif
     </div>
 </main>
+
+<script>
+(function () {
+    const subtotalRaw = {{ $subtotal }};
+
+    function formatRupiah(num) {
+        return 'Rp ' + Math.round(num).toLocaleString('id-ID');
+    }
+
+    const btn        = document.getElementById('apply_promo_btn');
+    const input      = document.getElementById('promo_code_input');
+    const feedback   = document.getElementById('promo_feedback');
+    const discountRow = document.getElementById('summary_discount_row');
+    const discountLabel = document.getElementById('summary_discount_label');
+    const discountValue = document.getElementById('summary_discount_value');
+    const totalRow   = document.getElementById('summary_total_row');
+    const totalValue = document.getElementById('summary_total_value');
+
+    function showFeedback(msg, isSuccess) {
+        feedback.textContent = msg;
+        feedback.className = 'mt-2 text-xs font-semibold rounded-lg px-3 py-2 ' +
+            (isSuccess
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'bg-red-50 text-red-600 border border-red-200');
+        feedback.classList.remove('hidden');
+    }
+
+    function resetDiscount() {
+        discountRow.classList.add('hidden');
+        totalRow.classList.add('hidden');
+    }
+
+    if (btn && input) {
+        btn.addEventListener('click', function () {
+            const code = input.value.trim();
+            if (!code) {
+                showFeedback('Masukkan kode promo terlebih dahulu.', false);
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '...';
+
+            fetch('{{ route("cart.validatePromo") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ promo_code: code }),
+            })
+            .then(r => r.json())
+            .then(data => {
+                showFeedback(data.message, data.valid);
+
+                if (data.valid) {
+                    // Tampilkan baris diskon
+                    discountLabel.textContent = data.label;
+                    discountValue.textContent = '- ' + formatRupiah(data.discount);
+                    discountRow.classList.remove('hidden');
+                    discountRow.style.display = 'flex';
+
+                    // Tampilkan total akhir
+                    totalValue.textContent = formatRupiah(data.final_total);
+                    totalRow.classList.remove('hidden');
+                    totalRow.style.display = 'flex';
+                } else {
+                    resetDiscount();
+                    // Kosongkan field jika kode tidak valid supaya tidak ikut saat submit
+                    input.value = '';
+                }
+            })
+            .catch(() => {
+                showFeedback('Terjadi kesalahan. Coba lagi.', false);
+                resetDiscount();
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = 'Terapkan';
+            });
+        });
+
+        // Reset preview ketika kode diubah manual
+        input.addEventListener('input', function () {
+            feedback.classList.add('hidden');
+            resetDiscount();
+        });
+    }
+})();
+</script>
 
 @endsection

@@ -94,13 +94,16 @@ class Hotel extends Model
         $checkIn = $checkIn instanceof \DateTimeInterface ? $checkIn->format('Y-m-d') : $checkIn;
         $checkOut = $checkOut instanceof \DateTimeInterface ? $checkOut->format('Y-m-d') : $checkOut;
 
-        $overlapping = $this->bookings()
+        // Satu booking bisa memesan lebih dari satu kamar (rooms_count), jadi yang
+        // dikurangkan adalah jumlah kamarnya, bukan jumlah barisnya.
+        // Status yang "menempati" kamar: pending (belum bayar), confirmed (sudah bayar), checked-in (sudah masuk)
+        $overlapping = (int) $this->bookings()
             ->where('room_type', $roomType)
-            ->whereIn('status', ['pending', 'checked-in'])
+            ->whereIn('status', ['pending', 'confirmed', 'checked-in'])
             ->where('check_in_date', '<', $checkOut)
             ->where('check_out_date', '>', $checkIn)
             ->when($excludeBookingId, fn ($q) => $q->where('id', '!=', $excludeBookingId))
-            ->count();
+            ->sum('rooms_count');
 
         return max($total - $overlapping, 0);
     }

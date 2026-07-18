@@ -43,8 +43,20 @@ class CartItem extends Model
         return (int) ($this->details['quantity'] ?? 1);
     }
 
+    /** Jumlah kamar (khusus hotel); item lain selalu 1. */
+    public function rooms(): int
+    {
+        return max((int) ($this->details['rooms'] ?? 1), 1);
+    }
+
     public function subtotal(): float
     {
-        return $this->unitPrice() * $this->quantity();
+        $subtotal = $this->unitPrice() * $this->quantity();
+
+        if ($this->itemType() === 'hotel') {
+            $subtotal *= $this->rooms();
+        }
+
+        return $subtotal;
     }
 }

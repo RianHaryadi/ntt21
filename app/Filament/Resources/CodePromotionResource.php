@@ -29,7 +29,8 @@ class CodePromotionResource extends Resource
                 TextInput::make('code')
                     ->required()
                     ->unique(ignoreRecord: true)
-                    ->label('Promo Code'),
+                    ->label('Promo Code')
+                    ->helperText('Kode unik yang dimasukkan user, akan otomatis dijadikan huruf besar.'),
 
                 Textarea::make('description')
                     ->label('Description')
@@ -37,13 +38,19 @@ class CodePromotionResource extends Resource
 
                 TextInput::make('discount_amount')
                     ->numeric()
-                    ->label('Discount Amount')
-                    ->nullable(),
+                    ->label('Discount Amount (Rp)')
+                    ->nullable()
+                    ->prefix('Rp')
+                    ->helperText('Isi SALAH SATU: nominal tetap (misal: 50000) ATAU persen di bawah. Jangan isi keduanya.'),
 
                 TextInput::make('discount_percent')
                     ->numeric()
                     ->label('Discount Percent (%)')
-                    ->nullable(),
+                    ->nullable()
+                    ->suffix('%')
+                    ->minValue(0)
+                    ->maxValue(100)
+                    ->helperText('Isi SALAH SATU: persen (misal: 10 untuk 10%) ATAU nominal di atas. Jangan isi keduanya.'),
 
                 DatePicker::make('valid_from')
                     ->label('Valid From')
@@ -57,6 +64,7 @@ class CodePromotionResource extends Resource
                     ->label('Active')
                     ->default(true),
             ]);
+
     }
 
     public static function table(Table $table): Table

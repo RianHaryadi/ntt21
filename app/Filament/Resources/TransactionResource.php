@@ -149,28 +149,22 @@ class TransactionResource extends Resource
         $set('total_price', $total);
     }
 
-    public static function mutateFormDataBeforeCreate(array $data): array
+    public static function getNavigationBadge(): ?string
     {
-        $price = 0;
-        if ($data['tour_package_id']) {
-            $price = TourPackage::find($data['tour_package_id'])?->price ?? 0;
-        } elseif ($data['destination_id']) {
-            $price = Destination::find($data['destination_id'])?->price ?? 0;
-        }
+        // Bug fix: hanya hitung transaksi pending yang butuh konfirmasi admin
+        $count = static::getModel()::where('status', 'pending')->count();
+        return $count > 0 ? (string) $count : null;
+    }
 
-        $qty = $data['number_of_tickets'] ?? 1;
-        $subtotal = $price * $qty;
-        $discountAmount = $data['discount_amount'] ?? 0;
-        $discountPercent = $data['discount_percent'] ?? 0;
+    public static function getNavigationBadgeColor(): string | array | null
+    {
+        $count = static::getModel()::where('status', 'pending')->count();
 
-        $calculatedDiscount = $discountAmount > 0
-            ? $discountAmount
-            : ($discountPercent > 0 ? ($subtotal * ($discountPercent / 100)) : 0);
-
-        $data['package_price'] = $price;
-        $data['total_price'] = max($subtotal - $calculatedDiscount, 0);
-
-        return $data;
+        return match (true) {
+            $count === 0 => 'gray',
+            $count < 5   => 'warning',
+            default      => 'danger',
+        };
     }
 
     public static function table(Table $table): Table
@@ -219,22 +213,8 @@ class TransactionResource extends Resource
             ]);
     }
 
-    public static function getNavigationBadge(): ?string
-    {
-        return (string) static::getModel()::count();
-    }
 
-    public static function getNavigationBadgeColor(): string | array | null
-    {
-        $count = static::getModel()::count();
 
-        return match (true) {
-            $count === 0 => 'gray',
-            $count < 5 => 'warning',
-            $count < 20 => 'success',
-            default => 'primary',
-        };
-    }
 
     public static function getPages(): array
     {

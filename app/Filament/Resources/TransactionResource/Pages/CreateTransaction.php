@@ -3,34 +3,40 @@
 namespace App\Filament\Resources\TransactionResource\Pages;
 
 use App\Filament\Resources\TransactionResource;
+use App\Models\Destination;
+use App\Models\TourPackage;
 use Filament\Resources\Pages\CreateRecord;
-use App\Models\BookingHotel;
 
 class CreateTransaction extends CreateRecord
 {
     protected static string $resource = TransactionResource::class;
 
-    protected function afterCreate(): void
+    /**
+     * Bug fix #11: mutateFormDataBeforeCreate harus di Pages\CreateRecord, bukan di Resource.
+     * Ini yang dipanggil Filament sebelum data form disimpan ke database.
+     */
+    protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $transaction = $this->record;
+        $price = 0;
 
-        // Contoh generate tiket jika status confirmed
-        if ($transaction->status === 'confirmed') {
-            // $transaction->generateTicket();
+        if (!empty($data['tour_package_id'])) {
+            $price = TourPackage::find($data['tour_package_id'])?->price ?? 0;
+        } elseif (!empty($data['destination_id'])) {
+            $price = Destination::find($data['destination_id'])?->price ?? 0;
         }
 
-        // Cek data hotel dan tipe kamar dari transaksi
-        if ($transaction->hotel_id && $transaction->room_type) {
-            BookingHotel::create([
-                'hotel_id' => $transaction->hotel_id,
-                'room_type' => $transaction->room_type,
-                'status' => 'pending', // sesuai enum di booking_hotels migration
-                'check_in_date' => $transaction->transaction_date, // sesuaikan field tanggal di transaksi
-                'night_count' => $transaction->night_count ?? 1,
-                'customer_name' => $transaction->customer_name ?? 'Unknown',
-                'customer_email' => $transaction->customer_email ?? 'example@example.com',
-                // bisa tambah field lain sesuai kebutuhan dan migrasi
-            ]);
-        }
+        $qty            = $data['number_of_tickets'] ?? 1;
+        $subtotal       = $price * $qty;
+        $discountAmount  = $data['discount_amount'] ?? 0;
+        $discountPercent = $data['discount_percent'] ?? 0;
+
+        $calculatedDiscount = $discountAmount > 0
+            ? $discountAmount
+            : ($discountPercent > 0 ? ($subtotal * ($discountPercent / 100)) : 0);
+
+        $data['package_price'] = $price;
+        $data['total_price']   = max($subtotal - $calculatedDiscount, 0);
+
+        return $data;
     }
 }

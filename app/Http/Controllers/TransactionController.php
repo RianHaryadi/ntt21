@@ -138,14 +138,22 @@ class TransactionController extends Controller
     }
 
     /**
-     * Terapkan status pembayaran baru ke satu BookingHotel yang tergabung dalam Order,
-     * plus efek samping (poin loyalti). BookingHotel dari alur "Book Now" langsung tidak
-     * lewat sini karena tidak pernah bayar via Midtrans.
+     * Terapkan status pembayaran baru ke satu BookingHotel yang tergabung dalam Order.
+     * Saat pembayaran berhasil (paid): status menjadi 'confirmed' (sudah bayar, menunggu check-in fisik).
+     * Admin yang akan mengubah ke 'checked_in' lewat panel Filament saat tamu tiba.
      */
     private function applyBookingHotelStatus(BookingHotel $booking, string $newStatus, ?string $paymentMethod): void
     {
+        $statusMap = [
+            Transaction::STATUS_PAID      => 'confirmed',   // bayar lunas → menunggu check-in
+            Transaction::STATUS_CANCELLED => 'cancelled',
+            Transaction::STATUS_EXPIRED   => 'cancelled',
+        ];
+
+        $mappedStatus = $statusMap[$newStatus] ?? null;
+
         $booking->update([
-            'status' => $newStatus === Transaction::STATUS_PAID ? 'checked-in' : $booking->status,
+            'status'         => $mappedStatus ?? $booking->status,
             'payment_method' => $paymentMethod,
         ]);
 

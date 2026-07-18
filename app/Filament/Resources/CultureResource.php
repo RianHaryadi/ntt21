@@ -61,8 +61,11 @@ class CultureResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TagsColumn::make('tags')
+                // Bug fix: TagsColumn tidak ada di Filament v3, gunakan TextColumn->badge()->separator()
+                Tables\Columns\TextColumn::make('tags')
                     ->label('Tags')
+                    ->badge()
+                    ->separator(',')
                     ->limit(3),
 
                 Tables\Columns\ImageColumn::make('image')

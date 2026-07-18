@@ -50,7 +50,7 @@
         </div>
 
         <!-- Chat Messages Area -->
-        <div class="flex-1 overflow-y-auto px-4 py-5 space-y-4" id="chat-area" style="scroll-behavior:smooth;">
+        <div class="flex-1 overflow-y-auto px-4 py-5 flex flex-col gap-4" id="chat-area" style="scroll-behavior:smooth;">
 
             {{-- Static welcome message when session not started yet (popup lazy mode) --}}
             @if($messages->isEmpty())
@@ -68,7 +68,7 @@
             @endif
 
             @foreach ($messages as $message)
-                <div class="flex {{ $message->role === 'user' ? 'justify-end' : 'justify-start' }} items-start gap-2.5">
+                <div wire:key="chat-msg-{{ $message->id }}" class="flex {{ $message->role === 'user' ? 'justify-end' : 'justify-start' }} items-start gap-2.5">
 
                     @if ($message->role !== 'user')
                         <div class="w-7 h-7 rounded-full bg-clay flex items-center justify-center text-white text-[10px] shrink-0 shadow-md">
@@ -87,16 +87,30 @@
                 </div>
             @endforeach
 
-            <!-- Typing indicator -->
-            <div wire:loading wire:target="sendMessage" class="flex justify-start items-start gap-2.5">
+            <!-- Typing indicator (dengan status berganti agar tak terasa nge-freeze) -->
+            <div wire:loading wire:target="sendMessage" id="ara-typing" class="flex justify-start items-start gap-2.5 order-last">
                 <div class="w-7 h-7 rounded-full bg-clay flex items-center justify-center text-white text-[10px] shrink-0">
                     <i class="fas fa-compass"></i>
                 </div>
-                <div class="bg-paper/5 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-3 shadow-soft">
-                    <div class="flex gap-1.5 items-center h-4">
-                        <span class="w-2 h-2 bg-clay rounded-full animate-bounce [animation-delay:0ms]"></span>
-                        <span class="w-2 h-2 bg-clay rounded-full animate-bounce [animation-delay:150ms]"></span>
-                        <span class="w-2 h-2 bg-clay rounded-full animate-bounce [animation-delay:300ms]"></span>
+                <div class="bg-paper/5 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-3 shadow-soft"
+                     x-data="{
+                         msgs: ['Ara sedang berpikir…','Menelusuri hidden gems NTT…','Mencocokkan dengan preferensimu…','Menyusun rekomendasi terbaik…','Hampir selesai…'],
+                         i: 0, msg: 'Ara sedang berpikir…', timer: null,
+                         start() {
+                             this.i = 0; this.msg = this.msgs[0];
+                             clearInterval(this.timer);
+                             this.timer = setInterval(() => { this.i = (this.i + 1) % this.msgs.length; this.msg = this.msgs[this.i]; }, 2600);
+                         },
+                         init() { this.start(); }
+                     }"
+                     x-on:ara-thinking-start.window="start()">
+                    <div class="flex items-center gap-2.5 h-4">
+                        <div class="flex gap-1.5 items-center">
+                            <span class="w-2 h-2 bg-clay rounded-full animate-bounce [animation-delay:0ms]"></span>
+                            <span class="w-2 h-2 bg-clay rounded-full animate-bounce [animation-delay:150ms]"></span>
+                            <span class="w-2 h-2 bg-clay rounded-full animate-bounce [animation-delay:300ms]"></span>
+                        </div>
+                        <span class="text-[11px] text-gray-400 font-medium whitespace-nowrap" x-text="msg"></span>
                     </div>
                 </div>
             </div>
@@ -159,11 +173,17 @@
                     div.className = 'flex justify-end items-start gap-2.5 optimistic-bubble';
                     const safe = msg.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
                     div.innerHTML = `<div class="max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed bg-gradient-to-tr from-clay to-ink text-white rounded-tr-sm shadow-[0_4px_15px_rgba(15,110,99,0.2)]"><div class="prose prose-invert max-w-none text-inherit text-sm">${safe}</div></div>`;
+
+                    // Tambahkan di akhir (aman untuk morph Livewire). Posisi visual di atas
+                    // indikator "..." dijamin oleh CSS order-last pada #ara-typing.
                     chatArea.appendChild(div);
                     chatArea.scrollTop = chatArea.scrollHeight;
 
                     // Kosongkan input langsung (visual, sebelum Livewire selesai)
                     input.value = '';
+
+                    // Reset status "Ara sedang berpikir…" agar mulai dari awal tiap kirim.
+                    window.dispatchEvent(new CustomEvent('ara-thinking-start'));
                 };
 
                 form.addEventListener('submit', form._optimisticHandler);

@@ -172,6 +172,12 @@ class AIController extends Controller
         return view('ai.hub');
     }
 
+    // ── Halaman AI Itinerary Builder ─────────────────────────────────────
+    public function itinerary()
+    {
+        return view('ai.itinerary');
+    }
+
     // ── Halaman Smart Search ─────────────────────────────────────────────
     public function searchPage()
     {

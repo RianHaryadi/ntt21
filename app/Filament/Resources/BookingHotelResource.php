@@ -108,13 +108,16 @@ class BookingHotelResource extends Resource
                                 break;
                         }
 
+                        // Pajak & service dihitung per malam, bukan per kamar
+                        $nightCount = max((int) $get('night_count'), 1);
                         $tax = $roomPrice * 0.1;
                         $serviceCharge = $roomPrice * 0.05;
 
                         $set('room_price', $roomPrice);
                         $set('tax', $tax);
                         $set('service_charge', $serviceCharge);
-                        $set('total_price', $roomPrice + $tax + $serviceCharge);
+                        // Total = (harga + pajak + service) × malam
+                        $set('total_price', ($roomPrice + $tax + $serviceCharge) * $nightCount);
                     }
                 }),
 
@@ -131,20 +134,20 @@ class BookingHotelResource extends Resource
                     ->required()
                     ->reactive()
                     ->afterStateUpdated(function (callable $set, $state, Get $get) {
-                        // Pastikan $checkInDate adalah objek Carbon
-                        $checkInDate = Carbon::parse($state); // Mengubah string menjadi objek Carbon
+                        $checkInDate = Carbon::parse($state);
                         $checkOutDate = $get('check_out_date') ? Carbon::parse($get('check_out_date')) : null;
 
                         if ($checkInDate && $checkOutDate) {
                             $nightCount = max(1, $checkInDate->diffInDays($checkOutDate));
                             $set('night_count', $nightCount);
-                            $roomPrice = $get('room_price');
-                            $tax = $get('tax'); // Ambil nilai pajak dari form
-                            $serviceCharge = $get('service_charge'); // Ambil nilai biaya layanan dari form
+                            $roomPrice = (float) $get('room_price');
+                            $tax = $roomPrice * 0.1;
+                            $serviceCharge = $roomPrice * 0.05;
 
-                            // Perhitungan total harga berdasarkan jumlah malam, pajak, dan biaya layanan
-                            $totalPrice = ($roomPrice * $nightCount) + $tax + $serviceCharge;
-                            $set('total_price', $totalPrice);
+                            $set('tax', $tax);
+                            $set('service_charge', $serviceCharge);
+                            // Total = (harga + pajak + service) × malam
+                            $set('total_price', ($roomPrice + $tax + $serviceCharge) * $nightCount);
                         }
                     }),
 
@@ -153,20 +156,20 @@ class BookingHotelResource extends Resource
                     ->required()
                     ->reactive()
                     ->afterStateUpdated(function (callable $set, $state, Get $get) {
-                        // Pastikan $checkOutDate adalah objek Carbon
                         $checkInDate = $get('check_in_date') ? Carbon::parse($get('check_in_date')) : null;
-                        $checkOutDate = Carbon::parse($state); // Mengubah string menjadi objek Carbon
+                        $checkOutDate = Carbon::parse($state);
 
                         if ($checkInDate && $checkOutDate) {
-                           $nightCount = max(1, $checkInDate->diffInDays($checkOutDate));
+                            $nightCount = max(1, $checkInDate->diffInDays($checkOutDate));
                             $set('night_count', $nightCount);
-                            $roomPrice = $get('room_price');
-                            $tax = $get('tax'); // Ambil nilai pajak dari form
-                            $serviceCharge = $get('service_charge'); // Ambil nilai biaya layanan dari form
+                            $roomPrice = (float) $get('room_price');
+                            $tax = $roomPrice * 0.1;
+                            $serviceCharge = $roomPrice * 0.05;
 
-                            // Perhitungan total harga berdasarkan jumlah malam, pajak, dan biaya layanan
-                            $totalPrice = ($roomPrice * $nightCount) + $tax + $serviceCharge;
-                            $set('total_price', $totalPrice);
+                            $set('tax', $tax);
+                            $set('service_charge', $serviceCharge);
+                            // Total = (harga + pajak + service) × malam
+                            $set('total_price', ($roomPrice + $tax + $serviceCharge) * $nightCount);
                         }
                     }),
 
@@ -177,7 +180,8 @@ class BookingHotelResource extends Resource
                     ->disabled(),
 
                 // Pilihan kode promo
-               Select::make('promo_code') // atau 'code' jika memang field-nya itu
+               // Bug fix: simpan promo_code_id (FK) bukan string code
+                Select::make('promo_code_id')
                 ->label('Promo Code')
                 ->searchable()
                 ->nullable()
@@ -185,57 +189,60 @@ class BookingHotelResource extends Resource
                     return CodePromotion::where('active', true)
                         ->whereDate('valid_from', '<=', now())
                         ->whereDate('valid_until', '>=', now())
-                        ->pluck('code', 'code'); // kode = value dan label
+                        ->pluck('code', 'id'); // value = id (FK), label = code
                 })
                 ->reactive()
                 ->afterStateUpdated(function ($state, Set $set, Get $get) {
                     $discount = 0;
 
-                    $basePrice = $get('base_price') ?? 0;
-                    $variantPrice = $get('variant_price') ?? 0;
-                    $qty = $get('ticket_quantity') ?? 1;
-
                     if ($state) {
-                        $promo = CodePromotion::where('code', $state)->first();
+                        $promo = CodePromotion::find($state);
 
                         if ($promo && $promo->isValid()) {
-                            $subtotal = ($basePrice + $variantPrice) * $qty;
+                            // Subtotal = (harga kamar + pajak + service) × malam
+                            $roomPrice  = (float) $get('room_price');
+                            $nightCount = max((int) $get('night_count'), 1);
+                            $subtotal   = ($roomPrice * 1.15) * $nightCount; // 10% pajak + 5% service
 
-                            if (!is_null($promo->discount_percent)) {
+                            // Bug fix: gunakan > 0, bukan !is_null()
+                            if (!empty($promo->discount_percent) && $promo->discount_percent > 0) {
                                 $discount = $subtotal * ($promo->discount_percent / 100);
-                            } elseif (!is_null($promo->discount_amount)) {
+                            } elseif (!empty($promo->discount_amount) && $promo->discount_amount > 0) {
                                 $discount = $promo->discount_amount;
                             }
                         }
                     }
 
-                    $set('discount', $discount);
-                    $set('total_price', max((($basePrice + $variantPrice) * $qty) - $discount, 0));
+                    $set('discount_amount', $discount);
+                    $roomPrice  = (float) $get('room_price');
+                    $nightCount = max((int) $get('night_count'), 1);
+                    $tax        = $roomPrice * 0.1;
+                    $service    = $roomPrice * 0.05;
+                    $set('total_price', max((($roomPrice + $tax + $service) * $nightCount) - $discount, 0));
                 }),
 
-                // Status booking
+                // Status booking — sesuai flow: pending → confirmed → checked-in → checked-out
                 Forms\Components\Select::make('status')
                     ->label('Status')
                     ->options([
-                        'pending' => 'Pending',
-                        'checked-in' => 'Checked-in',
-                        'checked-out' => 'Checked-out',
-                        'failed' => 'Failed',
+                        'pending'      => '⏳ Pending (Belum Bayar)',
+                        'confirmed'    => '✅ Confirmed (Sudah Bayar)',
+                        'checked-in'   => '🏨 Checked-In (Sedang Menginap)',
+                        'checked-out'  => '🚪 Checked-Out (Selesai)',
+                        'cancelled'    => '❌ Cancelled',
                     ])
-
                     ->default('pending')
                     ->required(),
 
-                // Payment Method
+                // Payment Method — nullable saja, tidak required (bisa belum diisi saat admin buat manual)
                 Forms\Components\Select::make('payment_method')
                     ->label('Payment Method')
                     ->options([
                         'transfer' => 'Transfer',
-                        'qris' => 'QRIS',
-                        'cash' => 'Cash',
+                        'qris'     => 'QRIS',
+                        'cash'     => 'Cash',
                     ])
-                    ->nullable()
-                    ->required(),
+                    ->nullable(),
 
                 // Pajak
                 Forms\Components\TextInput::make('tax')
@@ -319,134 +326,179 @@ class BookingHotelResource extends Resource
 
             Tables\Columns\TextColumn::make('status')
                 ->label('Status')
-                ->formatStateUsing(function ($state) {
-                    return match ($state) {
-                        'pending' => 'Pending',
-                        'checked-in' => 'Checked-in',
-                        'checked-out' => 'Checked-out',
-                        'failed' => 'Failed',
-                        default => 'Unknown',
-                    };
+                ->formatStateUsing(fn ($state) => match ($state) {
+                    'pending'     => 'Pending',
+                    'confirmed'   => 'Confirmed',
+                    'checked-in'  => 'Checked-in',
+                    'checked-out' => 'Checked-out',
+                    'cancelled'   => 'Cancelled',
+                    'canceled'    => 'Cancelled',
+                    'failed'      => 'Failed',
+                    default       => $state,
                 })
-                ->badge(function ($state) {
-                    return match ($state) {
-                        'pending' => 'warning',
-                        'checked-in' => 'success',
-                        'checked-out' => 'primary',
-                        'failed' => 'danger',
-                        default => 'secondary',
-                    };
+                ->badge()
+                ->color(fn ($state) => match ($state) {
+                    'pending'     => 'warning',
+                    'confirmed'   => 'info',
+                    'checked-in'  => 'success',
+                    'checked-out' => 'primary',
+                    'cancelled',
+                    'canceled',
+                    'failed'      => 'danger',
+                    default       => 'gray',
                 })
                 ->sortable(),
 
             Tables\Columns\TextColumn::make('payment_method')
-                ->label('Payment Method')
-                ->formatStateUsing(function ($state) {
-                    return match ($state) {
-                        'pending' => 'Pending',
-                        'transfer' => 'Transfer',
-                        'qris' => 'QRIS',
-                        'cash' => 'Cash',
-                        default => 'Unknown',
-                    };
+                ->label('Payment')
+                ->formatStateUsing(fn ($state) => match ($state) {
+                    'transfer' => 'Transfer',
+                    'qris'     => 'QRIS',
+                    'cash'     => 'Cash',
+                    default    => $state ?? '-',
                 })
-                ->badge(function ($state) {
-                    return match ($state) {
-                        'pending' => 'warning',
-                        'transfer' => 'info',
-                        'qris' => 'success',
-                        'cash' => 'primary',
-                        default => 'secondary',
-                    };
+                ->badge()
+                ->color(fn ($state) => match ($state) {
+                    'transfer' => 'info',
+                    'qris'     => 'success',
+                    'cash'     => 'primary',
+                    default    => 'gray',
                 })
                 ->sortable(),
+
 
             Tables\Columns\TextColumn::make('total_price')
                 ->label('Total Price')
                 ->money('IDR') // Menggunakan IDR untuk mata uang Indonesia
         ])
         ->filters([
-            //
+            Tables\Filters\SelectFilter::make('status')
+                ->options([
+                    'pending'     => '⏳ Pending',
+                    'confirmed'   => '✅ Confirmed',
+                    'checked-in'  => '🏨 Checked-In',
+                    'checked-out' => '🚪 Checked-Out',
+                    'cancelled'   => '❌ Cancelled',
+                ]),
         ])
         ->actions([
-            
-            Action::make('approve')
-            ->label('Approve')
-            ->icon('heroicon-m-check-circle')
-            ->color('success')
-            ->visible(fn ($record) => $record->status === 'pending')
-            ->action(function ($record) {
-                $roomType = $record->room_type;
-                $hotel = $record->hotel;
-
-                // Cek ketersediaan kamar untuk rentang tanggal booking ini
-                // (kecualikan booking ini sendiri dari hitungan karena statusnya masih 'pending')
-                if (!$hotel->isRoomAvailable($roomType, $record->check_in_date, $record->check_out_date, $record->id)) {
-                    \Filament\Notifications\Notification::make()
-                        ->title('Kamar tipe ini sudah penuh untuk tanggal tersebut!')
-                        ->danger()
-                        ->send();
-                    return;
-                }
-
-                // Lanjutkan logic approve booking di bawah ini
-                $record->status = 'checked-in';
-                $record->save();
-
-                $roomNumber = \App\Models\HotelRoom::generateRoomNumber($roomType);
-
-                \App\Models\HotelRoom::create([
-                    'booking_number' => $record->booking_number,
-                    'customer_name' => $record->customer_name,
-                    'room_type' => $record->room_type,
-                    'room_number' => $roomNumber,
-                    'status' => 'not available',
-                    'booking_hotel_id' => $record->id,
-                ]);
-
-                app(\App\Services\LoyaltyService::class)->awardForHotelBooking($record);
-            })
-            ->requiresConfirmation()
-            ->successNotificationTitle('Booking approved!'),
-
-            Action::make('fail')
-                ->label('Fail')
-                ->icon('heroicon-m-x-circle')
-                ->color('danger')
-                ->visible(fn ($record) => $record->status === 'pending') // Tampil hanya jika status pending
+            // 1. CONFIRM — pending → confirmed (untuk booking manual admin tanpa Midtrans)
+            Action::make('confirm')
+                ->label('Confirm')
+                ->icon('heroicon-m-check-badge')
+                ->color('info')
+                ->visible(fn ($record) => $record->status === 'pending')
                 ->action(function ($record) {
-                    $record->status = 'failed';
-                    $record->save();
+                    $record->update(['status' => 'confirmed']);
 
-                    // Bebaskan kamar yang sebelumnya di-assign untuk booking ini (jika ada)
-                    $hotelRoom = HotelRoom::where('booking_number', $record->booking_number)->first();
-                    if ($hotelRoom) {
-                        $hotelRoom->status = 'available';
-                        $hotelRoom->save();
-                    }
+                    \Filament\Notifications\Notification::make()
+                        ->title('Booking dikonfirmasi — menunggu check-in tamu.')
+                        ->success()
+                        ->send();
                 })
                 ->requiresConfirmation()
-                ->successNotificationTitle('Booking failed!'),
-                Action::make('checkout')
-    ->label('Check Out')
-    ->icon('heroicon-m-arrow-right-on-rectangle')
-    ->color('primary')
-    ->visible(fn ($record) => $record->status === 'checked-in')
-    ->action(function ($record) {
-        $record->status = 'checked-out';
-        $record->save();
+                ->modalHeading('Konfirmasi Booking')
+                ->modalDescription('Tandai booking ini sebagai sudah dikonfirmasi/dibayar?'),
 
-        // Update status kamar menjadi available
-        $hotelRoom = \App\Models\HotelRoom::where('booking_number', $record->booking_number)->first();
-        if ($hotelRoom) {
-            $hotelRoom->status = 'available';
-            $hotelRoom->save();
-        }
-    })
-    ->requiresConfirmation()
-      ->successNotificationTitle('Booking checked out!')
-        ],
-        )
+            // 2. CHECK IN — confirmed → checked-in (tamu tiba fisik)
+            Action::make('checkin')
+                ->label('Check In')
+                ->icon('heroicon-m-arrow-left-on-rectangle')
+                ->color('success')
+                ->visible(fn ($record) => $record->status === 'confirmed')
+                ->action(function ($record) {
+                    $roomType = $record->room_type;
+                    $hotel    = $record->hotel;
+
+                    // Verifikasi ulang ketersediaan kamar saat check-in
+                    if (!$hotel->isRoomAvailable($roomType, $record->check_in_date, $record->check_out_date, $record->id)) {
+                        \Filament\Notifications\Notification::make()
+                            ->title('Kamar tipe ini sudah penuh untuk tanggal tersebut!')
+                            ->danger()
+                            ->send();
+                        return;
+                    }
+
+                    $record->update(['status' => 'checked-in']);
+
+                    // Buat record HotelRoom untuk kamar yang digunakan
+                    try {
+                        $roomNumber = \App\Models\HotelRoom::generateRoomNumber($roomType);
+                        \App\Models\HotelRoom::create([
+                            'booking_number'   => $record->booking_number,
+                            'customer_name'    => $record->customer_name,
+                            'room_type'        => $record->room_type,
+                            'room_number'      => $roomNumber,
+                            'status'           => 'not available',
+                            'booking_hotel_id' => $record->id,
+                        ]);
+                    } catch (\Exception $e) {
+                        \Filament\Notifications\Notification::make()
+                            ->title('Check-in berhasil, tapi nomor kamar tidak bisa di-generate: ' . $e->getMessage())
+                            ->warning()
+                            ->send();
+                    }
+
+                    \Filament\Notifications\Notification::make()
+                        ->title('Tamu berhasil check-in! 🏨')
+                        ->success()
+                        ->send();
+                })
+                ->requiresConfirmation()
+                ->modalHeading('Check-In Tamu')
+                ->modalDescription('Tandai tamu ini sebagai sudah check-in? Nomor kamar akan digenerate otomatis.'),
+
+            // 3. CHECK OUT — checked-in → checked-out (tamu pergi)
+            Action::make('checkout')
+                ->label('Check Out')
+                ->icon('heroicon-m-arrow-right-on-rectangle')
+                ->color('primary')
+                ->visible(fn ($record) => $record->status === 'checked-in')
+                ->action(function ($record) {
+                    $record->update(['status' => 'checked-out']);
+
+                    // Bebaskan kamar
+                    $hotelRoom = \App\Models\HotelRoom::where('booking_hotel_id', $record->id)->first();
+                    if ($hotelRoom) {
+                        $hotelRoom->update(['status' => 'available']);
+                    }
+
+                    \Filament\Notifications\Notification::make()
+                        ->title('Tamu berhasil check-out! 🚪')
+                        ->success()
+                        ->send();
+                })
+                ->requiresConfirmation()
+                ->modalHeading('Check-Out Tamu')
+                ->modalDescription('Tandai tamu ini sebagai sudah check-out? Kamar akan dibebaskan.'),
+
+            // 4. CANCEL — pending atau confirmed → cancelled
+            Action::make('cancel')
+                ->label('Cancel')
+                ->icon('heroicon-m-x-circle')
+                ->color('danger')
+                ->visible(fn ($record) => in_array($record->status, ['pending', 'confirmed']))
+                ->action(function ($record) {
+                    $record->update(['status' => 'cancelled']);
+
+                    // Bebaskan kamar jika sudah ada yang di-assign
+                    $hotelRoom = \App\Models\HotelRoom::where('booking_hotel_id', $record->id)->first();
+                    if ($hotelRoom) {
+                        $hotelRoom->update(['status' => 'available']);
+                    }
+
+                    \Filament\Notifications\Notification::make()
+                        ->title('Booking dibatalkan.')
+                        ->warning()
+                        ->send();
+                })
+                ->requiresConfirmation()
+                ->modalHeading('Batalkan Booking')
+                ->modalDescription('Yakin ingin membatalkan booking ini? Tindakan ini tidak bisa dibatalkan.'),
+
+            Tables\Actions\EditAction::make()->label('Edit'),
+        ])
+
         ->bulkActions([
             Tables\Actions\DeleteBulkAction::make()
                 ->label('Delete All')
@@ -458,18 +510,19 @@ class BookingHotelResource extends Resource
 
 public static function getNavigationBadge(): ?string
 {
-    return (string) static::getModel()::count();
+    // Bug fix: hanya hitung booking yang butuh perhatian admin (pending)
+    $count = static::getModel()::where('status', 'pending')->count();
+    return $count > 0 ? (string) $count : null;
 }
 
 public static function getNavigationBadgeColor(): string | array | null
 {
-    $count = static::getModel()::count();
+    $count = static::getModel()::where('status', 'pending')->count();
 
     return match (true) {
-        $count === 0        => 'gray',
-        $count < 5          => 'warning',
-        $count < 20         => 'success',
-        default             => 'primary',
+        $count === 0 => 'gray',
+        $count < 5   => 'warning',
+        default      => 'danger',
     };
 }
 

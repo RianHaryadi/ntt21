@@ -9,6 +9,7 @@ use App\Models\Hotel;
 use App\Models\Order;
 use App\Models\Transaction;
 use App\Models\TourPackage;
+use App\Models\TourPackageVariant;
 use App\Services\CartService;
 use App\Services\MidtransService;
 use Carbon\Carbon;
@@ -110,6 +111,70 @@ class CartController extends Controller
         return back()->with('success', 'Item dihapus dari keranjang.');
     }
 
+    public function clear(CartService $cart)
+    {
+        $cart->clear();
+
+        return redirect()->route('cart.index')->with('success', 'Semua item dihapus dari keranjang.');
+    }
+
+    /**
+     * Validasi kode promo via AJAX dan kembalikan info diskon.
+     * Mendukung discount_amount (nominal) ATAU discount_percent (persen) — salah satu.
+     */
+    public function validatePromo(Request $request, CartService $cart): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'promo_code' => 'required|string|max:50',
+        ]);
+
+        $items = $cart->items();
+        $subtotal = $items->sum(fn ($item) => $item->subtotal());
+
+        $promo = CodePromotion::where('code', strtoupper($request->promo_code))
+            ->where('active', true)
+            ->whereDate('valid_from', '<=', now())
+            ->whereDate('valid_until', '>=', now())
+            ->where(fn ($q) => $q->whereNull('user_id')->orWhere('user_id', auth()->id()))
+            ->first();
+
+        if (!$promo) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Kode promo tidak valid, sudah kadaluarsa, atau tidak berlaku untuk akun Anda.',
+            ]);
+        }
+
+        // Hitung diskon: utamakan persen jika ada, fallback ke nominal
+        if (!empty($promo->discount_percent) && $promo->discount_percent > 0) {
+            $discount = $subtotal * $promo->discount_percent / 100;
+            $type = 'percent';
+            $value = $promo->discount_percent;
+            $label = "Diskon {$promo->discount_percent}%";
+        } elseif (!empty($promo->discount_amount) && $promo->discount_amount > 0) {
+            $discount = min($promo->discount_amount, $subtotal);
+            $type = 'amount';
+            $value = $promo->discount_amount;
+            $label = 'Diskon ' . number_format($promo->discount_amount, 0, ',', '.');
+        } else {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Kode promo ini tidak memiliki nilai diskon yang valid.',
+            ]);
+        }
+
+        return response()->json([
+            'valid'        => true,
+            'message'      => 'Kode promo berhasil diterapkan!',
+            'type'         => $type,
+            'value'        => $value,
+            'label'        => $label,
+            'discount'     => $discount,
+            'subtotal'     => $subtotal,
+            'final_total'  => max($subtotal - $discount, 0),
+        ]);
+    }
+
     public function checkout(Request $request, CartService $cart, MidtransService $midtrans)
     {
         $request->validate([
@@ -177,8 +242,21 @@ class CartController extends Controller
                 ];
             } elseif ($type === 'tour') {
                 $tour = TourPackage::findOrFail($cartItem->itemable_id);
-                $unitPrice = (float) $tour->price;
-                $qty = (int) $details['quantity'];
+
+                // Hormati varian harga bila item ditambahkan dengan varian
+                // (flat = harga total rombongan, qty 1; per orang = harga × tiket).
+                $variant = !empty($details['variant_id'])
+                    ? TourPackageVariant::where('tour_package_id', $tour->id)->find($details['variant_id'])
+                    : null;
+
+                if ($variant) {
+                    $qty = $variant->price_type === 'flat' ? 1 : max((int) $details['quantity'], 1);
+                    $unitPrice = (float) $variant->price;
+                } else {
+                    $unitPrice = (float) $tour->price;
+                    $qty = (int) $details['quantity'];
+                }
+
                 $total = $unitPrice * $qty;
                 $subtotal += $total;
 
@@ -190,25 +268,26 @@ class CartController extends Controller
             } else {
                 $hotel = Hotel::where('id', $cartItem->itemable_id)->lockForUpdate()->first();
                 $roomType = $details['room_type'];
+                $rooms = max((int) ($details['rooms'] ?? 1), 1);
                 $checkIn = Carbon::parse($details['check_in_date']);
                 $checkOut = Carbon::parse($details['check_out_date']);
 
-                if (!$hotel || !$hotel->isRoomAvailable($roomType, $checkIn, $checkOut)) {
-                    throw new \RuntimeException("Maaf, kamar di {$details['label']} sudah tidak tersedia untuk tanggal yang dipilih.");
+                if (!$hotel || $hotel->availableRooms($roomType, $checkIn, $checkOut) < $rooms) {
+                    throw new \RuntimeException("Maaf, kamar di {$details['label']} tidak cukup tersedia untuk tanggal yang dipilih.");
                 }
 
                 $nights = $checkIn->diffInDays($checkOut);
                 $priceKey = $roomType . '_room_price';
                 $basePrice = $hotel->$priceKey ?? 0;
                 $roomPrice = $hotel->flashSalePrice($basePrice) ?? $basePrice;
-                $base = $roomPrice * $nights;
+                $base = $roomPrice * $nights * $rooms;
                 $tax = $base * 0.10;
                 $service = $base * 0.05;
                 $total = $base + $tax + $service;
                 $subtotal += $total;
 
                 $prepared[] = [
-                    'type' => 'hotel', 'model' => $hotel, 'room_type' => $roomType,
+                    'type' => 'hotel', 'model' => $hotel, 'room_type' => $roomType, 'rooms' => $rooms,
                     'check_in' => $checkIn, 'check_out' => $checkOut, 'nights' => $nights,
                     'room_price' => $roomPrice, 'tax' => $tax, 'service' => $service, 'total' => $total,
                 ];
@@ -227,9 +306,15 @@ class CartController extends Controller
                 ->first();
 
             if ($promo) {
-                $discount = $promo->discount_percent
-                    ? ($subtotal * $promo->discount_percent / 100)
-                    : ($promo->discount_amount ?? 0);
+                if (!empty($promo->discount_percent) && $promo->discount_percent > 0) {
+                    // Diskon persentase
+                    $discount = $subtotal * $promo->discount_percent / 100;
+                } elseif (!empty($promo->discount_amount) && $promo->discount_amount > 0) {
+                    // Diskon nominal
+                    $discount = $promo->discount_amount;
+                } else {
+                    $discount = 0;
+                }
             }
         }
 
@@ -299,6 +384,7 @@ class CartController extends Controller
                     'user_id' => auth()->id(),
                     'hotel_id' => $item['model']->id,
                     'room_type' => $item['room_type'],
+                    'rooms_count' => $item['rooms'],
                     'customer_name' => $request->customer_name,
                     'customer_email' => $request->customer_email,
                     'customer_phone' => $request->customer_phone,

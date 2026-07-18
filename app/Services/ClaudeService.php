@@ -192,4 +192,71 @@ PROMPT;
         $result = preg_replace('/```json\s*|\s*```/', '', trim($result));
         return $result;
     }
+
+    /**
+     * Susun itinerary terstruktur (JSON) untuk AI Itinerary Builder.
+     *
+     * Kunci grounding: prompt menyertakan katalog produk berikut ID-nya, dan model
+     * diminta HANYA mereferensikan ID yang ada — sehingga hasilnya bisa langsung
+     * dipetakan ke destinasi/hotel/tour nyata yang bisa dibooking (bukan karangan).
+     *
+     * @param array  $params  ['region','days','pax','budget','interests']
+     * @param string $catalog Blok teks katalog produk beserta ID
+     * @return array|null      Struktur itinerary hasil decode, atau null jika gagal
+     */
+    public function generateItinerary(array $params, string $catalog): ?array
+    {
+        $region    = $params['region'] ?: 'mana pun di NTT';
+        $days      = (int) $params['days'];
+        $pax       = (int) $params['pax'];
+        $budget    = !empty($params['budget'])
+            ? 'sekitar Rp' . number_format((float) $params['budget'], 0, ',', '.')
+            : 'fleksibel';
+        $interests = !empty($params['interests'])
+            ? implode(', ', $params['interests'])
+            : 'umum';
+
+        $prompt = <<<PROMPT
+Kamu adalah perencana perjalanan ahli untuk Nusa Tenggara Timur (NTT).
+Susun itinerary {$days} hari untuk {$pax} orang di wilayah {$region}.
+Minat wisatawan: {$interests}. Perkiraan budget: {$budget}.
+
+{$catalog}
+
+ATURAN PENTING:
+- HANYA gunakan ID produk yang ADA di katalog di atas. JANGAN mengarang ID, nama, atau harga.
+- Setiap hari isi dengan 1-3 destinasi yang relevan dengan wilayah & minat wisatawan.
+- Pilih SATU hotel utama (hotel_id) sebagai akomodasi selama menginap.
+- Pilih 0-2 paket tour yang relevan (tour_ids) hanya bila benar-benar cocok; boleh kosong.
+- Usahakan total perkiraan biaya realistis terhadap budget bila memungkinkan.
+- Aktivitas & kuliner ditulis ringkas dalam Bahasa Indonesia.
+
+Balas HANYA dengan JSON valid (tanpa markdown, tanpa penjelasan tambahan) dengan struktur PERSIS:
+{
+  "title": "judul singkat perjalanan",
+  "summary": "2-3 kalimat ringkas tentang tema perjalanan",
+  "hotel_id": <id hotel dari katalog, atau null>,
+  "tour_ids": [<id paket tour dari katalog>],
+  "days": [
+    {"day": 1, "theme": "tema hari", "destination_ids": [<id destinasi>], "activities": ["aktivitas 1", "aktivitas 2"], "food": "rekomendasi kuliner lokal"}
+  ],
+  "tips": ["tips praktis 1", "tips praktis 2", "tips praktis 3"]
+}
+PROMPT;
+
+        $result = $this->ask($prompt, 3000);
+        if (!$result) {
+            return null;
+        }
+
+        // Bersihkan pagar markdown & ambil blok JSON pertama jika model menyisipkan teks lain.
+        $result = preg_replace('/```json\s*|\s*```/', '', trim($result));
+        if (preg_match('/\{.*\}/s', $result, $m)) {
+            $result = $m[0];
+        }
+
+        $parsed = json_decode($result, true);
+
+        return is_array($parsed) ? $parsed : null;
+    }
 }

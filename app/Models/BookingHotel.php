@@ -19,6 +19,7 @@ class BookingHotel extends Model
         'hotel_id',
         'hotel_room_id',
         'room_type',
+        'rooms_count',
         'customer_name',
         'customer_email',
         'customer_phone',
@@ -58,7 +59,8 @@ class BookingHotel extends Model
 
     public function isCancellable(): bool
     {
-        return $this->status === 'checked-in'
+        // Bug fix: izinkan pembatalan saat pending maupun checked-in
+        return in_array($this->status, ['pending', 'checked-in'])
             && is_null($this->cancellation_status);
     }
 
@@ -130,9 +132,12 @@ class BookingHotel extends Model
 
         $discount = 0;
         if ($this->promoCode) {
-            $discount = $this->promoCode->discount_type === 'percentage'
-                ? $basePrice * ($this->promoCode->discount_amount / 100)
-                : $this->promoCode->discount_amount;
+            // Bug fix: gunakan discount_percent/discount_amount (bukan discount_type yang tidak ada)
+            if (!empty($this->promoCode->discount_percent) && $this->promoCode->discount_percent > 0) {
+                $discount = $basePrice * ($this->promoCode->discount_percent / 100);
+            } elseif (!empty($this->promoCode->discount_amount) && $this->promoCode->discount_amount > 0) {
+                $discount = $this->promoCode->discount_amount;
+            }
         }
 
         $this->tax = $tax;

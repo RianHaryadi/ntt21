@@ -71,6 +71,55 @@ class TourPackageResource extends Resource
                         ->columnSpanFull(),
                 ]),
 
+            Forms\Components\Section::make('Varian Harga')
+                ->description('Pilihan harga per paket: Open Trip (per orang), Paket Keluarga / Private (harga total rombongan), dst. Harga "flat" berlaku untuk seluruh rombongan dalam batas min-max orang.')
+                ->collapsible()
+                ->schema([
+                    Forms\Components\Repeater::make('variants')
+                        ->relationship()
+                        ->label('Varian')
+                        ->schema([
+                            Forms\Components\TextInput::make('name')
+                                ->label('Nama Varian')
+                                ->placeholder('mis. Open Trip / Paket Keluarga / Private Trip')
+                                ->required(),
+
+                            Forms\Components\Select::make('price_type')
+                                ->label('Tipe Harga')
+                                ->options([
+                                    'per_person' => 'Per Orang',
+                                    'flat'       => 'Flat (total rombongan)',
+                                ])
+                                ->default('per_person')
+                                ->required(),
+
+                            Forms\Components\TextInput::make('price')
+                                ->label('Harga')
+                                ->numeric()
+                                ->prefix('IDR')
+                                ->required(),
+
+                            Forms\Components\TextInput::make('min_pax')
+                                ->label('Min Orang')
+                                ->numeric()
+                                ->default(1)
+                                ->minValue(1),
+
+                            Forms\Components\TextInput::make('max_pax')
+                                ->label('Max Orang (kosong = tak terbatas)')
+                                ->numeric()
+                                ->minValue(1),
+
+                            Forms\Components\TextInput::make('notes')
+                                ->label('Catatan')
+                                ->placeholder('mis. Gabung dengan wisatawan lain'),
+                        ])
+                        ->columns(3)
+                        ->defaultItems(0)
+                        ->addActionLabel('Tambah Varian')
+                        ->collapsible(),
+                ]),
+
             Forms\Components\Section::make('Relations & Options')
                 ->columns(2)
                 ->schema([

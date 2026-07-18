@@ -82,6 +82,34 @@
     </div>
 
     {{-- ═══════════════════════════════════════════
+         CTA: AI ITINERARY BUILDER (fitur unggulan)
+    ═══════════════════════════════════════════ --}}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
+        <a href="{{ route('ai.itinerary') }}"
+           class="group relative block bg-gradient-to-br from-petrol to-laut rounded-3xl overflow-hidden p-7 md:p-9 border border-white/5">
+            <div class="absolute -top-16 -right-10 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center gap-6">
+                <div class="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center shrink-0">
+                    <i class="fas fa-wand-magic-sparkles text-white text-2xl"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="inline-flex items-center gap-1.5 bg-white/15 text-white text-[10px] font-bold px-2.5 py-1 rounded-full mb-2">
+                        <i class="fas fa-star text-[9px]"></i> BARU · FITUR UNGGULAN
+                    </div>
+                    <h2 class="text-xl md:text-2xl font-black text-white font-serif tracking-tight">AI Itinerary Builder</h2>
+                    <p class="text-white/80 text-sm mt-1 max-w-xl leading-relaxed">
+                        Pilih wilayah, tanggal &amp; minat — AI menyusun rencana harian dari destinasi, hotel &amp;
+                        tour asli, lengkap estimasi budget, dan langsung bisa ditambahkan ke keranjang.
+                    </p>
+                </div>
+                <span class="inline-flex items-center gap-2 bg-white text-petrol text-sm font-bold px-5 py-3 rounded-xl shrink-0 group-hover:gap-3 transition-all">
+                    Coba Sekarang <i class="fas fa-arrow-right text-xs"></i>
+                </span>
+            </div>
+        </a>
+    </div>
+
+    {{-- ═══════════════════════════════════════════
          TABS
     ═══════════════════════════════════════════ --}}
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -54,7 +54,7 @@ class HotelResource extends Resource
                 Forms\Components\TextInput::make('family_room_price')
                     ->label('Family Room Price')
                     ->numeric()
-                    
+                    ->prefix('Rp')
                     ->required(),
 
                 Forms\Components\TextInput::make('room_count_single')
@@ -133,13 +133,38 @@ class HotelResource extends Resource
                     ->money('IDR'),
 
                 Tables\Columns\TextColumn::make('room_count_single')
-                    ->label('Single Rooms'),
+                    ->label('Single Rooms')
+                    ->formatStateUsing(fn ($state, $record) =>
+                        // Kamar tersedia hari ini / total kapasitas
+                        $record->availableRooms('single', today(), today()->addDay()) . ' / ' . $state
+                    )
+                    ->description('tersedia / total')
+                    ->color(fn ($state, $record) =>
+                        $record->availableRooms('single', today(), today()->addDay()) === 0 ? 'danger' : 'success'
+                    )
+                    ->badge(),
 
                 Tables\Columns\TextColumn::make('room_count_double')
-                    ->label('Double Rooms'),
+                    ->label('Double Rooms')
+                    ->formatStateUsing(fn ($state, $record) =>
+                        $record->availableRooms('double', today(), today()->addDay()) . ' / ' . $state
+                    )
+                    ->description('tersedia / total')
+                    ->color(fn ($state, $record) =>
+                        $record->availableRooms('double', today(), today()->addDay()) === 0 ? 'danger' : 'success'
+                    )
+                    ->badge(),
 
                 Tables\Columns\TextColumn::make('room_count_family')
-                    ->label('Family Rooms'),
+                    ->label('Family Rooms')
+                    ->formatStateUsing(fn ($state, $record) =>
+                        $record->availableRooms('family', today(), today()->addDay()) . ' / ' . $state
+                    )
+                    ->description('tersedia / total')
+                    ->color(fn ($state, $record) =>
+                        $record->availableRooms('family', today(), today()->addDay()) === 0 ? 'danger' : 'success'
+                    )
+                    ->badge(),
 
                 Tables\Columns\IconColumn::make('flash_sale_ends_at')
                     ->label('Flash Sale')
